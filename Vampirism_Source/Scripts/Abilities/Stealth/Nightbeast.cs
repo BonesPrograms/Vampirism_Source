@@ -26,9 +26,7 @@ namespace XRL.World.Parts
 		[NonSerialized]
 		public List<GameObject> Sentients = new();
 
-		/// <summary>
-		/// List of verified people within a range of 21 tiles. Companions not included. This list is useful if you want to mess with people who are nearby, but are not aware or in LOS.
-		/// </summary>
+
 		[NonSerialized]
 		public List<GameObject> ValidSentients = new();
 
@@ -359,5 +357,6 @@ namespace XRL.World.Parts
 		}
 	}
 }
+
 
 
