@@ -140,20 +140,7 @@ namespace XRL.World.Parts
 			}
 			else
 				Spotter.ApplyEffect(new Spotter(ParentObject, Nexus.Rules.FEED.DURATION));
-			return value; //assuming you want to do your own custom Alert and not use the provided one, a return value of true implies the sneak attack attempt failed due to spotting
-						  //which you could use as a prerequisite to activate your own more customized Alert, perhaps with effect applications and such.
-						  //i use the return value as a final check to decide if were going to do a sneak attack or not, as a followup to BeforeAttackValidate
-						  //it is the "order of operations", BeforeAttackValidate, then BeginAttackCheckIfSpotted. There should be only one or less witnesses when using
-						  //this method, and BeforeAttackValidate returns true if there are one or less witnesses, depending on which overload is used.
-
-			//BUG WARNING:
-			//if you plan to use Spotters, and your attack relies on "active stealth" (multiple turns of consistent stealth), such as by using StealthStage1 or StealthStage2 (like in Stealthfeeding)
-			//then I would highly recommend not allowing players to sneak attack if the return value is true,
-			//true means that the AI are on the exact edge of the AI_RADIUS
-			//and this will result in them, occasionally, instantly causing stealth to fail on the same turn that you activate it
-			//so it is more of a security measure; if any potential spotters in LOS are on the border of in-range and out-of-range
-			//then you should not allow the player to sneak attack, otherwise they will experience strange behavior
-
+			return value; 
 		}
 		public override bool WantEvent(int ID, int cascade)
 		{
@@ -372,4 +359,5 @@ namespace XRL.World.Parts
 		}
 	}
 }
+
 
