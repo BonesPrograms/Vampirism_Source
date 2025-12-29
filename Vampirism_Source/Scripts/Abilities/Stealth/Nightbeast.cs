@@ -127,7 +127,7 @@ namespace XRL.World.Parts
 			}
 			else //return valid for stealth if spotter is null/list is empty
 				return false;
-			int distance = Spotter.DistanceTo(ParentObject);
+			int distance = Spotter.DistanceTo(ParentObject); //it occurs to me reading this in git that i already have the distance lol. ill fix it later
 			bool value = (distance == AI_RADIUS || distance == AI_RADIUS + 1) && Spotter.HasLOSTo(ParentObject);
 			if (value == true)
 			{
@@ -372,3 +372,4 @@ namespace XRL.World.Parts
 		}
 	}
 }
+
