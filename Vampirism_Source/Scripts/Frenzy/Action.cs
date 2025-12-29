@@ -19,7 +19,9 @@ namespace Nexus.Frenzy
         readonly FrenzyAI AI;
         public Action(FrenzyAI AI) => this.AI = AI;
         Command Bite() => Biting.TryCreateInstance(AI.Object, AI.Target, out Biting Bite) && Bite.CannotFeed() ? BiteFailed() : Command.CONTINUE;
+        
         Command ScanForTargets() => AI.Object.canPathTo(AI.Target?.CurrentCell) ? Command.CONTINUE : ValidateScan();
+        
         Command EvaluateState() => Scan.Incap(AI.Object, true) ? Command.END : Command.CONTINUE;
         public void Act()
         {
@@ -83,4 +85,5 @@ namespace Nexus.Frenzy
             }
         }
     }
+
 }
