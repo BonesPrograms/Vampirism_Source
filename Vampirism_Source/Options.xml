@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<options>
+  <option
+    ID="FractusNerf"
+    DisplayText="Enable fractus nerf."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+    ID="humanity"
+    DisplayText="Enable humanity."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+    ID="frenzy"
+    DisplayText="Enable frenzy."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option 
+    ID="vampBloodNerf"
+    DisplayText="Enable changes to vampire's bleeding liquid (must be set before game-start)."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+    ID="hunterMode"
+    DisplayText="Enable hunter mode - you can only acquire blood from feeding. Metabolism speed reduced."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="No">
+  </option>
+  <option
+    ID="BloodAutoget"
+    Requires="hunterMode==No"
+    DisplayText="Enable blood autocollect."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+    ID="StartingBloodPack"
+    Requires="hunterMode==No"
+    DisplayText="Enable starting blood pack on spawn."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option 
+    ID="BloodAutosip" 
+    Requires="hunterMode==No"
+    DisplayText="Automatically drink blood when thirsty." 
+    Category="Vampirism" 
+    Type="Checkbox" 
+    Default="Yes">
+  </option>
+  <option 
+    ID="BloodAutosipLevel"
+    Requires="BloodAutosip==Yes, hunterMode==No"
+    DisplayText="Thirst threshold for automatic drinking"
+    Category="Vampirism" 
+    Type="Combo" 
+    Values="Ravenous,Fiending,Thirsty,Gorged,Glutted" 
+    Default="Thirsty">
+  </option>
+</options>

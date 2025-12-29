@@ -1,0 +1,50 @@
+using XRL.World.AI.Pathfinding;
+using Nexus.Core;
+using Nexus.Properties;
+using XRL.World.Capabilities;
+using System;
+
+namespace XRL.World.Effects
+{
+    /// <summary>
+    /// Simple effect that paths a GameObject to a Cell. Removes itself when the player's Feed ends.
+    /// </summary>
+
+    [Serializable]
+    public class Spotter : Effect
+    {
+        public GameObjectReference Player;
+        public Cell Cell;
+        public Spotter() => DisplayName = "spotter";
+        public Spotter(GameObject player, Cell cell, int Duration) : this()
+        {
+            this.Player = player.Reference();
+            this.Cell = cell;
+            base.Duration = Duration;
+        }
+        public override bool WantEvent(int ID, int Cascade)
+        {
+            if (!base.WantEvent(ID, Cascade) && ID != SingletonEvent<BeforeTakeActionEvent>.ID)
+                return ID == SingletonEvent<EndTurnEvent>.ID;
+            return true;
+        }
+
+        public override bool HandleEvent(BeforeTakeActionEvent E)
+        {
+            if (Scan.SafeReturnProperty(Player.Object, Flags.FEED) == false)
+                Duration = 0;
+            return base.HandleEvent(E);
+        }
+
+        public override bool HandleEvent(EndTurnEvent E)
+        {
+            XRL.World.Parts.cmd.msg("Spotter Moving");
+            FindPath findPath = new FindPath(currentCell, Cell, PathGlobal: false, PathUnlimited: true, base.Object, 500, ExploredOnly: false, Juggernaut: false, IgnoreCreatures: false, IgnoreGases: false, FlexPhase: false);
+            if (!findPath.Usable)
+                Duration = 0;
+            else
+                AutoAct.TryToMove(base.Object, currentCell, findPath.Steps[1], findPath.Directions[0], AllowDigging: false, OpenDoors: true, Peaceful: false);
+            return base.HandleEvent(E);
+        }
+    }
+}
