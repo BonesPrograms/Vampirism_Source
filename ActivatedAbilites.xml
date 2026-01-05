@@ -1,0 +1,15 @@
+<activatedabilities>
+<ability Command="CommandFeedBlood">
+    <description>
+      <p>You bite a nearby creature, stunning it and feeding upon it's blood.</p>      
+      <br />
+      <p>Physical Attack vs a creature with blood.</p>
+			<p>Attack roll: <stat Name="Attack" /> vs. defender DV + level.</p>
+      <p>You feed <stat Name="HP" /> per round, for up to 5 rounds.</p>
+      <p>Taking any action other than passing the turn will end feeding.</p>
+      <statline Name="Cooldown" />
+    </description>  
+    <UITile Tile="vampirism/vampfangs.png" Foreground="w" Detail="R" />
+  </ability>
+
+</activatedabilities>

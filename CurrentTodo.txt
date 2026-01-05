@@ -1,0 +1,125 @@
+
+anyways:
+Tempted to make Stealth Feed 10 turns, 1/2 damage, 1/2 feed rate, but the longer timer == increased likelihood of being spotted. Would be a new bool for Drink
+
+
+
+SHould Myabe do PathDistanceTO
+
+Wret kin... one day... LOL
+
+Object.CurrentZone.CalculateLOS???? som opther shit too
+
+
+
+feedtime may not need to exist anymore since the property works
+
+
+Wassail hearing test
+
+Wret kin/cybermod/esper rapid
+
+
+Test Humanity
+
+Dom bug
+
+Echinoid witnesses
+
+
+fix: witnesses that are hostile to the target wont attack you on alert. Also considering they only attack if allied. But exposure always happens
+i should add strings to notify you if its a combat ending
+
+cooldown bug
+
+afaik deaths shouldnt roll if a companion gets bloody/killed by anyone else, only you----
+especially with feed deaths
+i could make humloss a popup so its easier to see in frenzy
+
+GO forget
+
+MrBeast — 12/17/25, 4:48 PM
+stealthfeed hostility/alliance checks, no noti if you cant see the witnesses, and uh, naming the one witness
+
+humanity giving actions
+
+player only autoget
+
+defanging
+
+tempted to make stealth feed have a double duration and take longet
+
+TEST STEALTH FEED 
+
+we could also add frenzy warning or a timer increment once it activates
+
+
+
+void ToggleField<T>(T obj, string fieldName)
+{
+    var field = typeof(T).GetField(fieldName);
+    if (field?.FieldType == typeof(bool))
+    {
+        bool value = (bool)field.GetValue(obj);
+        field.SetValue(obj, !value);
+        Console.WriteLine($"{fieldName} is now {(value ? "off" : "on")}.");
+    }
+}
+
+test being defanged
+i am concerned it will say "You defang yourself"
+oh idea - just let any creature cut off any limb from me, and when the event fires, check for E.Actor, it doesnt need to specifically be under the face conditional
+
+before we do wret kin check to see who base is in harmony
+also i could patch the applicator and then have it apply a custom effect that inherits from the base one with slight modifications maybe
+
+humanity test: bloodlet a watervine farmer (noncompanion)
+
+what if you interrupt a feed using a HE grenade or something else that is indirect
+MrBeast — 12/21/25, 11:39 PM
+test ai interrupt
+
+p sure like, if you dominate someone, their faction is temporarily considered friendly/allied to you, and you can get dunked for victim-abusing them
+
+test bleeding a dominated victim to death against their own will
+
+If you are feeding on someone as a vampire you dominated, they will get Victim (i dont think so, i only give victim if theyre a playeroriginalbody i think?)
+
+
+weeps can not be witnesses anymore weeps can not be witnesses anymore weeps can not be witnesses anymore
+
+
+test: are we collecting liquid volume off fractus directly
+
+
+UPDATE: BLeeding should only make you lose blood if you take damage
+
+what if you totally swap bodies to a vampire, and your og body is gone, what happens den fir hmanity
+
+GETVisibilityRadius?
+
+meditation / fasting way
+other ways to expend blood
+but then no metab
+ooh i could just make that an option, but it would have to prob be a new part or something
+no i would just want a new event in vitae easy
+ 
+watches for active ability use, expends blood. refreshes active abilities by a certain number (or relative to the ability itself's cooldown) per sip/drink
+so this would be easy - no metabolism, but if you use an active ability, you expend blood - VTM mode
+
+
+test a victim dying due to bleeding after feeding, like bleeding as a result of feed attack
+thnen fix bleed/dominationsuicide dath
+
+
+and maybe just maybe there is a QuestCompleted event and a GaveToMechanimists event that i can use for hum regen
+i could also tie hum regen to unique items or other ingame items
+fasting way for blood, meidtation for hum maybe
+maybe even some skills reduce hum regen time idk, could be a new skillset
+yeah new skills - paths
+If you come back and kill them as yourself, you will be dunked for it, despite not feeding on them
+
+Should I use a more complex GetCombatTarget like OG stinger (hasnt been a problem yet)
+
+
+attack a feeder, see if the victim's shit automatically breaks (if feed ends for him, or vampires kiss i guess, either one works now)

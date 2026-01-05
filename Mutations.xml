@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mutations>
+    <category Name="Physical">
+     <mutation Name="Vampirism" 
+        Cost="1" 
+        Exclusions="Amphibious,Beak" 
+        MaxSelected="1" 
+        Class="Vampirism" 
+        BearerDescription="those who feed on blood"
+        Tile="vampirism/vampfangs.png"
+        Foreground="w" 
+        Detail="R"/>
+    </category>
+</mutations>
+
+    
