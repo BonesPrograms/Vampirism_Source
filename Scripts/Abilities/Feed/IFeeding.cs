@@ -5,7 +5,7 @@ using Nexus.Properties;
 using Nexus.Core;
 using XRL.World.Parts.Mutation;
 using Nexus.Rules;
-using Nexus.Powers;
+using Nexus.Spells;
 
 namespace XRL.World.Effects
 {

@@ -10,7 +10,7 @@ using Nexus.Biting;
 using Nexus.Attack;
 using Nexus.Rules;
 using System.Collections.Generic;
-using Nexus.Powers;
+using Nexus.Spells;
 using System.Reflection.Metadata;
 
 

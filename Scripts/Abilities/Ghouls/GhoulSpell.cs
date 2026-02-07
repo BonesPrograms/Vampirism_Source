@@ -2,12 +2,9 @@ using System;
 using XRL.World.Effects;
 using Nexus.Core;
 using Nexus.Rules;
-using XRL.World.Parts.Mutation;
 using XRL.World.AI;
 using System.Collections.Generic;
-using XRL.World;
 using System.Linq;
-using Nexus.Powers;
 
 namespace XRL.World.Parts
 {
@@ -16,7 +13,6 @@ namespace XRL.World.Parts
     public class GhoulSpell : VampiricSpell
     {
         public override bool ShouldSync() => true;
-        public Guid GhoulActivatedAbilityID = Guid.Empty;
         public Dictionary<GameObject, EnthralledGhoul> Ghouls = new();
         int MAX()
             => Level switch
@@ -31,7 +27,7 @@ namespace XRL.World.Parts
         const string TEXT = "to enthrall";
         public override bool WantEvent(int ID, int cascade)
         {
-            if (ID == PooledEvent<CommandEvent>.ID || ID == PooledEvent<GetCompanionLimitEvent>.ID || ID == PooledEvent<GetCompanionStatusEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
+            if (ID == PooledEvent<GetCompanionLimitEvent>.ID || ID == PooledEvent<GetCompanionStatusEvent>.ID)
                 return true;
             return base.WantEvent(ID, cascade);
         }
@@ -42,17 +38,12 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(GetCompanionLimitEvent E)
         {
-            if (E.Means == "Ghoul" && E.Actor == ParentObject && GhoulActivatedAbilityID != Guid.Empty)
+            if (E.Means == "Ghoul" && E.Actor == ParentObject && ID != Guid.Empty)
             {
                 cmd.msg($"First limt {E.Limit}");
                 E.Limit = E.Limit + MAX();
                 cmd.msg($"Limit {E.Limit} Max {MAX()}");
             }
-            return base.HandleEvent(E);
-        }
-        public override bool HandleEvent(BeforeAbilityManagerOpenEvent E)
-        {
-            DescribeMyActivatedAbility(GhoulActivatedAbilityID, CollectStats);
             return base.HandleEvent(E);
         }
         public override bool HandleEvent(CommandEvent E)
@@ -115,8 +106,8 @@ namespace XRL.World.Parts
         }
         void Cast(GameObject Target, bool containskey)
         {
-            ParentObject.UseEnergy(1000, "Vampiric Power Enthrall Ghoul");
-            CooldownMyActivatedAbility(GhoulActivatedAbilityID, GHOUL.Cooldown);
+            ParentObject.UseEnergy(1000, "Vampiric Spell Enthrall Ghoul");
+            CooldownMyActivatedAbility(ID, GHOUL.Cooldown);
             if (!NotEnoughBlood(TEXT))
             {
                 if (containskey)
@@ -190,24 +181,23 @@ namespace XRL.World.Parts
                     stats.Set("Attack", "1d8" + num, !stats.mode.Contains("ability"));
                     break;
             }
-            stats.CollectCooldownTurns(MyActivatedAbility(GhoulActivatedAbilityID), GHOUL.Cooldown);
+            stats.CollectCooldownTurns(MyActivatedAbility(ID), GHOUL.Cooldown);
         }
 
         public override void RequireObject()
         {
-            GhoulActivatedAbilityID = AddMyActivatedAbility(GHOUL.ABILITY_NAME, GHOUL.COMMAND_NAME, "Vampiric Powers", null, "\u009f");
+            ID = AddMyActivatedAbility(GHOUL.ABILITY_NAME, GHOUL.COMMAND_NAME, "Vampiric Spells", null, "\u009f");
         }
 
         public override void RemoveObject()
         {
-            RemoveMyActivatedAbility(ref GhoulActivatedAbilityID);
             CheckGhouls();
             foreach (var obj in Ghouls)
             {
                 obj.Key.RemoveEffect(obj.Value);
             }
             SyncTarget(ParentObject);
-            ParentObject.RemovePart(this);
+            base.RemoveObject();
         }
         public static void SyncTarget(GameObject Beguiler, GameObject Target = null)
         {

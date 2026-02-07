@@ -1,6 +1,6 @@
 
 using System;
-using Nexus.Powers;
+using Nexus.Spells;
 using Nexus.Rules;
 using XRL.World.Effects;
 using Nexus.Core;
@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using XRL.World.Parts;
 using XRL.World.Parts.Mutation;
 
-namespace Nexus.Powers
+namespace Nexus.Spells
 {
 
 
@@ -34,6 +34,16 @@ namespace XRL.World.Parts
     [Serializable]
     public abstract class VampiricSpell : IScribedPart, IVampiricSpell
     {
+
+        public Guid _ID = Guid.Empty;
+        public virtual Guid ID
+        {
+            get=>_ID;
+            set
+            {
+                _ID = value;
+            }
+        }
         public int _Level = 1; //level will always be synced with vampirism level
         public int Level
         {
@@ -45,13 +55,30 @@ namespace XRL.World.Parts
         }
         public abstract bool ShouldSync();
         public abstract void RequireObject();
-        public abstract void RemoveObject();
+        public virtual void RemoveObject()
+        {
+            RemoveMyActivatedAbility(ref _ID);
+            ParentObject.RemovePart(this);
+        }
         public abstract void CollectStats(Templates.StatCollector stats);
         public virtual int Roll() => IVampiricSpell.Roll(ParentObject, Level);
         Vitae _Vitae;
         public Vitae Vitae => _Vitae ?? ParentObject.GetPart<Vitae>();
         Vampirism _Base;
         public Vampirism Base => _Base ?? ParentObject.GetPart<Vampirism>();
+
+        public override bool WantEvent(int ID, int Cascade)
+        {
+            if (ID == PooledEvent<CommandEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
+                return true;
+            return base.WantEvent(ID, Cascade);
+        }
+
+        public override bool HandleEvent(BeforeAbilityManagerOpenEvent E)
+        {
+             DescribeMyActivatedAbility(ID, CollectStats);
+            return base.HandleEvent(E);
+        }
         public bool NotEnoughBlood(string text)
         {
             bool count = Vitae.Blood <= VITAE.BLOOD_PER_SIP;

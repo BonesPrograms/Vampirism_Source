@@ -2,7 +2,7 @@ using XRL.World.Parts;
 using XRL.World.AI;
 using System;
 using Nexus.Rules;
-using Nexus.Powers;
+using Nexus.Spells;
 
 namespace XRL.World.Effects
 {
