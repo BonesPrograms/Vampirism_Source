@@ -106,7 +106,7 @@ namespace XRL.World.Parts
         }
         void Cast(GameObject Target, bool containskey)
         {
-            ParentObject.UseEnergy(1000, "Vampiric Spell Enthrall Ghoul");
+            ParentObject.UseEnergy(1000, TAG + " Enthrall Ghoul");
             CooldownMyActivatedAbility(ID, GHOUL.Cooldown);
             if (!NotEnoughBlood(TEXT))
             {
@@ -186,7 +186,7 @@ namespace XRL.World.Parts
 
         public override void RequireObject()
         {
-            ID = AddMyActivatedAbility(GHOUL.ABILITY_NAME, GHOUL.COMMAND_NAME, "Vampiric Spells", null, "\u009f");
+            ID = AddMyActivatedAbility(GHOUL.ABILITY_NAME, GHOUL.COMMAND_NAME, TAG, null, "\u009f");
         }
 
         public override void RemoveObject()

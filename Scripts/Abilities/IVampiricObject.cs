@@ -35,6 +35,7 @@ namespace XRL.World.Parts
     public abstract class VampiricSpell : IScribedPart, IVampiricSpell
     {
 
+        public const string TAG = "Vampric Spell";
         public Guid _ID = Guid.Empty;
         public virtual Guid ID
         {

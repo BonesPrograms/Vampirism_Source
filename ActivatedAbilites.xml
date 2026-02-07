@@ -12,6 +12,15 @@
     <UITile Tile="vampirism/vampfangs.png" Foreground="w" Detail="R" />
   </ability>
 
+  <ability Command="invokeCoffin">
+    <description>
+      <p>Teleport your coffin to the target cell.</p>      
+      <statline Name="Cooldown" />
+    </description>  
+    <UITile Tile="vampirism/vampfangs.png" Foreground="w" Detail="R" />
+  </ability>
+
+
   <ability Command="CommandGhoulSpell">
     <description>
       <p>You feed a nearby creature your blood and enthrall it's mind.</p>      
