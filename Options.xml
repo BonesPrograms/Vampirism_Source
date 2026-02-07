@@ -23,7 +23,7 @@
   </option>
   <option
   ID="enablevampiricpowers"
-  DisplayText="Enable vampiric spells (requires save/load)."
+  DisplayText="Enable blood magic update (requires save/load)."
   Type="Checkbox"
   Default="Yes">
   </option>

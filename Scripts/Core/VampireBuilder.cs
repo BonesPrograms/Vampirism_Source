@@ -37,7 +37,7 @@ namespace Nexus.Core
         {
             typeof(Humanity), typeof(Vitae), typeof(Nightbeast), typeof(TheBeast)
         };
-        static readonly Type[] VampiricSpells = { typeof(GhoulSpell), typeof(CoffinSpell) };
+        public static readonly Type[] VampiricSpells = { typeof(GhoulSpell), typeof(CoffinSpell) };
 
         public static void Make(GameObject GO)
         {
@@ -96,7 +96,8 @@ namespace Nexus.Core
             for (int i = 0; i < IParts.Length; i++)
                 GO.RequirePart(IParts[i]);
             GO.ApplyEffect(new HumanityUI(9999));
-            RequireVampiricObjects(GO);
+            if (XRL.UI.Options.GetOptionBool(OPTIONS.SPELLS))
+                RequireVampiricObjects(GO);
         }
 
 

@@ -20,6 +20,9 @@ namespace XRL.World.Parts
         public int thresh;
         public int cooldown;
         public bool used;
+
+        [NonSerialized]
+        static public bool AutoWin;
         public override int Roll() => WikiRng.Next(1, 20) + Level;
         //uses vampirism level like all spells
 
@@ -69,7 +72,7 @@ namespace XRL.World.Parts
             {
                 if (!used && !E.Damage.Attributes.Contains("Fire")) // explosions too maybe light
                 {
-                    if (ParentObject.hitpoints - E.Damage.Amount <= 0) //&& Roll() >= 20)
+                    if (ParentObject.hitpoints - E.Damage.Amount <= 0 && (Roll() >= 20) || AutoWin)
                     {
                         E.Damage.Amount = 0;
                         ParentObject.DirectMoveTo(Coffin.CurrentCell);

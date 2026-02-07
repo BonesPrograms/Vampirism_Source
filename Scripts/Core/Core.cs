@@ -11,12 +11,12 @@ using XRL;
 [HasCallAfterGameLoaded]
 public static class VampirismStaticRefresh
 {
-    [CallAfterGameLoaded]
-    public static void MyLoadGameCallback()
-    {
-        DeathHandler.Player = null; //ensures that the shared static Player object doesnt get drowned in the pool of objects when you swap saves
-    }								//resetting it to null starts the security chain again so it finds the right object
-}						//specifically, the player will update whenever a zone is loaded and its npcs/a Creature spawns in the zone and runs the BeforeTakeActionEvent
+	[CallAfterGameLoaded]
+	public static void MyLoadGameCallback()
+	{
+		DeathHandler.Player = null; //ensures that the shared static Player object doesnt get drowned in the pool of objects when you swap saves
+	}                               //resetting it to null starts the security chain again so it finds the right object
+}                       //specifically, the player will update whenever a zone is loaded and its npcs/a Creature spawns in the zone and runs the BeforeTakeActionEvent
 						//or when a DeathEvent is sent by any object
 
 namespace Nexus.Core
@@ -112,6 +112,45 @@ namespace Nexus.Core
 					if (Object.Effects[i] == obj)
 						return true;
 			return false;
+		}
+
+		public static T[] GetPartArrayImplementing<T>(this GameObject Object) where T : class
+		{
+			int capacity = 0;
+			for (int i = 0; i < Object.PartsList.Count; i++)
+				if (Object.PartsList[i] is T)
+					capacity++;
+			T[] array = new T[capacity];
+			int index = 0;
+			for (int i = 0; i < Object.PartsList.Count; i++)
+			{
+				if (Object.PartsList[i] is T t)
+				{
+					array[index] = t;
+					index++;
+				}
+				if (index >= capacity)
+					break;
+			}
+			return array;
+
+		}
+
+		public static VampiricSpell[] GetSpellArray(this GameObject Object)
+		{
+			VampiricSpell[] array = new VampiricSpell[VampireBuilder.VampiricSpells.Length];
+			int index = 0;
+			for (int i = 0; i < Object.PartsList.Count; i++)
+			{
+				if (Object.PartsList[i] is VampiricSpell spell)
+				{
+					array[index] = spell;
+					index++;
+				}
+				if (index >= VampireBuilder.VampiricSpells.Length)
+					break;
+			}
+			return array;
 		}
 		public static List<T> GetPartsAndEffectsImplementing<T>(this GameObject Object, bool GetEffects) where T : class
 		{

@@ -32,7 +32,7 @@ namespace XRL.World.Parts.Mutation
 		public int bloodycounter;
 		FeedCommand _FeedCommand;
 		public FeedCommand FeedCommand => _FeedCommand ??= new FeedCommand(this);
-		
+
 		[NonSerialized]
 		public bool WasTerrifiedByFlames;
 
@@ -40,15 +40,16 @@ namespace XRL.World.Parts.Mutation
 
 		public override bool ChangeLevel(int NewLevel)
 		{
-			SyncLevels(NewLevel);
+			if (Options.GetOptionBool(OPTIONS.SPELLS))
+				SyncLevels(NewLevel);
 			return base.ChangeLevel(NewLevel);
 		}
 
 		void SyncLevels(int NewLevel)
 		{
-			List<IVampiricSpell> abilities = ParentObject.GetPartsAndEffectsImplementing<IVampiricSpell>(false);
-			for (int i = 0; i < abilities.Count; i++)
-				abilities[i].SyncLevels(NewLevel);
+			VampiricSpell[] abilities = ParentObject.GetSpellArray();
+			for (int i = 0; i < abilities.Length; i++)
+				abilities[i]?.SyncLevels(NewLevel);
 
 		}
 		public string GetDamageDice()
