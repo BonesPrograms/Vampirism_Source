@@ -1,0 +1,103 @@
+using XRL.World;
+using XRL.World.Parts;
+using Nexus.Core;
+using System.Collections.Generic;
+using System.Linq;
+using XRL.World.Effects;
+
+namespace Nexus.Stealth
+{
+
+    /// <summary>
+    /// Finds a GameObject with the shortest distance to: a cell that has LOS to the player.
+    /// </summary>
+
+    ///this turned out to be extremely laggy: tested in a wide, open zone with around 8 valid npcs in the area
+    ///given the area of a zone in cells, it was creating a dictionary with an estimated total somewhere maybe around 10,000 objects.
+    ///furthermore creating a new struct for each entry
+    ///because virtually all cells were pathable to each npc, and virtually all cells had LOS to the player, each npc was creating an entry for pretty much
+    ///every single cell in the zone, which is a few thousand cells. i mean might be a bit less due to range but the lag was still insane
+    ///the default range of 21 was creating way too many entries, and anything less than 21
+    ///is not ideal (because it is out of sync with the default AI_RADIUS of stealth) even if a small range of 5 would probably be much less laggy.
+    /// decent idea, wouldve been a more dynamic way of spotting, but halted for now
+
+    class SpotterCore
+    {
+        readonly Nightbeast Source;
+        readonly StealthCore Core = new();
+        public SpotterCore(Nightbeast Source)
+        {
+            this.Source = Source;
+        }
+
+        readonly struct Spotter
+        {
+            readonly public GameObject Object;
+            readonly public Cell Cell;
+            public Spotter(GameObject Object, Cell Cell)
+            {
+                this.Object = Object;
+                this.Cell = Cell;
+            }
+        }
+        public void CreateSpotter(uint range)
+        {
+            List<GameObject> PotentialSpotters = ListPotentialSpotters();
+            if (TrySelectSpotter(range, PotentialSpotters, out Spotter? spotter))
+                spotter?.Object.ApplyEffect(new XRL.World.Effects.Spotter(Source.ParentObject, spotter?.Cell, Rules.FEED.DURATION));
+        }
+
+        bool TrySelectSpotter(uint range, List<GameObject> PotentialSpotters, out Spotter? spotter)
+        {
+            spotter = null;
+            Dictionary<Spotter, int> ActualSpotters = new();
+            foreach (GameObject Object in PotentialSpotters)
+                FindClosestCellWithLOS(range, Object, ActualSpotters);
+            if (ActualSpotters.Count == 1)
+                spotter = ActualSpotters.ElementAt(0).Key;
+            else if (ActualSpotters.Count != 0)
+            {
+                int min = ActualSpotters.Values.Min();
+                foreach (var keypair in ActualSpotters)
+                {
+                    if (keypair.Value == min)
+                    {
+                        spotter = keypair.Key;
+                        break;
+                    }
+                }
+            }
+            DisplayForDebug(ActualSpotters);
+            return spotter is not null;
+        }
+
+        void DisplayForDebug(Dictionary<Spotter, int> ActualSpotters)
+        {
+            foreach (var keypair in ActualSpotters)
+            {
+                (int x, int y) Coordinate = (keypair.Key.Cell.Location.X, keypair.Key.Cell.Location.Y);
+                string msg = $"KEY: {keypair.Key.Object.ShortDisplayName} ID: {keypair.Key.Object.ID}, \nCOORD: {Coordinate}, \nDIST: {keypair.Value}\n(FIN)\n\n";
+                MetricsManager.LogInfo(msg);
+            }
+        }
+
+        void FindClosestCellWithLOS(uint range, GameObject Object, Dictionary<Spotter, int> ActualSpotters)
+        {
+            List<Cell> cells = Object.CurrentZone.GetPassableCells();
+            foreach (Cell cell in cells)
+                if (cell.HasLOSTo(Source.ParentObject) && Object.canPathTo(cell) && cell.DistanceTo(Source.ParentObject) < range)
+                    ActualSpotters.Add(new Spotter(Object, cell), cell.DistanceTo(Object));
+        }
+        List<GameObject> ListPotentialSpotters()
+        {
+            List<GameObject> PotentialSpotters = new();
+            foreach (GameObject witness in Source.ValidSentients)
+            {
+                cmd.msg($"{witness}");
+                if (!Scan.Unaware(witness, false) && !Core.Inanimate(witness)) //only diff between this list, and ActiveWitnesses, is that spotters dont need LOS to you
+                    PotentialSpotters.Add(witness);
+            }
+            return PotentialSpotters;
+        }
+    }
+}

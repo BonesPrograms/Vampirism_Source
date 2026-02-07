@@ -1,0 +1,63 @@
+
+
+
+
+
+    class Changes
+    {
+        public bool IsEmpty => AddedEffect == null && RemovedEffect == null && Opinion == null && RemovedSleep == false && Exposer == false;
+        public Effect AddedEffect;
+        public Effect RemovedEffect;
+        public IOpinionSubject Opinion;
+        public bool RemovedSleep;
+        public bool Exposer;
+        public Changes()
+        {
+            this.AddedEffect = null;
+            this.RemovedEffect = null;
+            this.Opinion = null;
+            this.RemovedSleep = false;
+            this.Exposer = false;
+
+        }
+        public Changes(Effect AddedEffect, Effect RemovedEffect, IOpinionSubject Opinion, bool RemovedSleep, bool Exposer)
+        {
+            this.AddedEffect = AddedEffect;
+            this.RemovedEffect = RemovedEffect;
+            this.Opinion = Opinion;
+            this.RemovedSleep = RemovedSleep;
+            this.Exposer = Exposer;
+        }
+    }
+
+
+
+            readonly Dictionary<GameObject, Changes> _InternalDictionary;
+        Dictionary<GameObject, Changes> InternalDictionary
+        {
+            get => _InternalDictionary;
+            init
+            {
+                _InternalDictionary = value;
+                foreach (GameObject obj in Witnesses)
+                    _InternalDictionary.Add(obj, new Changes());
+                if (Exposer is not null && Witnesses.Contains(Exposer))
+                {
+                    if (!_InternalDictionary.ContainsKey(Exposer))
+                    {
+                        Changes exposer = new()
+                        {
+                            Exposer = true
+                        };
+                        _InternalDictionary.Add(Exposer, exposer);
+                    }
+                    else
+                        _InternalDictionary[Exposer].Exposer = true;
+                }
+            }
+        }
+
+
+
+
+                public Dictionary<GameObject, Changes> DictionaryOfChanges => new(InternalDictionary);

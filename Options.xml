@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<options>
+  <option
+    ID="FractusNerf"
+    DisplayText="Enable fractus nerf."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+    ID="humanity"
+    DisplayText="Enable humanity."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+    ID="frenzy"
+    DisplayText="Enable frenzy."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+  ID="enablevampiricpowers"
+  DisplayText="Enable vampiric spells (requires save/load)."
+  Type="Checkbox"
+  Default="Yes">
+  </option>
+  <option 
+    ID="vampBloodNerf"
+    DisplayText="(Compatibility) Enable changes to vampire's bleeding liquid (should not be necessary to disable anymore but, incase you need it)"
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+    ID="hunterMode"
+    DisplayText="Hunter mode - you can only acquire blood from feeding. Metabolism speed reduced."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="No">
+  </option>
+  <option
+  ID="UnderDougsHum"
+  DisplayText="UnderDoug's Humanity - no longer lose humanity for killing companions."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="No">
+  </option>
+  <option
+  ID="NightbeastMode"
+  DisplayText="Night Beast mode - you fear the sun and acquire darkvision. Player only."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="No">
+  </option>
+  <option
+  ID="FearOfFire"
+  DisplayText="Fear of Fire - Vampires take double damage from sources of fire and it makes them panic."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="Yes">
+  </option>
+  <option
+  ID="FearOfTorches"
+  Requires="FearOfFire==Yes"
+  DisplayText="Fear of Torches - Vampires cannot use or be near lit torches."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="Yes">
+  </option>
+  <option
+    ID="BloodAutoget"
+    Requires="hunterMode==No"
+    DisplayText="Enable blood autocollect."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+    ID="StartingBloodPack"
+    Requires="hunterMode==No"
+    DisplayText="Enable starting blood pack on spawn."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option 
+    ID="BloodAutosip" 
+    Requires="hunterMode==No"
+    DisplayText="Automatically drink blood when thirsty." 
+    Category="Vampirism" 
+    Type="Checkbox" 
+    Default="Yes">
+  </option>
+  <option 
+    ID="BloodAutosipLevel"
+    Requires="BloodAutosip==Yes, hunterMode==No"
+    DisplayText="Thirst threshold for automatic drinking"
+    Category="Vampirism" 
+    Type="Combo" 
+    Values="Ravenous,Fiending,Thirsty,Gorged,Glutted" 
+    Default="Thirsty">
+  </option>
+  <option
+  ID="RedBloodTextVampirism"
+  DisplayText="Red text for water (requires restart)"
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="Yes">
+  </option>
+</options>

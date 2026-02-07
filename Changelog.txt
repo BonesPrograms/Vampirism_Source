@@ -1,0 +1,61 @@
+
+Fear of Fire (2 Options):
+Player and AI vampires fear fire and take double damage from sources of fire. Going near fire will make vampires freak out. Additional option prevents vampires from using torches.
+
+Biting Simulation for AI:
+AI vampires now experience full biting simulation effects. Smart players can make themselves completely immune to vampire attacks.
+
+Blood Metabolism for Dominated Vampires:
+Dominated NPC vampires now experience blood metabolism for the duration of the effect. Be careful not to frenzy on yourself.
+
+Nightbeast(Option):
+Player only - you take constant damage when exposed to sunlight, but gain night-vision.
+
+Alternate Humanity(Option):
+You no longer lose humanity for killing companions, unless they are your ghoul, or beguiled by you.
+
+The Damned:
+Vampires now burn to ash on death and it costs no humanity to kill them.
+
+Diablerie:
+Draining your kindred to death during a feeding has a rare chance of increasing your vampirism level by one point. However, this does not work if they are a fledgling.
+
+Motes of Humanity:
+A memory of the human soul that drops rarely upon the death of an innocent, non-vampire. Vampires can consume these motes to gain one point of humanity.
+
+
+
+
+Blood Magic(Option)
+Spells cost blood to use and level up with vampirism. Spell attack success is determined by EGO or Vampirism mod (whichever is higher) + Player Level + 1d8.
+Spells can be enabled or disabled, but the game must be saved/loaded to add/remove the spells.
+
+Embrace:
+Certain creatures can be resurrected from the dead as fledglings and cursed with vampirism by the player. Though it doesn't make sense, for fun,
+a fledgling's vampirism level is equal to the embracer's vampirism level, which could make them very dangerous when they wake up.
+After waking from the dead, they will be extremely thirsty, and will frenzy very quickly. Like any frenzy, it is an automatic attack that
+cannot be resisted. It is recommended to have a "blood bag" ready for them.
+You cannot embrace the bodies of creatures who's level once was greater than your combined player level and vampirism level.
+
+(will add feeding blood soon... maybe)
+ 
+Ghoul:
+Feedable creatures can be fed your blood to enthrall them, but they become reliant on your blood to survive for the rest of their life and will need to be fed. 
+Vampires cannot be made into ghouls.
+Feeding ghouls your blood gives them a temporary HP buff and heals them. If you enthrall a new ghoul, your former ghoul will slowly die in a few days unless you enthrall them again.
+Once a ghoul drinks your blood, they will never serve any other vampire, even if you relinquish them.
+
+Batform:
+You can turn into a bat.
+
+Shadowwalk:
+
+Mist/Mistform:
+
+Auspex?
+Celerity?
+
+
+
+Undead:
+You no longer respire, get sick or hungry.

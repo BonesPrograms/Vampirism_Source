@@ -1,0 +1,29 @@
+<activatedabilities>
+<ability Command="CommandFeedBlood">
+    <description>
+      <p>You bite a nearby creature, stunning it and feeding upon it's blood.</p>      
+      <br />
+      <p>Physical Attack vs a creature with blood.</p>
+			<p>Attack roll: <stat Name="Attack" /> vs. defender DV + level.</p>
+      <p>You feed <stat Name="HP" /> per round, for up to 5 rounds.</p>
+      <p>Taking any action other than passing the turn will end feeding.</p>
+      <statline Name="Cooldown" />
+    </description>  
+    <UITile Tile="vampirism/vampfangs.png" Foreground="w" Detail="R" />
+  </ability>
+
+  <ability Command="CommandGhoulSpell">
+    <description>
+      <p>You feed a nearby creature your blood and enthrall it's mind.</p>      
+      <br />
+      <p>Mental attack vs a creature with blood.</p>
+			<p>Attack roll: <stat Name="Attack" /> vs. defender MA + level.</p>
+      <p>Bloodloss: <stat Name="Bloodloss"/> </p>
+      <p>Attack bonus increases with EGO mod or Vampirism level (whichever is higher) and player level.</p>
+      <p>Bloodloss malus decreases with Vampirism level</p>
+      <statline Name="Cooldown" />
+    </description>  
+    <UITile Tile="vampirism/vampfangs.png" Foreground="w" Detail="R" />
+  </ability>
+
+</activatedabilities>

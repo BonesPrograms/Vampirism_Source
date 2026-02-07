@@ -1,0 +1,70 @@
+TODOS:
+
+
+Autoget math fix
+
+Dom bug test
+what if: no victim tag for friendlies
+test : feed on innocent in combat break feed then kill them in combat
+Test new "Scare"
+
+Dying.HasLongProperty(Flags.VICTIM) is bool victim  will this work and not throw null
+string flag = victim ? Flags.VICTIM : Flags.VICTIM_HOSTILE;
+instead of hasflag victim, we can do tryget victim
+
+hcm/hmtk compat
+afaik target is always going to be on the VS list
+
+string method = nameof(Alert.FindClosestExposerInList);
+bool TargetIsNotExposer() => Target is null  Exposer != Target;
+        bool TargetIsNotExposer(GameObject obj) => Target is null  Exposer != obj;
+		
+
+
+Should we write directly to activewitnesseS? Can we remove additions and exclusions
+
+distance == Source.AI_RADIUS || 
+this shouldnt be necessary
+if their dist is <= AI RADIUS, then stealth is invalid
+(Testing this?)
+
+
+im tempted to harmony patch bloodsplatter/bleeding
+and i could also do some fancy stuff for the Bleed effect
+p much i want to make it so that your blood property isnt effected directly
+if bloodsplatter is runnin and bleedliquid is null or "" or blood-1000
+then i do Saltifyt
+otherwise nothing happens
+also this only happens if Obj is player
+genius tbqh
+so you can never acquire your own blood when bleeding but it doesnt fuck up peoples shit
+
+
+wonder if you can use IsVisible instead of checking for smell and hearing
+thats only for tryscan, would not work for ai stealth (cuz visibility is relative afaik)
+GetVisibilityRadius() //calcvisradius? //calclos
+ 
+GameObject.Find(x=> x.HasStringProperty("OriginalPlayerBody"));
+GameObject.FindByID(0);
+GameObject Object = GameObject.Find(x=>x.IsOriginalPlayerBody());
+
+
+the true way is to make it so that you can do TakeDamage and Melee on someone w/o them becoming hostile, easy, so that way it works with all melee based shit
+
+stealthstage1 and 2 can be mapped to the count of the AW lsit directly
+Also did some upgrades to combat stealth to make shit calm
+
+
+
+
+
+//no popup no spotter opinion
+        //checkifspotted does both of those
+        //so we pass spotter so that it doesnt try to do a doubleopinion (though not sure if it matters currently)
+        //assuming your target is on the list (if you are using the default list, they will be)
+        //then it will automatically tap into them and do its modifications
+        //waking them up if asleep, pissing them off, etc
+        //in this circumstance that is unecessary, because attacking someone with normal melee attacks (bite is a melee attack) 
+        // wakes them up and makes them hostile
+        //but in stealthfeed it is useful, because we do not actually attack the target or even use the TakeDamage method
+        //so manual wakeup and hostility application becomes required

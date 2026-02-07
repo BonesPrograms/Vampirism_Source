@@ -1,0 +1,218 @@
+Tests:
+Feed - No longer removes Vampire's Kiss, Vampire's Kiss removes itself when Feed is gone.
+PukeFeed - I changed it apparently.
+Feed/DeathHandler - Vampire deaths no longer remove humanity.
+DeathHandler/Saltify - Saltify is now invoked via TookDamageEvent.
+DeathHandler - Does humanity still function if perma-swapping to a new body.
+Beguile,Then Dominate a diff target, then attack beguiled and see if they become hostile
+Can AI bite people out-of-phase
+Ghoul companion limit and suppression of "tookdamage" notification (current thing, just swapped limit from 1 to 2). Was also testing new feed changes
+Also testing if ghouls bleed still.
+Event E = Event.New("InitiateRealityDistortionTransit", "Object", ParentObject, "Vampiric Power", this, "Cell", Target.CurrentCell);
+i wonder if this needs to say Mental Mutation
+getstat level vs .level (can prob use .level from now on)
+HP stat vs "Hitpoints" stat?
+Test serialization of the "Effect" field
+
+Changelog:
+
+Changelog:
+New option to disable red blood text (must restart)
+
+Changelog:
+Bleed liquid issues fixed, but incase of emergencies, option still exists,
+
+Changelog: AI Vampires now experience biting simulation fully. You can make yourself immune to their attacks through various effects.
+
+Changelog:
+Dominated vampires now experience blood metabolism. Be careful not to frenzy around yourself when dominating an NPC, you will kill yourself. Frenzy does not break domination.
+
+Changelog: New option to make vampires fear fire, and take double damage from fire. Additional option to prevent vampires from carrying torches.
+
+Ghouls can be enthralled as additional sources of blood. Ghouls give double the amount of blood compared to non ghouls. They won't die or start bleeding due to feeding, but they have a very slow HP regen time after being fed on. They regen faster based on ego or vampirism level + player level. Ghoul party size is limited by vampirism level - per every five levels of Vampirism, you gain one more ghoul. All of your ghouls can follow you at all times.
+Ghouls must be fed your blood every few days, or they stop regenerating HP. Upon feeding, ghouls receive a temporary HP boost, scaling with vampirism/ego similarly to the beguiling hp boost. You cannot stack this boost but you can reset the timer for it.
+
+Dead bodies can be Embraced and return as fledgling vampires. Embrace requires your combined player and vampirism level to be higher than the targets level. They will be thirsty and low HP and will frenzy on the closest living creature shortly if they are not fed.  This chance will not go away until they feed, and they wont be able to regenerate HP. There is a chance to become their Sire (Ego or/Vampirism level + player Level vs npc MA + npc Level), which makes them friendly and allows you to ask them to join your party, but you can only have 1 childe follow you at a time. Otherwise, they will return to their original opinion of you, with a slight chance to turn hostile.
+
+
+
+Vampires now burn to ash on death (this will prevent a bug that allows players to re-embrace vampire corpses)
+
+Player bleed liquid update. If your blood type is already unique (not red), then vampirism will not override it. You can now take vampirism midgame and not worry about it resetting your blood type. test this at gamestart
+
+Killing neutral or companion Vampires via feeding (and other humanity-reducing means) no longer reduces humanity.
+
+what if ghouls didnt party up or the max party size is 1 but ghoul count is higher separately ( or infinite )
+
+Vampires cannot be made into Ghouls.
+
+Embrace and Ghoul are reality destabilizing.
+
+Feeding on a fellow vampire that is not a fledgling to death now rejuvenates you and may provide other special effects in the futur
+
+we may also add a second stage to ghoul disease that makes them die from lack of blood
+
+
+Not-yet-but-will-do:
+BLoodfix patch
+DIsable natural healing
+
+
+Changes:
+
+DeathHandler:
+new getweapon check to make sure they arent using a ranged weapon at pb range idk
+for the bleed combat thing
+or we could just check to see if the projectile is null
+nah you can use ranged weapons to bleed people nvm
+
+
+FEEDING GHOULS (ref Ideas):
+so Feeding ghouls raises their Temp HP, and it heals them for the remainder
+It cannot be stacked, but it does re-heal them
+So you can feed from ghouls and then heal them back to max HP, but they will still not have regen
+And you could feed from them again but that would just be silly. The heal isnt gonna be that great so its not a good investment on returns
+is hp the rite stat
+
+
+Potential Needs:
+For Embrace:
+getopinion script i can fire on someone to see if theyre IsAlliedTowards, isInParty, isFriendly, isHostile, maybe get their raw opinion types
+
+
+New Features:
+
+Mote Of Humanity:
+Rare Item that gives +1 HUM upon consumption
+It can be dropped extremely rarely by dead bodies ironically
+Should be easy to integrate into the game actually, since I can just add it to the Death Handler
+
+
+Death Handler will laos play a role in storing data on corpses for EMBRACING...
+
+Embrace:
+It is an alternate version of Feed ability
+It costs no humanity loss
+It can only be activated willingly, not a frenzy thing
+It cannot be used on Vampires
+It can only be used on IsFriendly (perhaps isplayerled or whatever check doug made for ispartofplayerparty)
+When you use it, you drain the person until they hit 0 hp
+But on their deathevent, instead of being actually killed, they are put at 0 hp/their HP says they are dead, but they are actually in some sort of godmode/stasis. they are knocked prone and are put into a torpor/comatose or are literally given the effect "dead". then you wait 100-500 turns and the effect ends and they rise back up with Vampirism. no corpse is spawned, the body is actually persistently kept in the world the entire time, true death is prevented
+Then, new update - when vampires die, they burn to ash
+sire might have to become a part or effect as well, something fancy to work them into your party but only 1 at a time for them
+if youre theyre sire you can ask them to join if they dont hate you
+
+EMBRACED CAN JOIN SIRES PARTY THAT IS A HUGE FEATURE
+
+The other option would be for corpses
+You walk up to them and use Embrace which costs some blood
+Say 10k
+If the roll succeeds then they return and you are their sire so theyre allied to you and you can use them and shit 
+"Embrace the Living" and "Embrace the Dead"
+
+embrace
+ could use actorid for embrace. If someone dies and it doesnt leave a corpse we could either force a corpse or just say too bad. But if they do leave a corpse then we put a string prop on it that has their id. Use their id to copy like budding. It should convert the corpse to them so that they retain inventory or something. Inventory....
+Furthermore you can update all vampires by having them get embrace on their next levelup
+A skill tree, or powers you gain as you level up but cannot choose
+
+
+I might make "Fed On" an effect for Ghouls so players know they were fed on maybe
+
+
+Options:
+"Vampiric Powers" that enables vampiric powers.
+
+Ghouls:
+make it so salve, regen, ubernostrum etc can reset regentime to 0
+most of those can be handled as effects teehee
+also thing about 1 more sip before it cuts off feeding for ghouls. sip but no DPS
+10k cost
+it should list available ghoul slots in your activated ability
+current ghouls/available ghouls
+
+Embrace:
+10k cost blood
+
+New Powers:
+OOH CELERITY
+VAMPIRIC POWERS
+Vampiric Powers expend blood
+I think well make vampiric powers an option, because its going to be clogging up your abilities
+They function like mental mutations, using EGO and being reality disrupting, but they can also use Vampirism level, and they expend blood on use 
+Auspex is a custom version of the Heightened Hearing that makes you smell valid blood-feedable targets, and they get a cool red coloration
+It would also reveal their opinion of you and maybe some other things like if they are calm or not
+Bloodheal expends blood in exchange for HP with a short cooldown 
+But now Feed no longer heals
+So if you have Vampiric powers turned off, feed would heal again
+Bloodbuff would probably be like adrenal control but it costs blood
+Adrenal control for your stats, so you get like +1 to every stat, like a raped version of ego boost
+VTMB  Update
+New Features:
+Vampiric Powers - Ghoul, Embrace, Celerity, Auspex, Bloodheal, Bloodbuf
+Vex Power - temporary beguile that wears off 
+
+Ideas:
+Ideas:
+NotRecentlyFed: first stage is no hp regen, second stage is actively losing hp till they die
+Relinquished: Ghouls that lose the ghoul effect are cursed for life and will die in a few days unless you feed them
+Sounds like we will make NotRecentlyFed the primary disease effect so its encapsulated, we could even have it as a field so it is easily kept track of
+And if youre a ghoul, it plays messages, and does not have an effect name
+If youre not a ghoul, it plays no messages, but has an effect name, and it also does the ZoneLoad event shit and other stuff
+IDK well see
+New string: "You enthrall" instead of ogles lovingly, you release instead of loses interest
+
+TookDamageEvent that notifies you that they need blood, and other shit to notify you. We will base it off whatever notifier checks for water. It probably will be as easy as sending a message every turn.
+ZoneLoadEvent for relinquished ghouls that instantly kills them if the time is over the limit when you load their zone
+"Feed" action that you can do to fledglings to give them blood when they first wake up from your canteens
+Or maybe we can let you put it in their inventory and they will automatically sip from it as AI
+Their blood levels arent real, Embrace frenzy is a custom thing handled in the embraced effect
+Well, their blood level will be real in this moment, incase player tries to dominate them
+But once they sip, i will restore it
+So we will probably remove the embraced effect once they have a blood container in their inventory, and well play a string that sips it and use a dram or two
+Otherwise, once they have the effect Feed, we will remove the Embraced effect 
+Also, when you feed ghouls your blood, it restores their Water, incase it was low for some reason. They still need to drink Water
+You can only feed ghouls directly, at least until I manage to make custom blood that knows who it was bled from (BLOODFIX PATCHES)
+Feeding ghouls shifts their MAX HP, maybe giving them a bit of extra temp hp in the process, or its just flat temp hp that will eventually run out after enough dps is taken or they become thirsty again
+But it wont actually serve as a way to heal them since it cannot be stacked and it does not remove the "FedOn" debuff 
+
+
+Ghoul Regen Ideas:
+also new regen math thing cause i fucked it up
+slower regen time, or, unable to regen? i can do it simply, instead of tracking hp percents and shit, i just track time percent, and then i do some math to figure out what rate of healing per turn amount (so 1 hp per 10 turns etc)
+MAYBE do it differently, currently, there is a time limit for how long it lasts, and during that time, healing is reduced
+I could change it to a flat reduction, 1 hp per 10 turns, but the time limit is variable
+Or the time limit can be the same, but heal reduction is smaller
+i might make ghouls take half damage as well from feed
+i just realized my code is kinda scuffed i think
+it automatically reduces their HP
+so instead we need to work with the remainder of basehp - hp
+and if hp is ever == basehp or a regeneration effect occurs, timer = 0, i think we can maybe do that in endturn or beforetakeaction?
+NOTE: Ghoul Regen is in a half-phase, i have code for reducing HP loss, and for boosting blood gain in my code rn.
+
+
+??? DOMINATION
+
+just realized dominating vampires allows you to kill feed victims of those vampires w/o consequence
+i could fix this by storing an Attacker property and making sure that the parentobject == attacker
+everything else goes back to your main humanity score (as it should)
+but feeding... yes dominating a vampire, you can go feed on someone and they wont get the victim tag
+if they die during feed, the vampire will lose humanity, but theres no victim tag, because of bugs 
+id potentially have to remake deathhandler but we can start with the attacker property
+
+I wonder how we will handle Domination-Killing-Childes
+Im thinking we run LoopDominator on the Killer and see if the KillerTrueDominator == Player and if Sire == TrueDominator
+Actually we dont need to
+It checks to see if Killer is The.Player
+well so im thinking its all descyned
+you could bleed someone when dominating, break domination right
+then the owner wont be == the player anymore
+so wed need to check if the owner... was the player at some point... before the effect wears off...
+extension method and postfix time lmao for bleeding
+but yeah so LoopDominator runs on the Player, it finds the original player
+And all our shit checks for if the killer is the.player 
+So if they are a childe && childe.master == the.player? hmm
+well only the player can sire really
+so if they are a childe and killer == the.player then its solid p much 
+well save this one for now
+considering removing LoopDominator entirely and localizing humanity per dominated vampire
+otherwise thinking maybe you shouldnt lose HUMANITY if you dominate someone and kill your own childe? naaaaah 
