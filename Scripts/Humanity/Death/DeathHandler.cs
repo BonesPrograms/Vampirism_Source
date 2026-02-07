@@ -40,7 +40,7 @@ namespace XRL.World.Parts
             return base.HandleEvent(E);
         }
 
-        void TryUpdate(Zone zone) //so that we can avoid firing events on every object in a  zone that does not need updating
+        static void TryUpdate(Zone zone) //so that we can avoid firing events on every object in a  zone that does not need updating
         {
             if (zone.TryGetZoneProperty(FLAGS.MOD.VERSION, out var result))
             {
@@ -51,7 +51,7 @@ namespace XRL.World.Parts
                 UpdateZone(zone);
         }
 
-        void UpdateZone(Zone zone)
+        static void UpdateZone(Zone zone)
         {
             zone.FireEvent(Events.UPDATE);
             zone.SetZoneProperty(FLAGS.MOD.VERSION, MOD.VERSION);
@@ -76,7 +76,7 @@ namespace XRL.World.Parts
                 CreateDeathsInstance(E.Killer, E.Dying); //but this will check Security() and wont create an instance if the player isnt a vampire
             return base.HandleEvent(E);
         }
-        void CreateDeathsInstance(GameObject Killer, GameObject Dying)
+        static void CreateDeathsInstance(GameObject Killer, GameObject Dying)
         {
             if (Security() && !Player.CheckFlag(FLAGS.GO) && Options.GetOptionBool(Nexus.Rules.OPTIONS.HUMANITY) && !Dying.HasStringProperty(FLAGS.DEAD))
             {
@@ -88,7 +88,7 @@ namespace XRL.World.Parts
             }
         }
 
-        void MarkForEmbrace(GameObject Dying, bool isvampire) //only "feedable" targets can become vampires, but deathhandler only exists as a part on feedable objects, so the check is already done
+        static void MarkForEmbrace(GameObject Dying, bool isvampire) //only "feedable" targets can become vampires, but deathhandler only exists as a part on feedable objects, so the check is already done
         {                                   //corpse objects whose source object didnt have this part wont have the property at all and thus will not be embraceable
             if (Dying.CurrentCell != null)
             {
@@ -110,7 +110,7 @@ namespace XRL.World.Parts
             }
         }
 
-        void CompareBlueprints(int level, GameObject obj, Corpse corpse)
+        static void CompareBlueprints(int level, GameObject obj, Corpse corpse)
         {
             if (obj.Blueprint == corpse.CorpseBlueprint)
             {
