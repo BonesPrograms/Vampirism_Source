@@ -17,7 +17,7 @@ public class VampirismStartGame : IPlayerMutator
                 GO.Inventory.AddObject("BloodCanteen");
             if (Options.GetOptionBool(OPTIONS.NIGHTBEAST))
                 The.Game.TimeTicks += 600;
-            if (Options.GetOptionBool(OPTIONS.FIRE))// && GO?.Equipped?.Blueprint == "Torch")
+            if (Options.GetOptionBool(OPTIONS.FIRE) && Options.GetOptionBool(OPTIONS.TORCH))// && GO?.Equipped?.Blueprint == "Torch")
             {
                 // GO.Equipped.Obliterate();
                 var objects = GO.GetEquippedObjects();
