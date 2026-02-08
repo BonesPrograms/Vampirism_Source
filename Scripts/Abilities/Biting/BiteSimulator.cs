@@ -70,34 +70,64 @@ namespace Nexus.Biting
                 Popup.ShowFail("It's {{k sequence|rotten!}} You feel sick!");
             Biter.ApplyEffect(new GlotrotOnset());
         }
+
         public Ending BadEnding(GameObject Target)
         {
-            Ending[] endings = new Ending[Source.Flags.CapacityByValue(true)];
+            bool[] flags = Source.Flags;
+            Ending[] endings = new Ending[flags.CapacityByValue(true)];
             int index = 0;
-            if (Source.IsOnFire)
+            for (int i = 0; i < flags.Length; i++)
             {
-                endings[index] = FlameEnding(Target);
-                index++;
+                if (flags[i])
+                {
+                    endings[index] = Cycle(i, Target);
+                    index++;
+                }
+                if (index >= endings.Length)
+                    break;
             }
-            if (Source.HasBadLiquid)
-            {
-                endings[index] = LiquidBehaviors.LiquidEnding(Source.BadLiquids);
-                index++;
-            }
-            if (Source.HasPlasma)
-            {
-                endings[index] = PlasmaEnding();
-                index++;
-            }
-            if (Source.IsPoisoned)
-            {
-                endings[index] = PoisonEnding();
-                index++;
-            }
-            if (Source.HasDisease)
-                endings[index] = DiseaseEnding();
-
             return Result(endings);
         }
+
+        Ending Cycle(int i, GameObject Target) =>
+        i switch
+        {
+            0 => FlameEnding(Target),
+            1 => PlasmaEnding(),
+            2 => LiquidBehaviors.LiquidEnding(Source.BadLiquids),
+            3 => DiseaseEnding(),
+            4 => PoisonEnding(),
+            _ => default
+        };
+
+        // public Ending BadEnding(GameObject Target)
+        // {
+        //     Ending[] endings = new Ending[Source.Flags.CapacityByValue(true)];
+        //     int index = 0;
+        //     if (Source.IsOnFire)
+        //     {
+        //         endings[index] = FlameEnding(Target);
+        //         index++;
+        //     }
+        //     if (Source.HasBadLiquid)
+        //     {
+        //         endings[index] = LiquidBehaviors.LiquidEnding(Source.BadLiquids);
+        //         index++;
+        //     }
+        //     if (Source.HasPlasma)
+        //     {
+        //         endings[index] = PlasmaEnding();
+        //         index++;
+        //     }
+        //     if (Source.IsPoisoned)
+        //     {
+        //         endings[index] = PoisonEnding();
+        //         index++;
+        //     }
+        //     if (Source.HasDisease)
+        //         endings[index] = DiseaseEnding();
+
+        //     return Result(endings);
+        // }
     }
 }

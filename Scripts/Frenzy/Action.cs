@@ -50,9 +50,7 @@ namespace Nexus.Frenzy
             if (!AI.InRange)
                 Path(new FindPath(AI.Object.CurrentCell, AI.Target.CurrentCell, PathGlobal: false, PathUnlimited: true, AI.Object, 500, ExploredOnly: false, Juggernaut: false, IgnoreCreatures: false, IgnoreGases: true, FlexPhase: false));
             else if (!BadBite(AI.Target))
-            {
-                new VampireAttack(AI.Target, AI.Source.Base, AI.Source.Base.GetDamageDice(), AI.Target.IsFriendly(AI.Object)).Attack(true);
-            }
+                new VampireAttack(AI.Target, AI.Source.Base).Attack(true);
             else
                 BiteFailed();
         }

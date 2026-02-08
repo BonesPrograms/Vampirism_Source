@@ -20,23 +20,24 @@ namespace Nexus.Attack
         readonly Vampirism Source;
         readonly string dice;
         readonly bool friendly;
+        bool vampire;
 
-        public VampireAttack(GameObject Target, Vampirism Source, string dice, bool friendly)
+        public VampireAttack(GameObject Target, Vampirism Source)
         {
             this.Target = Target;
             this.Source = Source;
-            this.dice = dice;
-            this.friendly = friendly;
+            this.dice = Source.GetDamageDice();
+            this.friendly = Target.IsFriendly(Source.ParentObject);
+            vampire = Target.IsVampire();
         }
         public void Attack(bool frenzy)
         {
             Nightbeast n = Source.ParentObject.IsPlayer() ? Source.ParentObject.GetPart<Nightbeast>() : null;
             Target.ApplyEffect(new Vampires_Kiss(FEED.DURATION));
-            bool vampire = Target.IsVampire();
             if (!frenzy && !friendly && (n?.ValidateStealthATK(Target) ?? false) && SpotterCheck(n))
-                StealthATK(vampire);
+                StealthATK();
             else
-                CombatFeed(frenzy, vampire);
+                CombatFeed(frenzy);
         }
 
         bool SpotterCheck(Nightbeast n)
@@ -52,7 +53,7 @@ namespace Nexus.Attack
             else
                 return true;
         }
-        void CombatFeed(bool frenzy, bool vampire)
+        void CombatFeed(bool frenzy)
         {
             Source.BiteActivate(Target); //prevents prematurely humanity loss
             if (Target?.HasHitpoints() ?? false) //by making sure theyre alive after the bite
@@ -65,7 +66,7 @@ namespace Nexus.Attack
             }
 
         }
-        void StealthATK(bool vampire)
+        void StealthATK()
         {
             if (Source.ParentObject.IsPlayer())
                 IComponent<GameObject>.AddPlayerMessage("{{G sequence|You ambush " + Target.t() + " and}} {{B|silently}} {{G sequence|sink your fangs into " + Target.its + " neck.}}");

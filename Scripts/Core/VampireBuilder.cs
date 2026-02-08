@@ -37,7 +37,10 @@ namespace Nexus.Core
         {
             typeof(Humanity), typeof(Vitae), typeof(Nightbeast), typeof(TheBeast)
         };
-        public static readonly Type[] VampiricSpells = { typeof(GhoulSpell), typeof(CoffinSpell) };
+        public static readonly Type[] VampiricSpells =
+        {
+            typeof(GhoulSpell), typeof(CoffinSpell), typeof(EmbraceSpell)
+        };
 
         public static void Make(GameObject GO)
         {

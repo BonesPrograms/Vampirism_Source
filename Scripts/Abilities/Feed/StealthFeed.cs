@@ -55,7 +55,7 @@ namespace XRL.World.Effects
 
 		public override bool HandleEvent(AfterDieEvent E)
 		{
-			if (E?.Killer == null && E.Dying == Object) //stealthfeed doesnt perform a real attack so a death by stealth feed is always a null killer
+			if (E.Killer == null && E.Dying == Object) //stealthfeed doesnt perform a real attack so a death by stealth feed is always a null killer
 				KilledEvent.Send(Object, other?.Object); //could cause problems maybe well wait and see
 			return base.HandleEvent(E);
 		}

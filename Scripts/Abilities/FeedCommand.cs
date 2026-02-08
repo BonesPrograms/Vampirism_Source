@@ -58,10 +58,11 @@ namespace Nexus.Attack
         {
             if (!Checks.Attackable(Target, "feed from") || !Warnings(Target))
                 return false;
-            else if (Target.TryGetEffect(out IFeeding feed))
+            else if (Target.TryGetEffect(out IFeeding feed)) //this block of code determiens the outcome if you try to interfere with another vampires feed
             {
                 GameObject Feeder = feed.other.Object;
-                return Feeder.IsFriendly(Source.ParentObject) ? friends = true : NoSharing(Feeder, Target);
+                friends = Feeder.IsFriendly(Source.ParentObject);
+                return friends || NotFriendly(Feeder, Target);
             }
             else
                 return true;
@@ -88,7 +89,7 @@ namespace Nexus.Attack
             return true;
         }
 
-        bool NoSharing(GameObject Feeder, GameObject Target)
+        bool NotFriendly(GameObject Feeder, GameObject Target)
         {
             Popup.ShowFail(Feeder.t() + " is already feeding on " + Target.t() + ", and " + Feeder.it + " doesn't want to share.");
             if (!Target.Unaware(true) && !Target.IsFriendly(Source.ParentObject))
@@ -104,7 +105,7 @@ namespace Nexus.Attack
             {
                 if (friends && Source.ParentObject.IsPlayer())
                     IComponent<GameObject>.AddPlayerMessage("{{R|Sharing is caring.}}");
-                new VampireAttack(Target, Source, Source.GetDamageDice(), Target.IsFriendly(Source.ParentObject)).Attack(false);
+                new VampireAttack(Target, Source).Attack(false);
             }
         }
         void ShowFailure(GameObject Target)

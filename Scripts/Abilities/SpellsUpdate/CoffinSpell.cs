@@ -80,7 +80,7 @@ namespace XRL.World.Parts
                 {
                     if (ParentObject.hitpoints - E.Damage.Amount <= 0 && (Roll() >= COFFIN.SAVING_THROW_DC || UI.Options.GetOptionBool(OPTIONS.COFFIN)))
                     {
-                        if (RealityCheck(ParentObject.CurrentCell) && !Coffin.Object.IsBroken())
+                        if (RealityCheck(Coffin.Object.CurrentCell) && !Coffin.Object.IsBroken())
                         {
                             E.Damage.Amount = 0;
                             ParentObject.DirectMoveTo(Coffin.Object.CurrentCell);
@@ -101,7 +101,12 @@ namespace XRL.World.Parts
                 if (cell != null)
                 {
                     if (cell.IsOpenForPlacement())
-                        Cast(cell);
+                    {
+                        if (!ParentObject.IsRealityDistortionUsable())
+                            RealityStabilized.ShowGenericInterdictMessage(ParentObject);
+                        else
+                            Cast(cell);
+                    }
                     else
                         ParentObject.ShowFailure("You can't invoke your coffin there.");
                 }

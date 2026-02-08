@@ -66,6 +66,7 @@ namespace XRL.World.Parts
                 return ID == SingletonEvent<BeforeTakeActionEvent>.ID;
             return true;
         }
+        
 
         public override bool HandleEvent(BeforeTakeActionEvent E)
         {
@@ -103,6 +104,28 @@ namespace XRL.World.Parts
             }
             else
                 AddPlayerMessage($"field {nameOf} does not exist in {Obj.FullName} or is not bool");
+        }
+
+        [WishCommand("ReadCopy")]
+        public static void ReadCopy()
+        {
+            Cell cell = The.Player.PickDirection("ReadCopy");
+            if (cell != null)
+            {
+                int copies = 0;
+                for (int i = 0; i < cell.Objects.Count; i++)
+                {
+                    if (cell.Objects[i].TryGetPart<GameObjectCopy>(out var copy))
+                    {
+                        copies++;
+                        copy.Read();
+                    }
+                }
+                if (copies > 0)
+                    AddPlayerMessage($"Read {copies} copies. See Player.log");
+                else
+                    AddPlayerMessage($"No objects found with GameObjectCopy part in cell.");
+            }
         }
 
         [WishCommand("getstaticplayer")]

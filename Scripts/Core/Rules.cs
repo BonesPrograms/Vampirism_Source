@@ -14,6 +14,10 @@ namespace Nexus.Rules
     static class EMBRACE
     {
         public const string COMMAND_NAME = "CommandEmbraceSpell";
+
+        public const string ABILITY_NAME = "Embrace";
+
+        public const int COOLDOWN = 1000;
     }
     static class FLEDGLING
     {

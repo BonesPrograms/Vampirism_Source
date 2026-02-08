@@ -139,7 +139,6 @@ namespace Nexus.Core
 			}
 			return false;
 		}
-		public static bool CanBeEmbraced(this GameObject Object) => Object.CheckFlag(Properties.FLAGS.EMBRACE.EMBRACEABLE);
 
 		public static bool IsVampire(this GameObject Object)
 		{
@@ -169,12 +168,6 @@ namespace Nexus.Core
 			var e = Object?.GetEffect<Beguiled>();
 			return Target != null && e?.Beguiler == Target;
 		}
-
-		public static bool Embraced(this GameObject Object)
-		{
-			return Object.HasEffect<Embraced>();
-		}
-
 		public static bool LocalCells(this GameObject Player, out List<Cell> cells)
 		{
 			cells = Player.CurrentCell?.GetLocalAdjacentCells();

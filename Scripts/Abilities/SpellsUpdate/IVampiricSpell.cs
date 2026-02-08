@@ -97,11 +97,11 @@ namespace XRL.World.Parts
                 return ParentObject.ShowFailure("You don't have enough {{R|blood}} " + text + "!");
         }
 
-        public bool Cast(string text, int cooldown, string msg)
+        public bool Cast(string SpellType, int cooldown, string ToDo)
         {
-            if (EnoughBlood(msg))
+            if (EnoughBlood(ToDo))
             {
-                ParentObject.UseEnergy(1000, $"{TAG} {text}");
+                ParentObject.UseEnergy(1000, $"{TAG} {SpellType}");
                 CooldownMyActivatedAbility(ID, cooldown);
                 return true;
             }
