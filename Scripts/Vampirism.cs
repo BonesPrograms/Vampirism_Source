@@ -359,17 +359,27 @@ namespace XRL.World.Parts.Mutation
 			{
 				if (ParentObject.IsPlayer())
 					Popup.Show("{{R|I HATE FIRE!!!}}");
-				GameObject replacement = GameObject.Create("Torch");
 				Torch.Obliterate();
-				ParentObject.CurrentCell.AddObject(replacement);
-				DidXToY("drop", replacement, null, null, null, null, null, null, UseFullNames: false, IndefiniteSubject: false, IndefiniteObject: true);
-				var Part = replacement.GetPart<TorchProperties>();
-				Part.Light();
-				if (!Part.IsUnlightableBecauseOfLiquidCovering() && !Part.IsUnlightableBecauseOfSubmersion())
-					FirePanic(replacement, false);
-				else
-					Part.Extinguish();
+				ReplaceTorch();
 			}
+		}
+
+		void ReplaceTorch()
+		{
+			GameObject replacement = GameObject.Create("Torch");
+			ParentObject.CurrentCell.AddObject(replacement);
+			DidXToY("drop", replacement, null, null, null, null, null, null, UseFullNames: false, IndefiniteSubject: false, IndefiniteObject: true);
+			TryLight(replacement);
+		}
+
+		void TryLight(GameObject replacement)
+		{
+			var Part = replacement.GetPart<TorchProperties>();
+			Part.Light();
+			if (!Part.IsUnlightableBecauseOfLiquidCovering() && !Part.IsUnlightableBecauseOfSubmersion())
+				FirePanic(replacement, false);
+			else
+				Part.Extinguish();
 		}
 		void AlreadyOnFire(string text)
 		{

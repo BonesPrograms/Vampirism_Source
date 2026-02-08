@@ -28,7 +28,7 @@ namespace Nexus.Rules
 
         public const string ABILITY_NAME = "Invoke Coffin";
 
-        public const int MATERIALIZE_COOLDOWN = 200;
+        public const int MATERIALIZE_COOLDOWN = 500;
 
         public const int SAVE_FROM_DEATH_MIN = 1000;
 

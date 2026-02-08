@@ -114,11 +114,11 @@ namespace XRL.World.Parts
             if (base.Cast(COFFIN.ABILITY_NAME, COFFIN.MATERIALIZE_COOLDOWN, "to invoke your coffin"))
             {
                 ExpendBlood();
-            if (RealityCheck(cell))
-                PlaceCoffin(cell);
+                if (RealityCheck(cell))
+                    PlaceCoffin(cell);
             }
         }
-        
+
         void PlaceCoffin(Cell cell)
         {
             HasCoffin = true;
@@ -131,6 +131,7 @@ namespace XRL.World.Parts
                 cell.AddObject(Coffin);
                 this.Coffin = Coffin.Reference();
             }
+            Coffin.Object.ParticleBlip("&K-", 10, 0L);
             AddPlayerMessage("Your coffin appears!");
         }
 
