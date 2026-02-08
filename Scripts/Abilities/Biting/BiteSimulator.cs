@@ -70,20 +70,9 @@ namespace Nexus.Biting
                 Popup.ShowFail("It's {{k sequence|rotten!}} You feel sick!");
             Biter.ApplyEffect(new GlotrotOnset());
         }
-        int Capacity()
-        {
-            int value = 0;
-            for (int i = 0; i < Source.Flags.Length; i++)
-            {
-                if (Source.Flags[i] == true)
-                    value++;
-            }
-            return value;
-        }
-
         public Ending BadEnding(GameObject Target)
         {
-            Ending[] endings = new Ending[Capacity()];
+            Ending[] endings = new Ending[Source.Flags.CapacityByValue(true)];
             int index = 0;
             if (Source.IsOnFire)
             {

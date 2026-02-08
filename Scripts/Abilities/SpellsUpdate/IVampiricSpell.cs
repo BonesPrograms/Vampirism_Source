@@ -5,14 +5,10 @@ using Nexus.Rules;
 using XRL.World.Effects;
 using Nexus.Core;
 using XRL.World;
-using System.Collections.Generic;
-using XRL.World.Parts;
-using XRL.World.Parts.Mutation;
+using Nexus.Properties;
 
 namespace Nexus.Spells
 {
-
-
     interface IVampiricSpell
     {
         public bool ShouldSync();
@@ -34,17 +30,17 @@ namespace XRL.World.Parts
     [Serializable]
     public abstract class VampiricSpell : IScribedPart, IVampiricSpell
     {
-
-        public const string TAG = "Vampric Spell";
-        public Guid _ID = Guid.Empty;
-        public virtual Guid ID
+        public int _Cost = VITAE.BLOOD_PER_SIP; //default 10k
+        public virtual int Cost
         {
-            get=>_ID;
+            get => _Cost;
             set
             {
-                _ID = value;
+                _Cost = value;
             }
         }
+        public const string TAG = "Vampiric Spell";
+        public Guid ID = Guid.Empty;
         public int _Level = 1; //level will always be synced with vampirism level
         public int Level
         {
@@ -58,16 +54,11 @@ namespace XRL.World.Parts
         public abstract void RequireObject();
         public virtual void RemoveObject()
         {
-            RemoveMyActivatedAbility(ref _ID);
+            RemoveMyActivatedAbility(ref ID);
             ParentObject.RemovePart(this);
         }
         public abstract void CollectStats(Templates.StatCollector stats);
         public virtual int Roll() => IVampiricSpell.Roll(ParentObject, Level);
-        Vitae _Vitae;
-        public Vitae Vitae => _Vitae ?? ParentObject.GetPart<Vitae>();
-        Vampirism _Base;
-        public Vampirism Base => _Base ?? ParentObject.GetPart<Vampirism>();
-
         public override bool WantEvent(int ID, int Cascade)
         {
             if (ID == PooledEvent<CommandEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
@@ -77,19 +68,19 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(BeforeAbilityManagerOpenEvent E)
         {
-             DescribeMyActivatedAbility(ID, CollectStats);
+            DescribeMyActivatedAbility(ID, CollectStats);
             return base.HandleEvent(E);
         }
-        public bool NotEnoughBlood(string text)
+
+        public virtual void SyncLevels(int NewLevel)
         {
-            bool count = Vitae.Blood <= VITAE.BLOOD_PER_SIP;
-            if (count)
-                UI.Popup.Show("You don't have enough {{R|blood}} " + text + "!");
-            return count;
+            if (ShouldSync())
+                Level = NewLevel;
         }
-        public virtual bool Prerequisites(GameObject Target)
+
+        public bool RealityCheck(Cell cell) //get real
         {
-            Event E = Event.New("InitiateRealityDistortionTransit", "Object", ParentObject, "Vampiric Power", this, "Cell", Target.CurrentCell);
+            Event E = Event.New("InitiateRealityDistortionTransit", "Object", ParentObject, TAG, this, "Cell", cell);
             if (!ParentObject.FireEvent(E) || !ParentObject.CurrentCell.FireEvent(E))
             {
                 RealityStabilized.ShowGenericInterdictMessage(ParentObject);
@@ -97,18 +88,37 @@ namespace XRL.World.Parts
             }
             return true;
         }
-        public virtual void SyncLevels(int NewLevel)
+
+        public bool EnoughBlood(string text)
         {
-            if (ShouldSync())
-                Level = NewLevel;
+            if (ParentObject.GetIntProperty(FLAGS.BLOOD_VALUE) > Cost)
+                return true;
+            else
+                return ParentObject.ShowFailure("You don't have enough {{R|blood}} " + text + "!");
         }
-        public virtual void ExpendBlood(bool iskey, string text, int cost)
+
+        public bool Cast(string text, int cooldown, string msg)
         {
-            if (iskey)
+            if (EnoughBlood(msg))
+            {
+                ParentObject.UseEnergy(1000, $"{TAG} {text}");
+                CooldownMyActivatedAbility(ID, cooldown);
+                return true;
+            }
+            return false;
+        }
+        public void ExpendBlood(bool nopoup, string text)
+        {
+            if (nopoup)
                 AddPlayerMessage(text);
             else
                 UI.Popup.Show(text);
-            Vitae.SubtractBlood(cost);
+            ExpendBlood();
+        }
+        //ExpendBlood should be invoked after Cast() returns true
+        public void ExpendBlood()
+        {
+            ParentObject.GetPart<Vitae>().SubtractBlood(Cost);
         }
     }
 }

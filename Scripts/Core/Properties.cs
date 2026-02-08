@@ -36,6 +36,8 @@ namespace Nexus.Properties
 		//the innocent flag is immutable so anyone who played before the change
 		//will have objects that have the old literal
 
+        public const string COFFIN = "VampireCoffinSourceID";
+
         /// <summary>
         /// Boolean.
         /// </summary>

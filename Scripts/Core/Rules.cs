@@ -20,19 +20,36 @@ namespace Nexus.Rules
         public const int TIMER = 500;
     }
 
+    static class COFFIN
+    {
+
+        public const string BLUEPRINT = "Iron Maiden";
+        public const string COMMAND_NAME = "invokeCoffinCMD";
+
+        public const string ABILITY_NAME = "Invoke Coffin";
+
+        public const int MATERIALIZE_COOLDOWN = 200;
+
+        public const int SAVE_FROM_DEATH_MIN = 1000;
+
+        public const int SAVE_FROM_DEATH_MAX = 5000;
+
+        public const int SAVING_THROW_DC = 20;
+    }
     static class GHOUL
     {
-        public const int Cooldown = 500;
+        public const int COOLDOWN = 500;
         public const int REGEN = 5000;
         public const string COMMAND_NAME = "CommandGhoulSpell";
         public const string ABILITY_NAME = "Ghoul";
         public const int MIN = 500;
         public const int BUFFTIME = 500;
-        public const int COST = VITAE.BLOOD_PER_SIP;
     }
 
     static class OPTIONS //some of these are only referenced once but i hate string literals and i like having them all in one place so i can compare them to my XMLs to make sure there
     {                     //are no typos
+
+        public const string COFFIN = "CoffinAutoWin";
         public const string TORCH = "FearOfTorches";
         public const string FRACTUS_NERF = "FractusNerf";
         public const string HUMANITY = "humanity";

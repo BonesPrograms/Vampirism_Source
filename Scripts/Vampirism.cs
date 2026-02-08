@@ -47,9 +47,9 @@ namespace XRL.World.Parts.Mutation
 
 		void SyncLevels(int NewLevel)
 		{
-			VampiricSpell[] abilities = ParentObject.GetSpellArray();
+			VampiricSpell[] abilities = ParentObject.SpellArray();
 			for (int i = 0; i < abilities.Length; i++)
-				abilities[i]?.SyncLevels(NewLevel);
+				abilities[i].SyncLevels(NewLevel);
 
 		}
 		public string GetDamageDice()
@@ -59,7 +59,18 @@ namespace XRL.World.Parts.Mutation
 				< 3 => Level % 2 == 1 ? "2d3" : "2d4",
 				_ => Level % 2 == 1 ? $"2d3+ {Level / 2}" : $"2d4+ {(Level - 1) / 2}",
 			};
-
+		public override bool CompatibleWith(GameObject go)
+		{
+			if (Options.GetOptionBool(OPTIONS.SPELLS))
+			{
+				if (MutationFactory.HasMutation(nameof(Beguiling)))
+				{
+					if (go.HasPart(nameof(Beguiling)))
+						return false;
+				}
+			}
+			return base.CompatibleWith(go);
+		}
 		public override void CollectStats(Templates.StatCollector stats, int Level)
 		{
 			int num = Math.Max(ParentObject.StatMod("Agility"), Level) + ParentObject.GetStat("Level").Value;
@@ -93,6 +104,7 @@ namespace XRL.World.Parts.Mutation
 			switch (E.ID)
 			{
 				case Events.UPDATE:
+					cmd.msg("Events.UPDATE heard! " + ParentObject);
 					Nexus.Update.Update.Check(ParentObject);
 					break;
 				case Events.GAMEOVER:
@@ -314,7 +326,7 @@ namespace XRL.World.Parts.Mutation
 			&& HasFangs()
 			&& IsMyActivatedAbilityAIUsable(FangsActivatedAbilityID)
 			&& !E.Actor.Incap(false)
-			&& !E.Target.HasEffect<Vampires_Kiss>()
+			&& !E.Target.HasEffect<Vampires_Kiss>() //this is so that they prefer to try and kill you instead of your victim
 			&& !E.Target.IsFlying
 			&& !E.Target.IsFrozen()
 			&& !E.Target.IsInStasis()

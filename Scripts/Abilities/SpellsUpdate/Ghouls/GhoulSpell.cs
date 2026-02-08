@@ -12,6 +12,7 @@ namespace XRL.World.Parts
     [Serializable]
     public class GhoulSpell : VampiricSpell
     {
+        public Effect Ghoul;
         public override bool ShouldSync() => true;
         public Dictionary<GameObject, EnthralledGhoul> Ghouls = new();
         int MAX()
@@ -99,16 +100,16 @@ namespace XRL.World.Parts
             return false;
         }
 
-        public void ExpendBlood(GameObject Target, bool iskey = false, int cost = GHOUL.COST)
+        public void ExpendBlood(GameObject Target, bool iskey)
         {
             Ghouls[Target].Buff(Roll());
-            base.ExpendBlood(iskey, $"You feed {Target.t()} your blood.", cost);
+            base.ExpendBlood(iskey, $"You feed {Target.t()} your blood.");
         }
+
+
         void Cast(GameObject Target, bool containskey)
         {
-            ParentObject.UseEnergy(1000, TAG + " Enthrall Ghoul");
-            CooldownMyActivatedAbility(ID, GHOUL.Cooldown);
-            if (!NotEnoughBlood(TEXT))
+            if (base.Cast("Enthrall Ghoul", GHOUL.COOLDOWN, TEXT))
             {
                 if (containskey)
                     this.ExpendBlood(Target, true);
@@ -136,14 +137,14 @@ namespace XRL.World.Parts
         bool Attack(GameObject Target) =>
         Capabilities.Mental.PerformAttack(Enthrall, ParentObject, Target, null, GHOUL.COMMAND_NAME, "1d8", 1, int.MinValue, int.MinValue, Roll(), Target.Stat("Level"));
 
-        public override bool Prerequisites(GameObject Target)
+        public bool Prerequisites(GameObject Target)
         {
             if (!Target.FireEvent("CanApplyBeguile") || !CanApplyEffectEvent.Check(Target, "Beguile"))
             {
                 IComponent<GameObject>.AddPlayerMessage(Target.Does("seem") + " utterly impervious to your charms.");
                 return false;
             }
-            return base.Prerequisites(Target);
+            return base.RealityCheck(Target.CurrentCell);
         }
 
         void CheckGhouls()
@@ -181,7 +182,7 @@ namespace XRL.World.Parts
                     stats.Set("Attack", "1d8" + num, !stats.mode.Contains("ability"));
                     break;
             }
-            stats.CollectCooldownTurns(MyActivatedAbility(ID), GHOUL.Cooldown);
+            stats.CollectCooldownTurns(MyActivatedAbility(ID), GHOUL.COOLDOWN);
         }
 
         public override void RequireObject()

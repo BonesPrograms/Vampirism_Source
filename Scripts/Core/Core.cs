@@ -7,6 +7,7 @@ using XRL.UI;
 using XRL.World.Parts.Mutation;
 using System.Linq;
 using XRL;
+using System.Collections;
 
 [HasCallAfterGameLoaded]
 public static class VampirismStaticRefresh
@@ -21,7 +22,8 @@ public static class VampirismStaticRefresh
 
 namespace Nexus.Core
 {
-	static class Extensions
+
+	public static class QudExtensions
 	{
 		//RequiresPart (bool): if they already have the part, it returns false and does not assign obj. otherwise it returns true and assigns obj to the new part.
 
@@ -29,6 +31,155 @@ namespace Nexus.Core
 		/// <summary>
 		/// Boolean RequirePart for Type instances, casts to T and outputs
 		/// </summary>
+		/// 
+		public static bool TryGetZoneProperty(this Zone zone, string property, out string result)
+		{
+			result = zone.GetZoneProperty(property);
+			return !result?.IsNullOrEmpty() ?? false;
+		}
+
+		/// <summary>
+		/// Returns true/false values from object string properties. Default true.
+		/// </summary>
+		public static bool CheckFlag(this GameObject theObject, string flag1, string flag2) => theObject.CheckFlag(flag1) || theObject.CheckFlag(flag2);
+
+		/// <summary>
+		/// Returns true/false values from object string properties. Default true.
+		/// </summary>
+		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.FLAGS.TRUE) || theObject.PropertyEquals(flag, Properties.FLAGS.TRUE_LEGACY);
+
+		public static bool PropertyEquals<TValue>(this GameObject Object, string key, TValue value)
+		{
+			if (value is string stringProp)
+			{
+				if (Object.TryGetStringProperty(key, out string result))
+					return result == stringProp;
+			}
+			else if (value is long longProp)
+			{
+				if (Object.TryGetLongProperty(key, out long result))
+					return result == longProp;
+			}
+			else if (value is int integer)
+			{
+				if (Object.TryGetIntProperty(key, out int result))
+					return result == integer;
+			}
+			return false;
+		}
+
+		public static bool TryGetEitherLongProperty(this GameObject Object, string key, string key2, out long value)
+		{
+			if (Object.TryGetLongProperty(key, out value) || Object.TryGetLongProperty(key2, out value))
+				return true;
+			return false;
+		}
+
+		/// <summary>
+		/// Safe method for getting a target for an activated ability.
+		/// </summary>
+		public static bool TryGetTarget(this GameObject Object, string ability, string text, out GameObject pick)
+		{
+			Cell Cell = Object.PickDirection(ability);
+			pick = Cell?.GetCombatTarget(Object);
+			bool value = pick != null && pick != Object;
+			if (!value && Cell != null && Object.IsPlayer())
+				Popup.ShowFail(Cell.HasObjectWithPart(nameof(Combat)) ? $"There is no one there you can {text}." : $"There is no one there to {text}");
+			return value;
+		}
+
+		/// <summary>
+		/// Evaluates alliance, love, and player control.
+		/// </summary>
+		public static bool IsFriendly(this GameObject who, GameObject toWho)
+		{
+			if (toWho != null)
+				return who.IsAlliedTowards(toWho) || who.IsInLoveWith(toWho) || (toWho.IsPlayer() && (who.IsPlayerControlled() || who.IsPlayerLed()));
+			return false;
+		}
+
+		/// <summary>
+		/// Evaluates if the vampire is in a condition wherein they are incapable of activating Feed. Special evaluation for when frenzy is active.
+		/// </summary>
+
+		public static bool Incap(this GameObject theVampire, bool frenzying)
+		 =>
+		 	theVampire != null &&
+			 (theVampire.IsFrozen()
+			|| theVampire.IsInStasis()
+			|| !theVampire.CanMoveExtremities(XRL.World.Parts.Mutation.Vampirism.ABILITY_NAME)
+			|| Unaware(theVampire, false)
+			|| (theVampire.IsConfused && frenzying) // specifically to end frenzy if confused
+			|| (!theVampire.IsPlayer() && theVampire.HasEffect<StunGasStun>())); //stungasstun does not count as unawareness but does count as incapacitated only because i dont like being bitten by stun-gassed vampires
+		//even with useenergy event, still had some bugs associated with effects and conditions that youd normally expect to end a feeding
+
+		public readonly static Type[] UnawareFX =
+		{
+			typeof(Vampires_Kiss), typeof(KO), typeof(Stun), typeof(Paralyzed), typeof(Asleep), typeof(Exhausted)
+		};
+
+		/// <summary>
+		/// Evaluates if a target lacks awareness of their surroundings, such as stun, sleep, confusion, or paralysys.
+		/// </summary>
+		public static bool Unaware(this GameObject Object, bool kissing)
+		{
+			if (Object.IsConfused && !Object.IsPlayer()) //normally confusion does not count as technical unawareness for the player
+				return true;							//the effect of this can be noticed in Incap()'s references; ie. feed does not end for a confused player but ends for a confused AI
+			for (int i = 0; i < UnawareFX.Length; i++)
+			{
+				for (int x = 0; x < Object.Effects.Count; x++)
+				{
+					if (Object.Effects[x].Duration > 0 && UnawareFX[i] == Object.Effects[x].GetType())
+					{
+						if (kissing && i == 0)
+							continue;
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+		public static bool CanBeEmbraced(this GameObject Object) => Object.CheckFlag(Properties.FLAGS.EMBRACE.EMBRACEABLE);
+
+		public static bool IsVampire(this GameObject Object)
+		{
+			return Object.HasPart<Vampirism>();
+		}
+
+		public static bool IsVampire(GameObject Object, out Vampirism v)
+		{
+			v = Object?.GetPart<Vampirism>();
+			return v != null;
+		}
+
+		public static bool IsGhoulOf(this GameObject Object, GameObject Target)
+		{
+			var e = Object.GetEffect<EnthralledGhoul>();
+			return e?.IsGhoulOf(Target) ?? false;
+		}
+
+		public static bool IsChildeOf(this GameObject Object, GameObject Target)
+		{
+			var p = Object.GetPart<Fledgling>();
+			return p?.IsChildeOf(Target) ?? false;
+		}
+
+		public static bool IsBeguiledBy(this GameObject Object, GameObject Target)
+		{
+			var e = Object?.GetEffect<Beguiled>();
+			return Target != null && e?.Beguiler == Target;
+		}
+
+		public static bool Embraced(this GameObject Object)
+		{
+			return Object.HasEffect<Embraced>();
+		}
+
+		public static bool LocalCells(this GameObject Player, out List<Cell> cells)
+		{
+			cells = Player.CurrentCell?.GetLocalAdjacentCells();
+			return cells != null;
+		}
 		public static bool RequiresPart<T>(this GameObject Object, Type type, out T obj) where T : IPart
 		{
 			obj = Object.GetPart<T>(type);
@@ -113,44 +264,19 @@ namespace Nexus.Core
 						return true;
 			return false;
 		}
-
-		public static T[] GetPartArrayImplementing<T>(this GameObject Object) where T : class
+		public static T[] PartsArrayImplenenting<T>(this GameObject Object, int capacity) where T : class
 		{
-			int capacity = 0;
-			for (int i = 0; i < Object.PartsList.Count; i++)
-				if (Object.PartsList[i] is T)
-					capacity++;
-			T[] array = new T[capacity];
-			int index = 0;
-			for (int i = 0; i < Object.PartsList.Count; i++)
-			{
-				if (Object.PartsList[i] is T t)
-				{
-					array[index] = t;
-					index++;
-				}
-				if (index >= capacity)
-					break;
-			}
-			return array;
-
+			return Object.PartsList.ArrayOfObjectsImplementing<T>(capacity);
 		}
 
-		public static VampiricSpell[] GetSpellArray(this GameObject Object)
+		public static T[] PartsArrayDescendedFrom<T>(this GameObject Object, int capacity) where T : IPart
 		{
-			VampiricSpell[] array = new VampiricSpell[VampireBuilder.VampiricSpells.Length];
-			int index = 0;
-			for (int i = 0; i < Object.PartsList.Count; i++)
-			{
-				if (Object.PartsList[i] is VampiricSpell spell)
-				{
-					array[index] = spell;
-					index++;
-				}
-				if (index >= VampireBuilder.VampiricSpells.Length)
-					break;
-			}
-			return array;
+			return Object.PartsArrayImplenenting<T>(capacity);
+		}
+
+		public static VampiricSpell[] SpellArray(this GameObject Object)
+		{
+			return Object.PartsArrayDescendedFrom<VampiricSpell>(VampireBuilder.VampiricSpells.Length);
 		}
 		public static List<T> GetPartsAndEffectsImplementing<T>(this GameObject Object, bool GetEffects) where T : class
 		{
@@ -190,6 +316,9 @@ namespace Nexus.Core
 			}
 			return false;
 		}
+	}
+	public static class Extensions
+	{
 
 		/// <summary>
 		/// Creates instances from a Type instance and safely casts them to the generic parameter.
@@ -211,16 +340,6 @@ namespace Nexus.Core
 					return true;
 			return false;
 		}
-
-		public static bool ContainsBool<T>(this (T, bool)[] array, bool value)
-		{
-			for (int i = 0; i < array.Length; i++)
-			{
-				if (array[i].Item2 == value)
-					return true;
-			}
-			return false;
-		}
 		public static void Reset<TItem1, TItem2>(this (TItem1, TItem2)[] array, TItem2 value = default) where TItem2 : struct
 		{
 			for (int i = 0; i < array.Length; i++)
@@ -232,117 +351,50 @@ namespace Nexus.Core
 				source[obj] = value;
 		}
 
-		public static bool TryGetZoneProperty(this Zone zone, string property, out string result)
+
+		//L is is the Type parameter for your IList
+		public static T[] ArrayOfObjectsImplementing<T>(this IList objects, int capacity) where T : class
 		{
-			result = zone.GetZoneProperty(property);
-			return !result?.IsNullOrEmpty() ?? false;
-		}
-
-		/// <summary>
-		/// Returns true/false values from object string properties. Default true.
-		/// </summary>
-		public static bool CheckFlag(this GameObject theObject, string flag1, string flag2) => theObject.CheckFlag(flag1) || theObject.CheckFlag(flag2);
-
-		/// <summary>
-		/// Returns true/false values from object string properties. Default true.
-		/// </summary>
-		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.FLAGS.TRUE) || theObject.PropertyEquals(flag, Properties.FLAGS.TRUE_LEGACY);
-
-		public static bool PropertyEquals<TValue>(this GameObject Object, string key, TValue value)
-		{
-			if (value is string stringProp)
+			T[] array = new T[capacity];
+			int index = 0;
+			for (int i = 0; i < objects.Count; i++)
 			{
-				if (Object.TryGetStringProperty(key, out string result))
-					return result == stringProp;
-			}
-			else if (value is long longProp)
-			{
-				if (Object.TryGetLongProperty(key, out long result))
-					return result == longProp;
-			}
-			else if (value is int integer)
-			{
-				if (Object.TryGetIntProperty(key, out int result))
-					return result == integer;
-			}
-			return false;
-		}
-
-		public static bool TryGetEitherLongProperty(this GameObject Object, string key, string key2, out long value)
-		{
-			if (Object.TryGetLongProperty(key, out value) || Object.TryGetLongProperty(key2, out value))
-				return true;
-			return false;
-		}
-
-		/// <summary>
-		/// Safe method for getting a target for an activated ability.
-		/// </summary>
-		public static bool TryGetTarget(this GameObject Object, string ability, string text, out GameObject pick)
-		{
-			Cell Cell = Object.PickDirection(ability);
-			pick = Cell?.GetCombatTarget(Object);
-			bool value = pick != null && pick != Object;
-			if (!value && Cell != null && Object.IsPlayer())
-				Popup.ShowFail(Cell.HasObjectWithPart(nameof(Combat)) ? $"There is no one there you can {text}." : $"There is no one there to {text}");
-			return value;
-		}
-
-		/// <summary>
-		/// Evaluates alliance, love, and player control.
-		/// </summary>
-		public static bool IsFriendly(this GameObject who, GameObject toWho)
-		{
-			if (toWho != null)
-				return who.IsAlliedTowards(toWho) || who.IsInLoveWith(toWho) || (toWho.IsPlayer() && (who.IsPlayerControlled() || who.IsPlayerLed()));
-			return false;
-		}
-
-		/// <summary>
-		/// Evaluates if the vampire is in a condition wherein they are incapable of activating Feed. Special evaluation for when frenzy is active.
-		/// </summary>
-
-		public static bool Incap(this GameObject theVampire, bool frenzying)
-		 =>
-		 	theVampire != null &&
-			 (theVampire.IsFrozen()
-			|| theVampire.IsInStasis()
-			|| !theVampire.CanMoveExtremities(XRL.World.Parts.Mutation.Vampirism.ABILITY_NAME)
-			|| Unaware(theVampire, false)
-			|| (theVampire.IsConfused && frenzying) // specifically to end frenzy if confused
-			|| (theVampire.HasEffect<StunGasStun>() && !theVampire.IsPlayer()));
-		//even with useenergy event, still had some bugs associated with effects and conditions that youd normally expect to end a feeding
-
-		public readonly static Type[] UnawareFX =
-		{
-			typeof(Vampires_Kiss), typeof(KO), typeof(Stun), typeof(Paralyzed), typeof(Asleep), typeof(Exhausted)
-		};
-
-		/// <summary>
-		/// Evaluates if a target lacks awareness of their surroundings, such as stun, sleep, confusion, or paralysys.
-		/// </summary>
-		public static bool Unaware(this GameObject Object, bool kissing)
-		{
-			if (Object.IsConfused && !Object.IsPlayer())
-				return true;
-			for (int i = 0; i < UnawareFX.Length; i++)
-			{
-				for (int x = 0; x < Object.Effects.Count; x++)
+				if (objects[i] is T t)
 				{
-					if (Object.Effects[x].Duration > 0 && UnawareFX[i] == Object.Effects[x].GetType())
-					{
-						if (kissing && i == 0)
-							continue;
-						return true;
-					}
+					array[index] = t;
+					index++;
 				}
+				if (index >= array.Length)
+					break;
 			}
-			return false;
+			return array;
 		}
 
-		public static int CapacityByValue<TItem1, TItem2>(this (TItem1, TItem2)[] array, TItem2 value) where TItem2 : struct
+		public static int CapacityByValue(this bool[] array, bool value)
 		{
-			int capacity = default;
+			int capacity = 0;
+			for (int i = 0; i < array.Length; i++)
+			{
+				if (array[i] == value)
+					capacity++;
+			}
+			return capacity;
+		}
+
+		public static int CapacityByValue<TItem1>(this (TItem1, bool)[] array, bool value)
+		{
+			int capacity = 0;
+			for (int i = 0; i < array.Length; i++)
+			{
+				if (array[i].Item2 == value)
+					capacity++;
+			}
+			return capacity;
+		}
+
+		public static int CapacityByValue<TItem1, TItem2>(this (TItem1, TItem2)[] array, TItem2 value)
+		{
+			int capacity = 0;
 			for (int i = 0; i < array.Length; i++)
 			{
 				if (array[i].Item2.Equals(value))
@@ -350,46 +402,16 @@ namespace Nexus.Core
 			}
 			return capacity;
 		}
-		public static bool CanBeEmbraced(this GameObject Object) => Object.CheckFlag(Properties.FLAGS.EMBRACE.EMBRACEABLE);
 
-		public static bool IsVampire(this GameObject Object)
+		public static int CapacityByValue<TItem1, TItem2>(this TItem1[] array, TItem2 value)
 		{
-			return Object.HasPart<Vampirism>();
-		}
-
-		public static bool IsVampire(GameObject Object, out Vampirism v)
-		{
-			v = Object?.GetPart<Vampirism>();
-			return v != null;
-		}
-
-		public static bool IsGhoulOf(this GameObject Object, GameObject Target)
-		{
-			var e = Object.GetEffect<EnthralledGhoul>();
-			return e?.IsGhoulOf(Target) ?? false;
-		}
-
-		public static bool IsChildeOf(this GameObject Object, GameObject Target)
-		{
-			var p = Object.GetPart<Fledgling>();
-			return p?.IsChildeOf(Target) ?? false;
-		}
-
-		public static bool IsBeguiledBy(this GameObject Object, GameObject Target)
-		{
-			var e = Object?.GetEffect<Beguiled>();
-			return Target != null && e?.Beguiler == Target;
-		}
-
-		public static bool Embraced(this GameObject Object)
-		{
-			return Object.HasEffect<Embraced>();
-		}
-
-		public static bool LocalCells(this GameObject Player, out List<Cell> cells)
-		{
-			cells = Player.CurrentCell?.GetLocalAdjacentCells();
-			return cells != null;
+			int capacity = 0;
+			for (int i = 0; i < array.Length; i++)
+			{
+				if (array[i].Equals(value))
+					capacity++;
+			}
+			return capacity;
 		}
 	}
 	static class Checks

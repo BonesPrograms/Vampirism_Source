@@ -159,7 +159,7 @@ namespace XRL.World.Effects
 
 		protected void CheckIfRecognized()
 		{
-			if(Object.TryGetEitherLongProperty(FLAGS.VICTIM, FLAGS.VICTIM_HOSTILE, out var value) && value > 1000)
+			if(!Ghoul && Object.TryGetEitherLongProperty(FLAGS.VICTIM, FLAGS.VICTIM_HOSTILE, out var value) && value > 1000)
 				AddPlayerMessage("You recognize the flavor of this one.");
 		}
 		protected bool Feed()

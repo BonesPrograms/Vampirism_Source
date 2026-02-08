@@ -82,21 +82,9 @@ namespace Nexus.Biting
                 Biter.ApplyEffect(new IronshankOnset());
             return Ending.VOMIT;
         }
-
-       static int Capacity((string, bool)[] BadLiquids)
-        {
-            int value = 0;
-            for (int i = 0; i < BadLiquids.Length; i++)
-            {
-                if (BadLiquids[i].Item2 == true)
-                    value++;
-            }
-            return value;
-        }
-
         public Ending LiquidEnding((string, bool)[] BadLiquids) //caves of qud certainly is a complex liquid simulation... luckily were just dealing with a micro part of it
         {
-            Ending[] array = new Ending[Capacity(BadLiquids)];
+            Ending[] array = new Ending[BadLiquids.CapacityByValue(true)];
             int index = 0;
             if (BadLiquids[0].Item2)
             {

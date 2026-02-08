@@ -12,9 +12,12 @@
     <UITile Tile="vampirism/vampfangs.png" Foreground="w" Detail="R" />
   </ability>
 
-  <ability Command="invokeCoffin">
+  <ability Command="invokeCoffinCMD">
     <description>
-      <p>Teleport your coffin to the target cell.</p>      
+      <p>Invoke your coffin.</p>
+      <br/>
+      <p> <stat Name="SaveAndChance"/></p>
+      <p> Turns before Save-From-Death is active again: <stat Name="Save-From-Death Cooldown"/></p>      
       <statline Name="Cooldown" />
     </description>  
     <UITile Tile="vampirism/vampfangs.png" Foreground="w" Detail="R" />

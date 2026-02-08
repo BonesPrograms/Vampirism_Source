@@ -29,6 +29,15 @@ A memory of the human soul that drops rarely upon the death of an innocent, non-
 Blood Magic(Option)
 Spells cost blood to use and level up with vampirism. Spell attack success is determined by EGO or Vampirism mod (whichever is higher) + Player Level + 1d8.
 Spells can be enabled or disabled, but the game must be saved/loaded to add/remove the spells.
+Spells are magical and casting them can be interrupted by normality.
+
+Blood Magic Spells:
+
+Coffins:
+Vampires can place coffins that, rarely, they will return to instead of dying. After being saved from death, there will be a long cooldown before it can save you again.
+There is an option to make it so that you always return to your coffin instead of dying, but the cooldown still remains.
+If you are damaged by fire, you will not return to your coffin. Normality may also prevent you from returning to your coffin.
+If your coffin is broken, you will not return to it. You must fix your coffin or completely destroy it and invoke a new one with the spell.
 
 Embrace:
 Certain creatures can be resurrected from the dead as fledglings and cursed with vampirism by the player. Though it doesn't make sense, for fun,
@@ -40,10 +49,16 @@ You cannot embrace the bodies of creatures who's level once was greater than you
 (will add feeding blood soon... maybe)
  
 Ghoul:
-Feedable creatures can be fed your blood to enthrall them, but they become reliant on your blood to survive for the rest of their life and will need to be fed. 
+Feedable creatures can be fed your blood to enthrall them, but they become reliant on your blood to survive for the rest of their life and will need to be fed consistently.
+If you do not feed your ghoul for a few days, they will die. If your ghoul is thirsty for blood, they will suffer a stat penalty.
+If you enthrall a new ghoul, your former ghoul will die in a few days unless you enthrall them again.
+Ghouls dying due to blood thirst does NOT cost humanity, but ghouls are still considered companions for anything else. If you feed on them often, avoid murdering them.
 Vampires cannot be made into ghouls.
-Feeding ghouls your blood gives them a temporary HP buff and heals them. If you enthrall a new ghoul, your former ghoul will slowly die in a few days unless you enthrall them again.
-Once a ghoul drinks your blood, they will never serve any other vampire, even if you relinquish them.
+Feeding ghouls your blood is powerful - they will first be recuperated, then they will receive a temporary stat boost and HP buff. This boost does not stack, but can be applied whenever you want.
+The duration of this boost scales with your vampirism level.
+Once someone becomes a ghoul, no other vampires can enthrall them, even if their master is dead.
+Use the 'Ghoul' ability on a ghoul to feed them blood.
+Ghouls cannot die from being fed on, the feed will end itself beforehand. They can still die from the damage done by the bite attack, so be mindful.
 
 Batform:
 You can turn into a bat.

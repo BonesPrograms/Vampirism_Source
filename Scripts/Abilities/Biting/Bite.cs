@@ -19,9 +19,9 @@ namespace Nexus.Biting
     {
         public bool IsOnFire { get; private set; }
         public bool HasPlasma { get; private set; }
-        public bool HasBadLiquid => BadLiquids.ContainsBool(true);
-        public bool HasDisease => Diseases.ContainsBool(true);
-        public bool IsPoisoned => Poisons.ContainsBool(true);
+        public bool HasBadLiquid => BadLiquids.ContainsValue(true);
+        public bool HasDisease => Diseases.ContainsValue(true);
+        public bool IsPoisoned => Poisons.ContainsValue(true);
         readonly Vampirism Vampirism;
         readonly BiteSimulator Sim;
         public Bite(GameObject Biter, Vampirism Vampirism) : base(Biter)

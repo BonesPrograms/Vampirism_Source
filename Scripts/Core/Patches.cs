@@ -33,7 +33,7 @@ namespace Nexus.Patches
         [HarmonyPostfix]
         public static void Postfix(ref bool __result, TorchProperties __instance, InventoryActionEvent E)
         {
-            if (__result == true && E.Command == "TorchLight" && Options.GetOptionBool(OPTIONS.FIRE) && Options.GetOptionBool(OPTIONS.TORCH) && Core.Extensions.IsVampire(E.Actor, out var v))
+            if (__result == true && E.Command == "TorchLight" && Options.GetOptionBool(OPTIONS.FIRE) && Options.GetOptionBool(OPTIONS.TORCH) && Core.QudExtensions.IsVampire(E.Actor, out var v))
             {
                 __result = false;
                 v.FakeDropTorch(__instance.ParentObject);
