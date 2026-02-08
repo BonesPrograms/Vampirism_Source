@@ -6,6 +6,7 @@ using XRL.World.Parts;
 using Nexus.Core;
 using Nexus.Rules;
 using XRL.UI;
+using Nexus.Properties;
 
 [HasCallAfterGameLoaded]
 public static class VampirismUpdater
@@ -23,16 +24,36 @@ namespace Nexus.Update
     {
         public static void Check(GameObject GO)
         {
-            VampireBuilder.ChangeCorpse(GO);
+            CheckCorpse(GO);
             Spells(GO);
+        }
+
+        static void CheckCorpse(GameObject GO)
+        {
+            if (GO.TryGetStringProperty(FLAGS.CORPSE, out string result))
+            {
+                if (result != FLAGS.TRUE)
+                    VampireBuilder.ChangeCorpse(GO);
+            }
+            else
+                VampireBuilder.ChangeCorpse(GO);
         }
 
         static void Spells(GameObject GO)
         {
-            if (Options.GetOptionBool(OPTIONS.SPELLS))
+            bool WantsSpells = Options.GetOptionBool(OPTIONS.SPELLS);
+            if (GO.TryGetStringProperty(FLAGS.SPELLS, out string prop))
+            {
+                if (prop == FLAGS.TRUE)
+                {
+                    if (!WantsSpells)
+                        VampireBuilder.RemoveVampiricObjects(GO);
+                }
+                else if (WantsSpells)
+                    VampireBuilder.RequireVampiricObjects(GO);
+            }
+            else if (WantsSpells)
                 VampireBuilder.RequireVampiricObjects(GO);
-            else
-                VampireBuilder.RemoveVampiricObjects(GO);
         }
     }
 }

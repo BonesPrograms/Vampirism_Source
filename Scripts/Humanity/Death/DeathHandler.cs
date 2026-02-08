@@ -42,7 +42,7 @@ namespace XRL.World.Parts
 
         static void TryUpdate(Zone zone) //so that we can avoid firing events on every object in a  zone that does not need updating
         {
-            if (zone.TryGetZoneProperty(FLAGS.MOD.VERSION, out var result))
+            if (zone.TryGetZoneProperty(FLAGS.MOD.VERSION_TAG, out var result))
             {
                 if (result != MOD.VERSION)
                     UpdateZone(zone);
@@ -54,7 +54,7 @@ namespace XRL.World.Parts
         static void UpdateZone(Zone zone)
         {
             zone.FireEvent(Events.UPDATE);
-            zone.SetZoneProperty(FLAGS.MOD.VERSION, MOD.VERSION);
+            zone.SetZoneProperty(FLAGS.MOD.VERSION_TAG, MOD.VERSION);
         }
         public override bool HandleEvent(TookDamageEvent E)
         {

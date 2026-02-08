@@ -157,7 +157,7 @@ namespace XRL.World.Parts.Mutation
 
 		public override bool HandleEvent(EffectRemovedEvent E)
 		{
-			if (E.Effect is Terrified)
+			if (E.Effect is Terrified t && t.Object == ParentObject)
 				WasTerrifiedByFlames = false;
 			return base.HandleEvent(E);
 		}
@@ -198,7 +198,7 @@ namespace XRL.World.Parts.Mutation
 
 		bool LitTorch(GameObject obj)
 		{
-			if (Options.GetOptionBool(OPTIONS.TORCH) && obj.HasPart<TorchProperties>())
+			if (obj.Blueprint == "Torch" && Options.GetOptionBool(OPTIONS.TORCH))
 			{
 				LightSource source = obj.GetPart<LightSource>(); //private field in TorchProperties, but accessible thru the PartsList, no reflection required
 				if (source.Lit)

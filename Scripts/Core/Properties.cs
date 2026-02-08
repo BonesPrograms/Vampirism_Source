@@ -10,7 +10,7 @@ namespace Nexus.Properties
 
         public static class MOD
         {
-            public const string VERSION = "VampirismModVersion";
+            public const string VERSION_TAG = "VampirismModVersion";
         }
         public static class EMBRACE
         {
@@ -35,6 +35,10 @@ namespace Nexus.Properties
         ///compatibility for when the literal was "true" instead of bool.TrueString
 		//the innocent flag is immutable so anyone who played before the change
 		//will have objects that have the old literal
+
+        public const string SPELLS = "HasVampirismSpells";
+
+        public const string CORPSE = "VampirismUpdatedCorpse";
 
         public const string COFFIN = "VampireCoffinSourceID";
 

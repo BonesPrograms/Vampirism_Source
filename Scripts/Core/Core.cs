@@ -351,8 +351,6 @@ namespace Nexus.Core
 				source[obj] = value;
 		}
 
-
-		//L is is the Type parameter for your IList
 		public static T[] ArrayOfObjectsImplementing<T>(this IList objects, int capacity) where T : class
 		{
 			T[] array = new T[capacity];

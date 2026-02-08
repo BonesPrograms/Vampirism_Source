@@ -905,15 +905,7 @@ namespace XRL.World.Parts
             GameObject obj = cell.GetCombatTarget(The.Player);
             obj.ApplyEffect(new LiquidCovered("blood", 10, 10, false));
         }
-
-        [WishCommand(Command = "coffin")]
-
-        public static void coffin()
-        {
-            CoffinSpell.AutoWin = !CoffinSpell.AutoWin;
-            msg($"{CoffinSpell.AutoWin}");
-        }
-
+        
         [WishCommand(Command = "hurt")]
         public void Hurt()
         {

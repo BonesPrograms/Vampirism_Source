@@ -116,7 +116,8 @@ namespace Nexus.Core
                 GO.RemovePart(IParts[i]);
             GO.RemoveEffect<HumanityUI>();
             GO.RemoveEffect<Bloodlust>();
-            RemoveVampiricObjects(GO);
+            if (GO.TryGetStringProperty(FLAGS.SPELLS, out var spells) && spells == FLAGS.TRUE)
+                RemoveVampiricObjects(GO);
         }
 
         public static void RequireVampiricObjects(GameObject GO)
@@ -124,7 +125,7 @@ namespace Nexus.Core
             for (int i = 0; i < VampiricSpells.Length; i++)
                 if (GO.RequiresPart<VampiricSpell>(VampiricSpells[i], out var obj))
                     obj.RequireObject();
-
+            GO.SetStringProperty(FLAGS.SPELLS, FLAGS.TRUE);
         }
 
 
@@ -135,6 +136,7 @@ namespace Nexus.Core
                 var obj = GO.GetPart<VampiricSpell>(VampiricSpells[i]);
                 obj?.RemoveObject();
             }
+            GO.SetStringProperty(FLAGS.SPELLS, FLAGS.FALSE);
 
         }
 
@@ -158,19 +160,17 @@ namespace Nexus.Core
         }
         public static void ChangeCorpse(GameObject GO)
         {
-            if (!GO.HasPart<VampireAshes>())
+            if (GO.TryGetPart<Corpse>(out var Corpse))
             {
-                if (GO.TryGetPart<Corpse>(out var Corpse))
-                {
-                    VampireAshes ashes = new(Corpse.BurntCorpseBlueprint, Corpse.VaporizedCorpseBlueprint, Corpse.CorpseBlueprint, Corpse.BurntCorpseChance, Corpse.CorpseChance, Corpse.VaporizedCorpseChance);
-                    GO.AddPart(ashes);
-                    GO.RemovePart(Corpse);
-                }
-                else
-                    GO.AddPart<VampireAshes>();
-                if (GO.TryGetIntProperty("SuppressCorpseDrops", out int prop) && prop > 0)
-                    GO.SetIntProperty("SuppressCorpseDrops", 0);
+                VampireAshes ashes = new(Corpse.BurntCorpseBlueprint, Corpse.VaporizedCorpseBlueprint, Corpse.CorpseBlueprint, Corpse.BurntCorpseChance, Corpse.CorpseChance, Corpse.VaporizedCorpseChance);
+                GO.AddPart(ashes);
+                GO.RemovePart(Corpse);
             }
+            else
+                GO.AddPart<VampireAshes>();
+            if (GO.TryGetIntProperty("SuppressCorpseDrops", out int prop) && prop > 0)
+                GO.SetIntProperty("SuppressCorpseDrops", 0);
+            GO.SetStringProperty(FLAGS.CORPSE, FLAGS.TRUE);
         }
     }
 }
