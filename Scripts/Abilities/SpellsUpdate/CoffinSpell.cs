@@ -18,7 +18,7 @@ namespace XRL.World.Parts
         public override int Roll() => WikiRng.Next(1, 20) + Level;
         //uses vampirism level like all spells
         public override bool ShouldSync() => true;
-        public override void RequireObject()
+        public override void AddSpell()
         {
             ID = AddMyActivatedAbility(COFFIN.ABILITY_NAME, COFFIN.COMMAND_NAME, TAG, null, "\u009f");
         }

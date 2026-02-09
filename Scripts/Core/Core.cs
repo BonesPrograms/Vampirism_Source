@@ -48,7 +48,7 @@ namespace Nexus.Core
 		/// </summary>
 		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.FLAGS.TRUE) || theObject.PropertyEquals(flag, Properties.FLAGS.TRUE_LEGACY);
 
-		public static bool PropertyEquals<TValue>(this GameObject Object, string key, TValue value)
+		public static bool PropertyEquals<TValue>(this GameObject Object, string key, TValue value) where TValue : IEquatable<TValue>
 		{
 			if (value is string stringProp)
 			{
@@ -111,7 +111,7 @@ namespace Nexus.Core
 			|| Unaware(theVampire, false)
 			|| (theVampire.IsConfused && frenzying) // specifically to end frenzy if confused
 			|| (!theVampire.IsPlayer() && theVampire.HasEffect<StunGasStun>())); //stungasstun does not count as unawareness but does count as incapacitated only because i dont like being bitten by stun-gassed vampires
-		//even with useenergy event, still had some bugs associated with effects and conditions that youd normally expect to end a feeding
+																				 //even with useenergy event, still had some bugs associated with effects and conditions that youd normally expect to end a feeding
 
 		public readonly static Type[] UnawareFX =
 		{
@@ -124,7 +124,7 @@ namespace Nexus.Core
 		public static bool Unaware(this GameObject Object, bool kissing)
 		{
 			if (Object.IsConfused && !Object.IsPlayer()) //normally confusion does not count as technical unawareness for the player
-				return true;							//the effect of this can be noticed in Incap()'s references; ie. feed does not end for a confused player but ends for a confused AI
+				return true;                            //the effect of this can be noticed in Incap()'s references; ie. feed does not end for a confused player but ends for a confused AI
 			for (int i = 0; i < UnawareFX.Length; i++)
 			{
 				for (int x = 0; x < Object.Effects.Count; x++)
@@ -312,38 +312,65 @@ namespace Nexus.Core
 	}
 	public static class Extensions
 	{
-
-		/// <summary>
-		/// Creates instances from a Type instance and safely casts them to the generic parameter.
-		/// </summary>
+		#region Type
 		public static T ConvertToClass<T>(this Type t) where T : class
 		{
 			return Activator.CreateInstance(t) as T;
 		}
+		#endregion
 
-		public static TKey[] KeyArray<TKey, TValue>(this Dictionary<TKey, TValue> source)
+		#region IDictionary
+		public static TKey[] KeyArray<TKey, TValue>(this IDictionary<TKey, TValue> source)
 		{
 			return source.Keys.ToArray();
 		}
 
-		public static bool ContainsValue<TItem1, TItem2>(this (TItem1, TItem2)[] array, TItem2 value)
+		public static void Reset<TKey, TValue>(this IDictionary<TKey, TValue> source, TValue value = default) where TValue : struct
+		{
+			foreach (var obj in source.KeyArray())
+				source[obj] = value;
+		}
+		#endregion
+
+		#region T[] and (T1,T2)[]
+		public static bool ContainsValue<T1, T2>(this (T1, T2)[] array, T2 value) where T2 : IEquatable<T2>
 		{
 			for (int i = 0; i < array.Length; i++)
 				if (array[i].Item2.Equals(value))
 					return true;
 			return false;
 		}
-		public static void Reset<TItem1, TItem2>(this (TItem1, TItem2)[] array, TItem2 value = default) where TItem2 : struct
+		public static void Reset<T1, T2>(this (T1,T2)[] array, T2 value = default) where T2 : struct
 		{
 			for (int i = 0; i < array.Length; i++)
 				array[i].Item2 = value;
 		}
-		public static void Reset<TKey, TValue>(this Dictionary<TKey, TValue> source, TValue value = default) where TValue : struct
+
+		public static int CountValuesEqualTo<T1, T2>(this (T1,T2)[] array, T2 value) where T2 : IEquatable<T2>
 		{
-			foreach (var obj in source.KeyArray())
-				source[obj] = value;
+			int capacity = 0;
+			for (int i = 0; i < array.Length; i++)
+			{
+				if (array[i].Item2.Equals(value))
+					capacity++;
+			}
+			return capacity;
 		}
 
+		public static int CountValuesEqualTo<T>(this T[] array, T value) where T : IEquatable<T>
+		{
+			int capacity = 0;
+			for (int i = 0; i < array.Length; i++)
+			{
+				if (array[i].Equals(value))
+					capacity++;
+			}
+			return capacity;
+		}
+
+		#endregion
+
+		#region IList
 		public static T[] ArrayOfObjectsImplementing<T>(this IList objects, int capacity) where T : class
 		{
 			T[] array = new T[capacity];
@@ -360,50 +387,8 @@ namespace Nexus.Core
 			}
 			return array;
 		}
+		#endregion
 
-		public static int CapacityByValue(this bool[] array, bool value)
-		{
-			int capacity = 0;
-			for (int i = 0; i < array.Length; i++)
-			{
-				if (array[i] == value)
-					capacity++;
-			}
-			return capacity;
-		}
-
-		public static int CapacityByValue<TItem1>(this (TItem1, bool)[] array, bool value)
-		{
-			int capacity = 0;
-			for (int i = 0; i < array.Length; i++)
-			{
-				if (array[i].Item2 == value)
-					capacity++;
-			}
-			return capacity;
-		}
-
-		public static int CapacityByValue<TItem1, TItem2>(this (TItem1, TItem2)[] array, TItem2 value)
-		{
-			int capacity = 0;
-			for (int i = 0; i < array.Length; i++)
-			{
-				if (array[i].Item2.Equals(value))
-					capacity++;
-			}
-			return capacity;
-		}
-
-		public static int CapacityByValue<TItem1, TItem2>(this TItem1[] array, TItem2 value)
-		{
-			int capacity = 0;
-			for (int i = 0; i < array.Length; i++)
-			{
-				if (array[i].Equals(value))
-					capacity++;
-			}
-			return capacity;
-		}
 	}
 	static class Checks
 	{

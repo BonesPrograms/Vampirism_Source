@@ -51,8 +51,8 @@ namespace XRL.World.Parts
             }
         }
         public abstract bool ShouldSync();
-        public abstract void RequireObject();
-        public virtual void RemoveObject()
+        public abstract void AddSpell();
+        public virtual void RemoveSpell()
         {
             RemoveMyActivatedAbility(ref ID);
             ParentObject.RemovePart(this);
@@ -107,9 +107,9 @@ namespace XRL.World.Parts
             }
             return false;
         }
-        public void ExpendBlood(bool nopoup, string text)
+        public void ExpendBlood(bool DontPopup, string text)
         {
-            if (nopoup)
+            if (DontPopup)
                 AddPlayerMessage(text);
             else
                 UI.Popup.Show(text);

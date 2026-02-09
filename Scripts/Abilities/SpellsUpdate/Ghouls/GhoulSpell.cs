@@ -185,12 +185,12 @@ namespace XRL.World.Parts
             stats.CollectCooldownTurns(MyActivatedAbility(ID), GHOUL.COOLDOWN);
         }
 
-        public override void RequireObject()
+        public override void AddSpell()
         {
             ID = AddMyActivatedAbility(GHOUL.ABILITY_NAME, GHOUL.COMMAND_NAME, TAG, null, "\u009f");
         }
 
-        public override void RemoveObject()
+        public override void RemoveSpell()
         {
             CheckGhouls();
             foreach (var obj in Ghouls)
@@ -198,7 +198,7 @@ namespace XRL.World.Parts
                 obj.Key.RemoveEffect(obj.Value);
             }
             SyncTarget(ParentObject);
-            base.RemoveObject();
+            base.RemoveSpell();
         }
         public static void SyncTarget(GameObject Beguiler, GameObject Target = null)
         {

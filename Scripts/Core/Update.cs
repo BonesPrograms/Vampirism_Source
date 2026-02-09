@@ -42,18 +42,18 @@ namespace Nexus.Update
         static void Spells(GameObject GO)
         {
             bool WantsSpells = Options.GetOptionBool(OPTIONS.SPELLS);
-            if (GO.TryGetStringProperty(FLAGS.SPELLS, out string prop))
-            {
+            if (GO.TryGetStringProperty(FLAGS.SPELLS, out string prop)) //this is just so we dont run through the builder every time you load in or something
+            {                                                           
                 if (prop == FLAGS.TRUE)
                 {
                     if (!WantsSpells)
-                        VampireBuilder.RemoveVampiricObjects(GO);
+                        VampireBuilder.RemoveSpells(GO);
                 }
                 else if (WantsSpells)
-                    VampireBuilder.RequireVampiricObjects(GO);
+                    VampireBuilder.RequireSpells(GO);
             }
             else if (WantsSpells)
-                VampireBuilder.RequireVampiricObjects(GO);
+                VampireBuilder.RequireSpells(GO);
         }
     }
 }

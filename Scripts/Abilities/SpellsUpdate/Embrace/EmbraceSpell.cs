@@ -5,6 +5,7 @@ using XRL.World.Effects;
 using XRL.World.Parts.Mutation;
 using System.Collections.Generic;
 using XRL.Wish;
+using System.Collections;
 
 
 namespace XRL.World.Parts
@@ -16,7 +17,7 @@ namespace XRL.World.Parts
         }
         public override bool ShouldSync() => true;
 
-        public override void RequireObject()
+        public override void AddSpell()
         {
             ID = AddMyActivatedAbility(EMBRACE.ABILITY_NAME, EMBRACE.COMMAND_NAME, TAG, null, "\u009f");
         }
@@ -58,7 +59,7 @@ namespace XRL.World.Parts
         void CheckCorpse(GameObject Object, string result)
         {
             if (Object.HasEffect<Embraced>())
-                UI.Popup.Show($"{Object.t()} is already being embraced");
+                UI.Popup.Show($"{Object.t()} is already being Embraced.");
             else if (result == FLAGS.TRUE)
             {
                 if (!ParentObject.IsRealityDistortionUsable())
@@ -74,7 +75,7 @@ namespace XRL.World.Parts
         {
             if (base.Cast("Embrace", EMBRACE.COOLDOWN, "to embrace"))
             {
-                base.ExpendBlood(false, $"You feed {Object.t()} your blood.");
+                base.ExpendBlood(false, $"You pour your blood down {Object.t()}'s throat.");
                 if (RealityCheck(Object.CurrentCell))
                     Vampirize(Object);
             }
@@ -115,13 +116,13 @@ namespace XRL.World.Parts
         public string Blueprint = default;
         public (string, string)[] CyberneticAndBodypart = default;
         public (string, string)[] StringProperties = default;
-        public (string, string)[] LongProperties = default;
+        public (string, long)[] LongProperties = default;
         public (string, int)[] IntProperties = default;
         public (string, int)[] StatLevels = default;
         public (string, int)[] MutationsWithLevels = default; //cap = mutations.count
         public (string, bool)[] BodyParts = default; //bool false = dismembered
         public string[] IParts = default;
-        public (string, object)[] Arrays => new (string, object)[]
+        public (string, IList)[] Arrays => new (string, IList)[]
         {
                  (nameof(MutationsWithLevels), MutationsWithLevels),
                  (nameof(IParts), IParts),
@@ -152,19 +153,12 @@ namespace XRL.World.Parts
             MetricsManager.LogInfo($"\nREADING INFO ON {ParentObject.DisplayName}, {ParentObject}, {ParentObject.ID} START");
             ReadArrays();
             MetricsManager.LogInfo("\n ARRAYS FINISHED");
-            ReadSimpleFields();
+            Read(SimpleFields);
             MetricsManager.LogInfo($"\nREADING INFO ON {ParentObject.DisplayName}, {ParentObject}, {ParentObject.ID} END");
-        }
-
-        public void ReadSimpleFields()
-        {
-            (string, object)[] SimpleFields = this.SimpleFields;
-            for (int i = 0; i < SimpleFields.Length; i++)
-                MetricsManager.LogInfo($"{SimpleFields[i].Item1}, {SimpleFields[i].Item2}");
         }
         public void ReadArrays()
         {
-            (string, object)[] Arrays = this.Arrays;
+            (string, IList)[] Arrays = this.Arrays;
             for (int i = 0; i < Arrays.Length; i++)
             {
                 MetricsManager.LogInfo($"\n{Arrays[i].Item1} START");
@@ -172,17 +166,20 @@ namespace XRL.World.Parts
                 MetricsManager.LogInfo($"\n{Arrays[i].Item1} END");
             }
         }
-        static void CastArray(object obj)
+        static void CastArray(IList obj)
         {
             switch (obj)
             {
+                case (string, long)[] array0:
+                    Read(array0);
+                    break;
                 case (string, int)[] array1:
                     Read(array1);
                     break;
-                case (string, string)[] array2:
+                case (string, bool)[] array2:
                     Read(array2);
                     break;
-                case (string, bool)[] array3:
+                case (string, string)[] array3:
                     Read(array3);
                     break;
                 case string[] array4:
@@ -190,7 +187,7 @@ namespace XRL.World.Parts
                     break;
             }
         }
-        static void Read<TItem1, TItem2>((TItem1, TItem2)[] array)
+        static void Read<T1, T2>((T1, T2)[] array)
         {
             for (int i = 0; i < array.Length; i++)
                 MetricsManager.LogInfo($"{array[i].Item1}, {array[i].Item2}");

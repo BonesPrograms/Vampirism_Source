@@ -100,7 +100,7 @@ namespace Nexus.Core
                 GO.RequirePart(IParts[i]);
             GO.ApplyEffect(new HumanityUI(9999));
             if (XRL.UI.Options.GetOptionBool(OPTIONS.SPELLS))
-                RequireVampiricObjects(GO);
+                RequireSpells(GO);
         }
 
 
@@ -120,24 +120,24 @@ namespace Nexus.Core
             GO.RemoveEffect<HumanityUI>();
             GO.RemoveEffect<Bloodlust>();
             if (GO.TryGetStringProperty(FLAGS.SPELLS, out var spells) && spells == FLAGS.TRUE)
-                RemoveVampiricObjects(GO);
+                RemoveSpells(GO);
         }
 
-        public static void RequireVampiricObjects(GameObject GO)
+        public static void RequireSpells(GameObject GO)
         {
             for (int i = 0; i < VampiricSpells.Length; i++)
                 if (GO.RequiresPart<VampiricSpell>(VampiricSpells[i], out var obj))
-                    obj.RequireObject();
+                    obj.AddSpell();
             GO.SetStringProperty(FLAGS.SPELLS, FLAGS.TRUE);
         }
 
 
-        public static void RemoveVampiricObjects(GameObject GO)
+        public static void RemoveSpells(GameObject GO)
         {
             for (int i = 0; i < VampiricSpells.Length; i++)
             {
                 var obj = GO.GetPart<VampiricSpell>(VampiricSpells[i]);
-                obj?.RemoveObject();
+                obj?.RemoveSpell();
             }
             GO.SetStringProperty(FLAGS.SPELLS, FLAGS.FALSE);
 
