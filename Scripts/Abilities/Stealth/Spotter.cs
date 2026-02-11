@@ -56,11 +56,11 @@ namespace Nexus.Stealth
         /// technically, your stealth state was valid, but some attacks pass the turn the moment they are completed, which gives the aforementioned
         /// APPEARANCE of stealth being broken instantly, as the ai travels one tile into your detection radius.
         /// 
-        bool Spotted(int distance, GameObject Spotter) => distance == Nexus.Rules.STEALTH.AI_RADIUS + 1 && Spotter.HasLOSTo(Source.ParentObject);
+        bool Spotted(int distance, GameObject Spotter) => distance == Nexus.Rules.STEALTH.AI_RADIUS + 1 && Spotter.HasLOSTo(Source.ParentObject, false);
         static string DefaultMessage(GameObject Spotter) => $"You try to sneak attack, but {Spotter.t()} spots you from a distance!";
         public void GiveDefaultList()
         {
-            PotentialSpotters = Source.Zone.ListPeopleWho(witness => Source.Core.ValidSentient(witness) && !witness.Unaware(false) && !StealthCore.Inanimate(witness));
+            PotentialSpotters = Source.Zone.ListPeopleWho(witness => Source.Core.ValidSentient(witness) && !witness.Unaware(false));
         }
         public Spot BeginAttackCheckIfSpotted<T>(string message = default) where T : IOpinionSubject, new()
         {
@@ -147,7 +147,9 @@ namespace XRL.World.Effects
         }
         public override bool HandleEvent(EndTurnEvent E)
         {
-            if ((pathonly && Duration > 0) || (Duration = !Player.Object.CheckFlag(FLAGS.FEED) ? default : Duration) != 0)
+            if (!Player.Object.CheckFlag(FLAGS.FEED))
+                Duration = 0;
+            else if (pathonly && Duration > 0)
             {
                 FindPath findPath = new FindPath(currentCell, Player.Object.CurrentCell, PathGlobal: false, PathUnlimited: true, base.Object, 500, ExploredOnly: false, Juggernaut: false, IgnoreCreatures: false, IgnoreGases: false, FlexPhase: false);
                 if (!findPath.Usable)

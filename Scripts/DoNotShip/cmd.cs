@@ -966,7 +966,7 @@ namespace XRL.World.Parts
             if (SkipABeat == true)
             {
                 BeatSkipValue++;
-                if (BeatSkipValue == 2)
+                if (BeatSkipValue >= 2)
                 {
                     BeatSkipValue = 0;
                     if (text != "")

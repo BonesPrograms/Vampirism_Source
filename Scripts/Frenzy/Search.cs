@@ -42,20 +42,19 @@ namespace Nexus.Frenzy
                     return true;
                 return false;
             }
-            else
-                return true;
+            return true;
         }
         bool ValidForRegistration(GameObject target)
          =>
             target != Source.ParentObject
-            && target.HasHitpoints()
+            && target.CurrentZone == Source.ParentObject.CurrentZone //noticed a bug in early testing where you would run off the map to targets in nearbyzones if this wasnt here 
+            && !target.IsFlying //though its been so long im not sure if i was just doing an improper Clean()
             && target.HasTagOrProperty("Bleeds")
+            && target.HasHitpoints()
             && target?.CurrentCell?.GetCombatTarget(Source.ParentObject) is not null
             && Source.ParentObject.HasLOSTo(target, IncludeSolid: false)
             && Source.ParentObject.canPathTo(target.CurrentCell)
             && Core.Checks.Applicable(target)
-            && target.InSameZone(Source.ParentObject) //noticed a bug in early testing where you would run off the map to targets in nearbyzones if this wasnt here 
-            && !target.IsFlying //though its been so long im not sure if i was just doing an improper Clean()
             && LightCheck(target, Source.ParentObject.DistanceTo(target));
 
     }

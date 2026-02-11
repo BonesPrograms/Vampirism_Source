@@ -49,9 +49,12 @@ namespace Nexus.Stealth
         /// <returns></returns>
         public bool ValidSentient(GameObject witness)
           =>
-            !witness.IsFriendly(Source.ParentObject)
+            witness != null
+            && CheckParts(witness.PartsList)
+            && !Inanimate(witness)
+            && !witness.IsFriendly(Source.ParentObject)
             && witness.HasHitpoints()
-            && witness.InSameZone(Source.ParentObject)
+            && witness.CurrentZone == Source.Zone
             && CheckEffect(witness.Effects);
 
         /// <summary>
@@ -73,8 +76,7 @@ namespace Nexus.Stealth
         public static bool Inanimate(GameObject witness)
          =>
              witness.Body?.Anatomy == "Echinoid"
-            || CheckTags(witness.GetBlueprint())
-            || CheckParts(witness.PartsList);
+            || CheckTags(witness.GetBlueprint());
 
         static bool CheckTags(GameObjectBlueprint Blueprint)
         {
@@ -104,6 +106,8 @@ namespace Nexus.Stealth
             {
                 System.Type Type = rack[i].GetType();
                 if (Type == typeof(Harvestable) || Type == typeof(PlantProperties) || Type == typeof(FungusProperties))
+                    return false;
+                else if (Type == typeof(Brain))
                     return true;
             }
             return false;
@@ -135,8 +139,8 @@ namespace Nexus.Stealth
 
         bool SpottedByDarkvision(GameObject witness, int DistanceTo)
         {
-            if (witness.TryGetPart(out DarkVision D) && DistanceTo <= D.Radius)
-                return true;
+            // if (witness.TryGetPart(out DarkVision D) && DistanceTo <= D.Radius)
+            //     return true;
             if (witness.TryGetPart(out HeightenedSmell HS) && DistanceTo <= HS.GetRadius())
                 return true;
             if (witness.TryGetPart(out HeightenedHearing HH) && DistanceTo <= HH.GetRadius())
@@ -151,19 +155,6 @@ namespace Nexus.Stealth
         /// </summary>
         public void ScanEnvironment()
         {
-            ScanZone();
-            Source.Witnesses.RemoveWhere(x => x?.CurrentZone != Source.Zone || !x.HasHitpoints());
-        }
-
-        void CheckValidity(GameObject obj)
-        {
-            if (ValidSentient(obj) && NearbySentient(obj) && ActiveWitness(obj) && !Inanimate(obj))
-                Source.Witnesses.Add(obj);
-            else
-                Source.Witnesses.Remove(obj);
-        }
-        void ScanZone() //i already have a method that can do this w/ delegate parameters (see alert, spotter, search) but because stealthcore runs so often, we want to reduce potential lag as much as possible
-        {
             for (int y = 0; y < Source.Zone.Height; y++)
             {
                 for (int x = 0; x < Source.Zone.Width; x++)
@@ -172,11 +163,18 @@ namespace Nexus.Stealth
                     for (int i = 0; i < cell.Objects.Count; i++)
                     {
                         GameObject obj = cell.Objects[i];
-                        if (obj != Source.ParentObject && obj.HasPart<Brain>())
-                            CheckValidity(obj);
+                        CheckValidity(obj);
                     }
                 }
             }
+        }
+
+        void CheckValidity(GameObject obj)
+        {
+            if (ValidSentient(obj) && NearbySentient(obj) && ActiveWitness(obj))
+                Source.Witnesses.Add(obj);
+            else
+                Source.Witnesses.Remove(obj);
         }
     }
 }
