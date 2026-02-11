@@ -312,8 +312,11 @@ namespace Nexus.Core
 			return null;
 		}
 
-	
-		public static void RegisterPeopleWho<TValue>(this Zone zone, Predicate<GameObject> condition, Func<GameObject, TValue> value, IDictionary<GameObject, TValue> dic, bool remove)
+	/// <summary>
+	/// Updates objects in a dictionary that meet the conditions and assigns a value to their KeyValuePair from Func value.
+	/// </summary>
+	/// case use for Func value: x => x.DistanceTo(ParentObject) as a good example for a dictionary that tracks ranges
+		public static void RegisterPeopleWho<TValue>(this Zone zone, Predicate<GameObject> condition, Func<GameObject, TValue> value, IDictionary<GameObject, TValue> dic, bool remove) where TValue : struct
 		{
 			for (int y = 0; y < zone.Height; y++)
 			{
@@ -325,7 +328,7 @@ namespace Nexus.Core
 			}
 		}
 
-		public static void RegisterPeopleWho<TValue>(this Cell cell, Predicate<GameObject> condition, Func<GameObject, TValue> value, IDictionary<GameObject, TValue> dic, bool remove)
+		public static void RegisterPeopleWho<TValue>(this Cell cell, Predicate<GameObject> condition, Func<GameObject, TValue> value, IDictionary<GameObject, TValue> dic, bool remove) where TValue : struct
 		{
 			for (int i = 0; i < cell.Objects.Count; i++)
 			{
@@ -335,7 +338,6 @@ namespace Nexus.Core
 				else if (remove)
 					dic.Remove(obj);
 			}
-
 		}
 
 		public static void SetPeopleWho(this Zone zone, Predicate<GameObject> condition, Action<GameObject> set)

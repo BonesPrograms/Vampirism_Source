@@ -16,7 +16,6 @@ namespace XRL.World.Parts
 	{
 
 		[NonSerialized]
-
 		public HashSet<GameObject> Witnesses = new();
 
 		/// <summary>

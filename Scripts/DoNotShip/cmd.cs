@@ -15,6 +15,7 @@ namespace Nexus.Core
 {
     static class cmd_extensions
     {
+        //this version of TryGetTarget lets you target yourself
         public static bool CmdTarget(this GameObject Object, string text, out GameObject pick)
         {
             Cell Cell = Object.PickDirection(text);

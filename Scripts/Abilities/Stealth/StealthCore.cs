@@ -134,6 +134,8 @@ namespace Nexus.Stealth
         {
             if (ValidSentient(obj) && NearbySentient(obj) && ActiveWitness(obj) && !Inanimate(obj))
                 Source.Witnesses.Add(obj);
+            else
+                Source.Witnesses.Remove(obj);
         }
         void ScanZone()
         {
