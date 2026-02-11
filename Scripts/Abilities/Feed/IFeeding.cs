@@ -72,7 +72,7 @@ namespace XRL.World.Effects
 						VampireKilled();
 			}
 			if (vampire)
-				Buff();
+				Diablerie();
 			Duration = 0;
 			return base.HandleEvent(E);
 		}
@@ -101,14 +101,14 @@ namespace XRL.World.Effects
 			return base.HandleEvent(E);
 		}
 
-		void Buff()
+		void Diablerie()
 		{
 			if (Object != null && (!other?.Object?.HasPart<Fledgling>() ?? false))
 			{
 				if (AutoLevel || WikiRng.Next(1, 100) == 100)
 				{
 					if (Object.IsPlayer())
-						UI.Popup.Show($"You consume {other.Object.t()}'s power");
+						UI.Popup.Show($"Diablerie! You consume {other.Object.t()}'s power");
 					var e = Object.GetPart<Vampirism>();
 					e.Level++;
 				}
