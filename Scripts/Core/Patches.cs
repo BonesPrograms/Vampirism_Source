@@ -62,7 +62,8 @@ namespace Nexus.Patches
                     }
                     if (vitae.Blood >= VITAE.SIP_PUKE_WARN)
                     {
-                        if (PreventGhostConsumption = vitae.IDontWantToPuke(false, false))
+                        PreventGhostConsumption = vitae.IDontWantToPuke(false, false);
+                        if (PreventGhostConsumption)
                             return false;
                     }
                     vitae.Drink(false, false);

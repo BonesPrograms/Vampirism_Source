@@ -9,6 +9,7 @@ using System;
 using XRL.World.Parts.Mutation;
 using XRL.World;
 using XRL.World.Parts;
+using System.Reflection;
 
 namespace Nexus.Core
 {
@@ -66,7 +67,7 @@ namespace XRL.World.Parts
                 return ID == SingletonEvent<BeforeTakeActionEvent>.ID;
             return true;
         }
-        
+
 
         public override bool HandleEvent(BeforeTakeActionEvent E)
         {
@@ -86,16 +87,26 @@ namespace XRL.World.Parts
                 cmd.msg($"{ParentObject.GetPart<Stomach>().Water}");
             return base.HandleEvent(E);
         }
-        void SwitchFlipper(string nameOf) //nameof(Boolean)
+        void cmdSwitchFlipper(string nameOf) //nameof(Boolean)
         {
             var cmd = Get();
-            SwitchFlipper(nameOf, cmd);
+            InstanceSwitchFlipper(nameOf, cmd);
         }
 
-        static void SwitchFlipper<T>(string nameOf, T obj) where T : class
+        static void StaticSwitchFlipper<T>(string nameOf) where T : class
         {
-            Type Obj = obj.GetType();
-            var field = Obj.GetField(nameOf);
+            var field = typeof(T).GetField(nameOf, BindingFlags.Static | BindingFlags.Public);
+            SwitchFlipper<T>(field, nameOf, null);
+        }
+
+        static void InstanceSwitchFlipper<T>(string nameOf, T obj) where T : class
+        {
+            var field = typeof(T).GetField(nameOf, BindingFlags.Instance | BindingFlags.Public);
+            SwitchFlipper(field, nameOf, obj);
+        }
+
+        static void SwitchFlipper<T>(FieldInfo field, string nameOf, T obj) where T : class
+        {
             if (field?.GetValue(obj) is bool value)
             {
                 value = !value;
@@ -103,7 +114,7 @@ namespace XRL.World.Parts
                 field.SetValue(obj, value);
             }
             else
-                AddPlayerMessage($"field {nameOf} does not exist in {Obj.FullName} or is not bool");
+                AddPlayerMessage($"field {nameOf} does not exist in {typeof(T)} or is not bool");
         }
 
         [WishCommand("ReadCopy")]
@@ -133,7 +144,7 @@ namespace XRL.World.Parts
         public static void getstaticplayer() => GetStaticPlayer();
 
         [WishCommand("showstaticplayer")]
-        
+
         public static void GetStaticPlayer()
         {
             cmd.msg($"{DeathHandler.Player?.DisplayName} sent");
@@ -214,55 +225,66 @@ namespace XRL.World.Parts
         }
 
         [WishCommand("scan")]
-        public static void Scan()
+        public static void ScanWish()
         {
             GameObject GO = The.Player;
             Cell cell = GO.PickDirection("scan");
             if (cell != null)
             {
-                List<GameObject> objects = cell.GetObjects();
-                foreach (var obj in objects)
-                {
-                    Log($"\nSTART {obj}, {obj.ID}");
-                    Log($"Blueprint, {obj.Blueprint}");
-                    Log("\n--STRINGPROPS--");
-                    foreach (var strng in obj.Property)
-                        Log(strng);
-                    Log("\n-INTPROPS");
-                    foreach (var integer in obj.IntProperty)
-                        Log(integer);
-                    Log("\n--PARTS--");
-                    foreach (var part in obj.PartsList)
-                        Log(part);
-                    Log("\n-EFFECTS-");
-                    foreach (var effect in obj.Effects)
-                        Log(effect);
-                    Log($"\nTemp {obj.Temperature}");
-                    Log($"END {obj}, {obj.ID}");
-                }
+                for (int i = 0; i < cell.Objects.Count; i++)
+                    ScanObject(cell.Objects[i]);
                 AddPlayerMessage("ScanComplete");
             }
         }
 
+        [WishCommand("autolevel")]
+
+        public static void AutoLevel()
+        {
+            StaticSwitchFlipper<IFeeding>(nameof(IFeeding.AutoLevel));
+        }
+
+        static void ScanObject(GameObject obj)
+        {
+            Log($"\nSTART {obj.DisplayName}, ID_{obj.ID}");
+            Log($"Blueprint, {obj.Blueprint}");
+            Log($"Level, {obj.Level}");
+            Log("\n--STRING AND LONG PROPS--");
+            Log(obj.Property);
+            Log("\n-INTPROPS");
+            Log(obj.IntProperty);
+            Log("\n--PARTS--");
+            Log(obj.PartsList);
+            Log("\n-EFFECTS-");
+            Log(obj.Effects);
+            Log($"END {obj.DisplayName}, ID_{obj.ID}");
+        }
+
+        static void Log<T>(IList<T> obj)
+        {
+            for (int i = 0; i < obj.Count; i++)
+            {
+                Log($"{obj[i]}");
+            }
+        }
+
+        static void Log<TKey, TValue>(IDictionary<TKey, TValue> obj)
+        {
+            foreach (var item in obj)
+            {
+                Log(item);
+            }
+        }
+
         static void Log<TKey, TValue>(KeyValuePair<TKey, TValue> obj) => Log($"{obj.Key}, {obj.Value}");
-        static void Log<T>(T obj) => Log($"{obj}");
+
         static new void Log(string text) => MetricsManager.LogInfo(text);
 
         [WishCommand("autowin")]
 
         public static void autowin()
         {
-            if (The.Player.CmdTarget("autowin", out var pick))
-            {
-                Mutations m = pick.RequirePart<Mutations>();
-                if (!m.HasMutation(nameof(Vampirism)))
-                    m.AddMutation(nameof(Vampirism));
-                if (pick.HasPart<Vampirism>())
-                    IComponent<GameObject>.AddPlayerMessage("Vampirized");
-                Vampirism v = pick.GetPart<Vampirism>();
-                v.FeedCommand.AutoWin = true;
-                AddPlayerMessage("Autowinner " + pick);
-            }
+            StaticSwitchFlipper<Nexus.Attack.FeedCommand>(nameof(Nexus.Attack.FeedCommand.AutoWin));
         }
 
         [WishCommand("badliquid")]
@@ -271,11 +293,10 @@ namespace XRL.World.Parts
         {
             if (The.Player.CmdTarget("badliquid", out var pick))
             {
-                Vampirism v = new();
-                Nexus.Biting.Bite bite = v.FeedCommand.Bite;
-                int range = WikiRng.Next(0, bite.BadLiquids.Length - 1);
-                string liquid = bite.BadLiquids[range].Item1;
-                pick.ApplyEffect(new LiquidCovered(liquid, 2, 9999));
+                var BadLiquids = new Nexus.Bite.Bite().BadLiquids.Copy();
+                int range = WikiRng.Next(0, BadLiquids.Length - 1);
+                string liquid = BadLiquids[range].Item1;
+                pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
                 cmd.msg($"badliquified {pick} {liquid} {range}");
             }
         }
@@ -285,21 +306,8 @@ namespace XRL.World.Parts
         {
             if (The.Player.CmdTarget("liquify", out var pick))
             {
-                Vampirism v = new();
-                Nexus.Biting.Bite bite = v.FeedCommand.Bite;
-                bool valid = false;
-                for (int i = 0; i < bite.BadLiquids.Length; i++)
-                {
-                    if (bite.BadLiquids[i].Item1 == liquid)
-                        valid = true;
-                }
-                if (valid)
-                {
-                    pick.ApplyEffect(new LiquidCovered(liquid, 2, 9999));
-                    cmd.msg($"Liquified {liquid} {pick}");
-                }
-                else
-                    cmd.msg($"{liquid} is invalid for vampirism");
+                pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
+                cmd.msg($"Liquified {liquid} {pick}");
             }
         }
 
@@ -310,8 +318,7 @@ namespace XRL.World.Parts
 
         public static void lust()
         {
-            Vitae v = The.Player.GetPart<Vitae>();
-            SwitchFlipper(nameof(v.AntiPuke), v);
+            StaticSwitchFlipper<Vitae>(nameof(Vitae.AntiPuke));
 
         }
 
@@ -339,20 +346,15 @@ namespace XRL.World.Parts
         {
             GameObject GO = The.Player;
             Cell Cell = GO.PickDirection("showfx");
-            List<GameObject> objects = Cell?.GetObjectsWithPart(nameof(Combat));
-            if (objects != null)
+            if (Cell != null)
             {
-                AddPlayerMessage("FX printed");
-                foreach (var obj in objects)
+                msg("Checking FX! see log");
+                for (int i = 0; i < Cell.Objects.Count; i++)
                 {
-                    foreach (var fx in obj.Effects)
-                        MetricsManager.LogInfo($"{obj}, {fx}");
+                    Log($"\n {Cell.Objects[i]}. {Cell.Objects[i].ID} EFFECTS");
+                    Log(Cell.Objects[i].Effects);
                 }
             }
-            else
-                AddPlayerMessage("NoFX");
-            if (objects?.Count == 0)
-                AddPlayerMessage("NoFX");
         }
 
         [WishCommand("getzlevel")]
@@ -434,18 +436,15 @@ namespace XRL.World.Parts
         }
         [WishCommand("showwater")]
 
-        public void showwater() => SwitchFlipper(nameof(showWater));
+        public void showwater() => cmdSwitchFlipper(nameof(showWater));
 
         [WishCommand("splatterme")]
 
         public void splatterme() => The.Player.Bloodsplatter();
 
-        cmd Get()
+        static cmd Get()
         {
-
-            if (!The.Player.HasPart<cmd>())
-                The.Player.AddPart<cmd>();
-            return The.Player.GetPart<cmd>();
+            return The.Player.RequirePart<cmd>();
         }
 
 
@@ -474,21 +473,21 @@ namespace XRL.World.Parts
 
         public void showTurns()
         {
-            SwitchFlipper(nameof(showturns));
+            cmdSwitchFlipper(nameof(showturns));
         }
 
         [WishCommand("refreshme")]
 
         public void refreshme()
         {
-            SwitchFlipper(nameof(refresh));
+            cmdSwitchFlipper(nameof(refresh));
         }
 
         [WishCommand("shownames")]
 
         public void shownames()
         {
-            SwitchFlipper(nameof(names));
+            cmdSwitchFlipper(nameof(names));
         }
 
         [WishCommand(Command = "admin")]
@@ -687,9 +686,9 @@ namespace XRL.World.Parts
         [WishCommand(Command = "showallstealth")]
         public void ShowAllSteath()
         {
-            SwitchFlipper(nameof(showStealthed));
-            SwitchFlipper(nameof(showStealthy));
-            SwitchFlipper(nameof(ShowActiveStealthed));
+            cmdSwitchFlipper(nameof(showStealthed));
+            cmdSwitchFlipper(nameof(showStealthy));
+            cmdSwitchFlipper(nameof(ShowActiveStealthed));
             msg("ShowAlLStealth");
         }
 
@@ -928,7 +927,7 @@ namespace XRL.World.Parts
             GameObject obj = cell.GetCombatTarget(The.Player);
             obj.ApplyEffect(new LiquidCovered("blood", 10, 10, false));
         }
-        
+
         [WishCommand(Command = "hurt")]
         public void Hurt()
         {

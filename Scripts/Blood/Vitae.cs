@@ -26,9 +26,7 @@ namespace XRL.World.Parts
         public int Blood = VITAE.BLOOD_GLUTTONOUS;
         public bool GameOver;
         public bool Bloodlusted;
-
-        [NonSerialized]
-        public bool AntiPuke;
+        public static bool AntiPuke;
         BloodMetabolism _Metab;
         public BloodMetabolism Metab => _Metab ??= new BloodMetabolism(this);
         Autoget _Autoget;

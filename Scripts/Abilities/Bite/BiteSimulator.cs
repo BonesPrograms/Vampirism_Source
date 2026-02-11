@@ -6,7 +6,7 @@ using XRL.World;
 using System.Linq;
 using HarmonyLib;
 
-namespace Nexus.Biting
+namespace Nexus.Bite
 {
     /// <summary>
     /// Handles the simulation features for what happens when biting targets with various toxic or otherwise inedible conditions.

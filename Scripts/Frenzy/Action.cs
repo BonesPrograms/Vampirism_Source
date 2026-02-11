@@ -1,7 +1,7 @@
 using XRL.World;
 using XRL.World.Parts;
 using XRL.World.Capabilities;
-using Nexus.Biting;
+using Nexus.Bite;
 using Nexus.Core;
 using Nexus.Properties;
 using Nexus.Attack;
@@ -17,8 +17,8 @@ namespace Nexus.Frenzy
     {
         readonly FrenzyAI AI;
         readonly Search Search;
-        readonly Bite Bite;
-        public Action(FrenzyAI AI, Bite Bite, Search Search)
+        readonly Bite.Bite Bite;
+        public Action(FrenzyAI AI, Bite.Bite Bite, Search Search)
         {
             this.AI = AI;
             this.Bite = Bite;

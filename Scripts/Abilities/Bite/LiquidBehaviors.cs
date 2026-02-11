@@ -4,7 +4,7 @@ using XRL.World.Effects;
 using Nexus.Core;
 using XRL.World;
 
-namespace Nexus.Biting
+namespace Nexus.Bite
 {
 
     public class LiquidBehaviors : VampireBite

@@ -10,8 +10,11 @@ using System.Collections;
 
 namespace XRL.World.Parts
 {
+    [Serializable]
     public class EmbraceSpell : VampiricSpell
     {
+        public override string SpellType() => EMBRACE.ABILITY_NAME;
+        public override int Cooldown() => EMBRACE.COOLDOWN;
         public override void CollectStats(Templates.StatCollector stats)
         {
         }
@@ -19,7 +22,7 @@ namespace XRL.World.Parts
 
         public override void AddSpell()
         {
-            ID = AddMyActivatedAbility(EMBRACE.ABILITY_NAME, EMBRACE.COMMAND_NAME, TAG, null, "\u009f");
+            SpellID = AddMyActivatedAbility(EMBRACE.ABILITY_NAME, EMBRACE.COMMAND_NAME, CLASS, null, "\u009f");
         }
         //Budding
         //one important thing: make sure the corpse is not blueprint ashes, lol. and organic and other stuff too i suppose
@@ -34,46 +37,41 @@ namespace XRL.World.Parts
             {
                 for (int i = 0; i < cell.Objects.Count; i++)
                 {
-                    GameObject Object = cell.Objects[i];
+                    var Object = cell.Objects[i];
                     if (Object.TryGetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, out string result))
-                    {
-                        CheckCorpse(Object, result);
-                        return;//gets the first corpse with the embraceable property in a cell
-                    }           //could be buggy but i dont really care if you have to destroy a corpse to access the corpse underneath it
-                                //else      //reduces a lot of work on my end if i just get the first possible object and return
-                                //  SimulateParentObject(Object);
+                        if (FinalizeEmbrace(Object, result))
+                            return;
+                    UI.Popup.Show($"You cannot embrace {Object.t()}");
                 }
             }
         }
 
-
-        //we may just say fuck it and not let you embrace corpses that lack the property
-        //so anyone who died before the update cannot be embraced
-
-        void SimulateParentObject(GameObject Object)
-        {
-            string id = Object.GetStringProperty("SourceID");
-
-        }
-
-        void CheckCorpse(GameObject Object, string result)
+        //could be buggy but i dont really care if you have to destroy a corpse to access the corpse underneath it
+        //else      //reduces a lot of work on my end if i just get the first possible object and return
+        //  SimulateParentObject(Object);
+        //gets the first corpse with the embraceable property in a cell
+        bool FinalizeEmbrace(GameObject Object, string result)
         {
             if (Object.HasEffect<Embraced>())
+            {
                 UI.Popup.Show($"{Object.t()} is already being Embraced.");
+                return true;
+            }
             else if (result == FLAGS.TRUE)
             {
                 if (!ParentObject.IsRealityDistortionUsable())
                     RealityStabilized.ShowGenericInterdictMessage(ParentObject);
                 else
                     Cast(Object);
+                return true;
             }
-            else
-                UI.Popup.Show($"You cannot embrace {Object.t()}");
+            return false;
+
         }
 
         void Cast(GameObject Object)
         {
-            if (base.Cast("Embrace", EMBRACE.COOLDOWN, "to embrace"))
+            if (base.Cast("to embrace"))
             {
                 base.ExpendBlood(false, $"You pour your blood down {Object.t()}'s throat.");
                 if (RealityCheck(Object.CurrentCell))
@@ -112,7 +110,6 @@ namespace XRL.World.Parts
         public bool HadMutations = default;
         public bool HadCybernetics = default;
         public int Level = default;
-        public string ID = default;
         public string Blueprint = default;
         public (string, string)[] CyberneticAndBodypart = default;
         public (string, string)[] StringProperties = default;
@@ -122,6 +119,8 @@ namespace XRL.World.Parts
         public (string, int)[] MutationsWithLevels = default; //cap = mutations.count
         public (string, bool)[] BodyParts = default; //bool false = dismembered
         public string[] IParts = default;
+        //NEW ARRAY IDEA:
+        //should we tag relations as well? opinions of the player? yes a list of Opinions to the player at least would be valid
         public (string, IList)[] Arrays => new (string, IList)[]
         {
                  (nameof(MutationsWithLevels), MutationsWithLevels),
@@ -139,7 +138,6 @@ namespace XRL.World.Parts
             (nameof(HadMutations), HadMutations),
             (nameof(HadCybernetics), HadCybernetics),
             (nameof(Level), Level),
-            (nameof(ID), ID),
             (nameof(Blueprint), Blueprint),
             (nameof(DisplayName), DisplayName)
         };
@@ -201,7 +199,6 @@ namespace XRL.World.Parts
         {
             CopyMutations(Object);
             CopyIParts(Object);
-            ID = Object.ID;
             Blueprint = Object.Blueprint;
             Level = Object.Level;
             DisplayName = Object.DisplayName;

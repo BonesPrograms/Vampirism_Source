@@ -14,17 +14,18 @@ namespace XRL.World.Parts
     /// The external part held by all edible targets in the world. Watches for the object's conditions on death - deducts humanity if the player performs an action that violates the rules of humanity.
     /// </summary>
     [Serializable]
-    public class DeathHandler : IPart //it is necessary for this part to exist on all gameobjects ever since the Embrace spell was added
-    {                                   //incase the player ever becomes a vampire, corpses they encountered in the past are already marked
-        [NonSerialized]                    //as embraceable or not-embraceable. 
-        public static GameObject Player;           //it is not as simple as checking corpse blueprints, only specific types of creatures can become vampires
-        [NonSerialized]                     //and only those kinds of creatures will have the DeathHandler part - feedable creatures can become vampires
-        static GameObject TrueDominator;
-        public bool finished;
-        public override bool WantEvent(int ID, int cascade)
-        {
-            if (!finished && ID == SingletonEvent<BeforeTakeActionEvent>.ID)
-                return true;
+    [HasGameBasedStaticCache]
+    public class DeathHandler : IPart
+    {
+        public static GameObject Player => _Player?.Object; //this is used for two major purposes: accessing the players humanity and checking hostility
+                                                            //if you try to access by the.player (static) then you will get whatever
+        [GameBasedStaticCache(false)]                       //gameobject they are currently dominating
+        static GameObjectReference _Player;                    //instead of the gameobject that is "really" them 
+        public bool finished;                                   //meaning: we cant find the humanity part, and innocence becomes relative to whatever gameobject the player is currently dominating
+        public override bool WantEvent(int ID, int cascade)     //so you could dominate a snapjaw, and load a zone with snapjaws, and then come back as the original player
+        {                                                       //start feeding on them and then lose humanity because they have the innocent flag
+            if (!finished && ID == SingletonEvent<BeforeTakeActionEvent>.ID) //(for various reasons, checking hostility on death doesnt work)
+                return true;                                                           
             if (Options.GetOptionBool(OPTIONS.FRACTUS_NERF) && ID == TookDamageEvent.ID)
                 return true;
             if (ID == DeathEvent.ID)
@@ -67,7 +68,7 @@ namespace XRL.World.Parts
             if (Security())
                 finished = Init.Evaluate(ParentObject, Player); //AI are not assigned Innocent flags until the player has become a vampire for the first time
             return base.HandleEvent(E);                         //as per Security()
-        }
+        }                                                       //which can result in funky behavior where AI are innocent in one save and not the other despite relations being the same
         public override bool HandleEvent(DeathEvent E)
         {
             bool isvampire = E.Dying.IsVampire();
@@ -78,15 +79,15 @@ namespace XRL.World.Parts
         }
         static void CreateDeathsInstance(GameObject Killer, GameObject Dying)
         {
-            if (Security() && !Player.CheckFlag(FLAGS.GO) && Options.GetOptionBool(Nexus.Rules.OPTIONS.HUMANITY) && !Dying.HasStringProperty(FLAGS.DEAD))
+            if (Options.GetOptionBool(Nexus.Rules.OPTIONS.HUMANITY) && Security() && !Player.CheckFlag(FLAGS.GO) && !Dying.HasStringProperty(FLAGS.DEAD))
             {
                 bool friendly = Dying.IsFriendly(The.Player);
                 if (Options.GetOptionBool(Nexus.Rules.OPTIONS.DOUG) && friendly && !Dying.IsGhoulOf(The.Player) && !Dying.IsBeguiledBy(The.Player))
-                    return;
-                else
-                    new Deaths(Player, Dying, Killer, friendly, Dying.IsHostileTowards(The.Player)).Possibilities();
-            }
-        }
+                    return;                             //The.Player != this.Player if the player is dominating. Targets beguiled by a gameobject will not be loyal to gameobjects that they dominate, only the source object
+                else                                    //so for us this means morality and friendship is relative to how AI feel about the player's current body rather than original body
+                    new Deaths(Player, Dying, Killer, friendly, Dying.IsHostileTowards(The.Player)).Possibilities(); 
+            }                                                                                               
+        }                                                                                                   
 
         static void MarkForEmbrace(GameObject Dying, bool isvampire) //only "feedable" targets can become vampires, but deathhandler only exists as a part on feedable objects, so the check is already done
         {                                   //corpse objects whose source object didnt have this part wont have the property at all and thus will not be embraceable
@@ -125,48 +126,42 @@ namespace XRL.World.Parts
         /// Ensures that the Player field is assigned to the player's source, original GameObject and that the player is a vampire before beginning.
         /// </summary>
         /// <returns></returns>
-        static bool Security() => Player == null || Player.HasEffect<Dominated>() ? FindPlayerObject() : Player.HasPart<Vampirism>();
-        static bool FindPlayerObject()
+        static bool Security() => Player?.HasEffect<Dominated>() ?? true ? FindTruePlayer() : Player.HasPart<Vampirism>();
+        static bool FindTruePlayer()
         {
-            if (!The.Player.HasEffect<Dominated>())
+            if (The.Player.TryGetEffect(out Dominated e))
+                return FindMaster(e);
+            else
             {
-                Player = The.Player;
+                _Player = The.Player.Reference();
                 return Player.HasPart<Vampirism>();
             }
-            else
-                return FindMaster();
         }
 
         /// <summary>
         /// Loops through the domination effect's dominator to find the player's actual GameObject and assign it to the Player field.
         /// </summary>
         /// <returns></returns>
-        static bool FindMaster()
+        static bool FindMaster(Dominated e)
         {
-            if (The.Player.TryGetEffect<Dominated>(out Dominated e))
+            if (!e.Dominator.HasEffect<Dominated>())
             {
-                if (!e.Dominator.HasEffect<Dominated>())
-                {
-                    Player = e.Dominator;
-                    return Player.HasPart<Vampirism>();
-                }
-                else
-                    return LoopDominator(e);
+                _Player = e.Dominator.Reference();
+                return Player.HasPart<Vampirism>();
             }
             else
-                return false;
+                return LoopDominator(e);
         }
 
         static bool LoopDominator(Dominated e)
         {
-            TrueDominator = e.Dominator;
+            GameObject TrueDominator = e.Dominator;
             while (TrueDominator.HasEffect<Dominated>())
             {
                 Dominated d = TrueDominator.GetEffect<Dominated>();
                 TrueDominator = d.Dominator;
             }
-            Player = TrueDominator;
-            TrueDominator = null;
+            _Player = TrueDominator.Reference();
             return Player.HasPart<Vampirism>();
         }
 

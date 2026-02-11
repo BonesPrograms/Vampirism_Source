@@ -12,6 +12,8 @@ namespace XRL.World.Parts
     [Serializable]
     public class GhoulSpell : VampiricSpell
     {
+        public override string SpellType() => GHOUL.ABILITY_NAME;
+        public override int Cooldown() =>  GHOUL.COOLDOWN;
         public Effect Ghoul;
         public override bool ShouldSync() => true;
         public Dictionary<GameObject, EnthralledGhoul> Ghouls = new();
@@ -39,7 +41,7 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(GetCompanionLimitEvent E)
         {
-            if (E.Means == "Ghoul" && E.Actor == ParentObject && ID != Guid.Empty)
+            if (E.Means == "Ghoul" && E.Actor == ParentObject && SpellID != Guid.Empty)
             {
                 cmd.msg($"First limt {E.Limit}");
                 E.Limit = E.Limit + MAX();
@@ -109,7 +111,7 @@ namespace XRL.World.Parts
 
         void Cast(GameObject Target, bool containskey)
         {
-            if (base.Cast("Enthrall Ghoul", GHOUL.COOLDOWN, TEXT))
+            if (base.Cast(TEXT))
             {
                 if (containskey)
                     this.ExpendBlood(Target, true);
@@ -182,12 +184,12 @@ namespace XRL.World.Parts
                     stats.Set("Attack", "1d8" + num, !stats.mode.Contains("ability"));
                     break;
             }
-            stats.CollectCooldownTurns(MyActivatedAbility(ID), GHOUL.COOLDOWN);
+            stats.CollectCooldownTurns(MyActivatedAbility(SpellID), GHOUL.COOLDOWN);
         }
 
         public override void AddSpell()
         {
-            ID = AddMyActivatedAbility(GHOUL.ABILITY_NAME, GHOUL.COMMAND_NAME, TAG, null, "\u009f");
+            SpellID = AddMyActivatedAbility(GHOUL.ABILITY_NAME, GHOUL.COMMAND_NAME, CLASS, null, "\u009f");
         }
 
         public override void RemoveSpell()

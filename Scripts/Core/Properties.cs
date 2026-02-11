@@ -81,10 +81,10 @@ namespace Nexus.Properties
 
 
         /// <summary>
-        /// Immutable boolean value given to all possible feeding targets the moment they are created in the game world. Hostiles are given a value of false. True innocents can cause humanity loss.
+        /// Immutable boolean value given to all possible feeding targets the moment they are created in the game world. Hostiles are given a value of false. True innocents can cause humanity loss in various ways as a result of being fed on (only feeding related).
         /// </summary>
-        public const string INNOCENT = "VampirismModInnocent";
-
+        public const string INNOCENT = "VampirismModInnocent"; //yes huge note - only feeding related - humanity's death consequences do not actually check for innocence, only IFeeding does
+                                                                //which it uses to assign VICTIM, which is further checked in deaths
         // LONG VALUES
         /// <summary>
         /// Flag given to true innocents after feeding has ended, with a long value of marking the moment feed ended in game turn time. for DeathHandler.

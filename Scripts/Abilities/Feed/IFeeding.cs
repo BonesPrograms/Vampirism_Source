@@ -17,6 +17,7 @@ namespace XRL.World.Effects
 	[Serializable]
 	public abstract class IFeeding : Effect
 	{
+		public static bool AutoLevel;
 		Vitae _Vitae;
 		Vitae Vitae => _Vitae ??= Object.GetPart<Vitae>();
 		public string Damage;
@@ -104,12 +105,12 @@ namespace XRL.World.Effects
 		{
 			if (Object != null && (!other?.Object?.HasPart<Fledgling>() ?? false))
 			{
-				if (WikiRng.Next(1, 1000) == 1000)
+				if (AutoLevel || WikiRng.Next(1, 100) == 100)
 				{
 					if (Object.IsPlayer())
 						UI.Popup.Show($"You consume {other.Object.t()}'s power");
 					var e = Object.GetPart<Vampirism>();
-					e.ChangeLevel(e.Level + 1);
+					e.Level++;
 				}
 				//rejuvenate
 			}
@@ -159,7 +160,7 @@ namespace XRL.World.Effects
 
 		protected void CheckIfRecognized()
 		{
-			if(!Ghoul && Object.TryGetEitherLongProperty(FLAGS.VICTIM, FLAGS.VICTIM_HOSTILE, out var value) && value > 1000)
+			if(!Ghoul && Object.TryGetLongProperty(FLAGS.VICTIM, FLAGS.VICTIM_HOSTILE, out var value) && value > 1000)
 				AddPlayerMessage("You recognize the flavor of this one.");
 		}
 		protected bool Feed()
@@ -295,13 +296,14 @@ namespace XRL.World.Effects
 		{
 			if (!base.Object.HasEffect<Dominated>()) //if the player ever encounters an AI vampire they can go crazy without fear of losing any humanity themselves during feeding
 			{                                       //but only feeding, anything else tracks back to the original player's humanity score
-				if (other?.Object?.CheckFlag(FLAGS.INNOCENT) ?? false) //ALSO prevents a potential bug where you would lose humanity for killing someone
-					other.Object.SetLongProperty(FLAGS.VICTIM, The.Game.Turns); //that was fed on, technically, by another vampire (even if you were dominating them)
+				if (other?.Object?.CheckFlag(FLAGS.INNOCENT) ?? false) 
+					other.Object.SetLongProperty(FLAGS.VICTIM, The.Game.Turns);
 				else if (other?.Object?.IsFriendly(base.Object) ?? false)
 					other.Object.SetLongProperty(FLAGS.VICTIM_HOSTILE, The.Game.Turns);
-			}
-
-		}
+			} //this also serves as a huge security measure: if you are dominating, humanity loss by feeding is local as previously stated
+				//however, the death penalty system does not check for the Innocence flag, because Hostile Victims are not considered innocent
+		}		//so if dominated targets were able to apply victim, then you would come back and kill them as the original  player and lose humanity
+				//I COULD compare feeders by ID as a string property, but humanity is mostly only relative to the player, and i dont care if the Victims part of the Deaths system is inactive when dominating
 		public sealed override bool UseStandardDurationCountdown()
 		{
 			return true;

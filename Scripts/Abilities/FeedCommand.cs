@@ -5,7 +5,7 @@ using Nexus.Properties;
 using XRL.World.Parts.Mutation;
 using XRL.World.Parts;
 using XRL.World;
-using Nexus.Biting;
+using Nexus.Bite;
 using XRL.Rules;
 using System;
 using Nexus.Core;
@@ -22,13 +22,13 @@ namespace Nexus.Attack
     {
         bool friends;
         readonly Vampirism Source;
-        public readonly Bite Bite;
+        public readonly Bite.Bite Bite;
         bool badtarget;
-        public bool AutoWin = false;
+        public static bool AutoWin;
         public FeedCommand(Vampirism Source)
         {
             this.Source = Source;
-            Bite = new Bite(Source.ParentObject, Source);
+            Bite = new Bite.Bite(Source.ParentObject, Source);
         }
 
         bool Stealth => Source.ParentObject.CheckFlag(FLAGS.STEALTH);

@@ -11,7 +11,9 @@ namespace XRL.World.Parts
     {
         public GameObjectReference Coffin;
         bool JustJaunted;
-        public int Cooldown;
+        public override int Cooldown() => COFFIN.MATERIALIZE_COOLDOWN;
+        public override string SpellType() => COFFIN.ABILITY_NAME;
+        public int JauntCooldown;
         public int Timer;
         public bool CoolingOff;
         public bool HasCoffin;
@@ -20,12 +22,14 @@ namespace XRL.World.Parts
         public override bool ShouldSync() => true;
         public override void AddSpell()
         {
-            ID = AddMyActivatedAbility(COFFIN.ABILITY_NAME, COFFIN.COMMAND_NAME, TAG, null, "\u009f");
+            SpellID = AddMyActivatedAbility(COFFIN.ABILITY_NAME, COFFIN.COMMAND_NAME, CLASS, null, "\u009f");
         }
 
         public override bool WantEvent(int ID, int Cascade)
         {
-            if (ID == TookDamageEvent.ID || ID == SingletonEvent<BeforeTakeActionEvent>.ID)
+            if (!CoolingOff && HasCoffin && ID == TookDamageEvent.ID)
+                return true;
+            if (ID == SingletonEvent<BeforeTakeActionEvent>.ID)
                 return true;
             return base.WantEvent(ID, Cascade);
         }
@@ -54,11 +58,11 @@ namespace XRL.World.Parts
         void CoolOff()
         {
             Timer++;
-            if (Timer >= Cooldown)
+            if (Timer >= JauntCooldown)
             {
                 CoolingOff = false;
                 Timer = default;
-                Cooldown = default;
+                JauntCooldown = default;
             }
         }
 
@@ -69,14 +73,14 @@ namespace XRL.World.Parts
             JustJaunted = false;
             CoolingOff = true;
             Timer = 0;
-            Cooldown = WikiRng.Next(COFFIN.SAVE_FROM_DEATH_MIN, COFFIN.SAVE_FROM_DEATH_MAX);
+            JauntCooldown = WikiRng.Next(COFFIN.SAVE_FROM_DEATH_MIN, COFFIN.SAVE_FROM_DEATH_MAX);
             ParentObject.ApplyEffect(new Asleep(Coffin.Object, WikiRng.Next(200, 500), true, false, false, true));
         }
         public override bool HandleEvent(TookDamageEvent E)
         {
             if (E.Object == ParentObject)
             {
-                if (!CoolingOff && HasCoffin && !E.Damage.Attributes.Contains("Fire")) // explosions too maybe light
+                if (!E.Damage.Attributes.Contains("Fire")) // explosions too maybe light
                 {
                     if (ParentObject.hitpoints - E.Damage.Amount <= 0 && (Roll() >= COFFIN.SAVING_THROW_DC || UI.Options.GetOptionBool(OPTIONS.COFFIN)))
                     {
@@ -116,7 +120,7 @@ namespace XRL.World.Parts
         }
         void Cast(Cell cell)
         {
-            if (base.Cast(COFFIN.ABILITY_NAME, COFFIN.MATERIALIZE_COOLDOWN, "to invoke your coffin"))
+            if (base.Cast("to invoke your coffin"))
             {
                 ExpendBlood();
                 if (RealityCheck(cell))
@@ -151,9 +155,9 @@ namespace XRL.World.Parts
 
         public override void CollectStats(Templates.StatCollector stats)
         {
-            stats.Set("Save-From-Death Cooldown", Cooldown - Timer, true);
+            stats.Set("Save-From-Death Cooldown", JauntCooldown - Timer, true);
             stats.Set("SaveAndChance", Chance(), true);
-            stats.CollectCooldownTurns(MyActivatedAbility(ID), COFFIN.MATERIALIZE_COOLDOWN);
+            stats.CollectCooldownTurns(MyActivatedAbility(SpellID), COFFIN.MATERIALIZE_COOLDOWN);
         }
     }
 }

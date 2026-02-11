@@ -6,19 +6,7 @@ using System;
 using XRL.UI;
 using XRL.World.Parts.Mutation;
 using System.Linq;
-using XRL;
 using System.Collections;
-
-[HasCallAfterGameLoaded]
-public static class VampirismStaticRefresh
-{
-	[CallAfterGameLoaded]
-	public static void MyLoadGameCallback()
-	{
-		DeathHandler.Player = null; //ensures that the shared static Player object doesnt get drowned in the pool of objects when you swap saves
-	}                               //resetting it to null starts the security chain again so it finds the right object
-}                       //specifically, the player will update whenever a zone is loaded and its npcs/a Creature spawns in the zone and runs the BeforeTakeActionEvent
-						//or when a DeathEvent is sent by any object
 
 namespace Nexus.Core
 {
@@ -36,7 +24,7 @@ namespace Nexus.Core
 		{
 			result = zone.GetZoneProperty(property);
 			return !result?.IsNullOrEmpty() ?? false;
-		}
+		}	
 
 		/// <summary>
 		/// Returns true/false values from object string properties. Default true.
@@ -48,7 +36,7 @@ namespace Nexus.Core
 		/// </summary>
 		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.FLAGS.TRUE) || theObject.PropertyEquals(flag, Properties.FLAGS.TRUE_LEGACY);
 
-		public static bool PropertyEquals<TValue>(this GameObject Object, string key, TValue value) where TValue : IEquatable<TValue>
+		public static bool PropertyEquals<T>(this GameObject Object, string key, T value)
 		{
 			if (value is string stringProp)
 			{
@@ -68,7 +56,7 @@ namespace Nexus.Core
 			return false;
 		}
 
-		public static bool TryGetEitherLongProperty(this GameObject Object, string key, string key2, out long value)
+		public static bool TryGetLongProperty(this GameObject Object, string key, string key2, out long value)
 		{
 			if (Object.TryGetLongProperty(key, out value) || Object.TryGetLongProperty(key2, out value))
 				return true;
@@ -333,6 +321,16 @@ namespace Nexus.Core
 		#endregion
 
 		#region T[] and (T1,T2)[]
+
+		public static T[] Copy<T>(this T[] source) 
+		{
+			T[] array = new T[source.Length];
+			for (int i = 0; i < array.Length; i++)
+			{
+				array[i] = source[i];
+			}
+			return array;
+		}
 		public static bool ContainsValue<T1, T2>(this (T1, T2)[] array, T2 value) where T2 : IEquatable<T2>
 		{
 			for (int i = 0; i < array.Length; i++)

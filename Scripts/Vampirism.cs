@@ -6,7 +6,7 @@ using XRL.World.Effects;
 using Nexus.Properties;
 using Nexus.Registry;
 using Nexus.Core;
-using Nexus.Biting;
+using Nexus.Bite;
 using Nexus.Attack;
 using Nexus.Rules;
 using System.Collections.Generic;

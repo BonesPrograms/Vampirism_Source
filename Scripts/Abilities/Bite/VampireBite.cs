@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Nexus.Core;
 
-namespace Nexus.Biting
+namespace Nexus.Bite
 {
 
     /// <summary>
@@ -25,6 +25,10 @@ namespace Nexus.Biting
     public abstract class VampireBite
     {
         readonly public GameObject Biter;
+
+        protected VampireBite()
+        {
+        }
         protected VampireBite(GameObject Biter) => this.Biter = Biter;
         protected bool PainTolerance() => Biter.HasEffect<HulkHoney_Tonic>() || Biter.HasPart<Analgesia>();
         protected Ending MakeSave(string text) => Biter.MakeSave("Toughness", 13, null, null, text) ? Ending.SUCCESS : Ending.FAIL;

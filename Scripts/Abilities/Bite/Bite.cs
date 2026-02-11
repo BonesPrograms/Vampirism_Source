@@ -9,7 +9,7 @@ using XRL;
 using Nexus.Core;
 using System.Linq;
 
-namespace Nexus.Biting
+namespace Nexus.Bite
 {
 
     /// <summary>
@@ -21,9 +21,16 @@ namespace Nexus.Biting
         public bool HasPlasma { get; private set; }
         public bool HasBadLiquid => BadLiquids.ContainsValue(true);
         public bool HasDisease => Diseases.ContainsValue(true);
-        public bool IsPoisoned => Poisons.ContainsValue(true);
+        public bool IsPoisoned => Poisons.ContainsValue(true);  
         readonly Vampirism Vampirism;
         readonly BiteSimulator Sim;
+
+        /// <summary>
+        /// For debug only. Used to access the arrays.
+        /// </summary>
+        public Bite() : base()
+        {
+        }
         public Bite(GameObject Biter, Vampirism Vampirism) : base(Biter)
         {
             this.Vampirism = Vampirism;

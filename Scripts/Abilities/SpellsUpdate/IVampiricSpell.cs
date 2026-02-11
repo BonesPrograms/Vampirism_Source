@@ -6,6 +6,7 @@ using XRL.World.Effects;
 using Nexus.Core;
 using XRL.World;
 using Nexus.Properties;
+using Newtonsoft.Json;
 
 namespace Nexus.Spells
 {
@@ -30,17 +31,9 @@ namespace XRL.World.Parts
     [Serializable]
     public abstract class VampiricSpell : IScribedPart, IVampiricSpell
     {
-        public int _Cost = VITAE.BLOOD_PER_SIP; //default 10k
-        public virtual int Cost
-        {
-            get => _Cost;
-            set
-            {
-                _Cost = value;
-            }
-        }
-        public const string TAG = "Vampiric Spell";
-        public Guid ID = Guid.Empty;
+        [NonSerialized]
+        public const string CLASS = "Vampiric Spell";
+        public Guid SpellID = Guid.Empty;
         public int _Level = 1; //level will always be synced with vampirism level
         public int Level
         {
@@ -50,14 +43,12 @@ namespace XRL.World.Parts
                 _Level = value;
             }
         }
+        public abstract int Cooldown();
+        public abstract string SpellType();
         public abstract bool ShouldSync();
         public abstract void AddSpell();
-        public virtual void RemoveSpell()
-        {
-            RemoveMyActivatedAbility(ref ID);
-            ParentObject.RemovePart(this);
-        }
         public abstract void CollectStats(Templates.StatCollector stats);
+        public virtual int Cost() => VITAE.BLOOD_PER_SIP; //default 10k
         public virtual int Roll() => IVampiricSpell.Roll(ParentObject, Level);
         public override bool WantEvent(int ID, int Cascade)
         {
@@ -65,11 +56,16 @@ namespace XRL.World.Parts
                 return true;
             return base.WantEvent(ID, Cascade);
         }
-
         public override bool HandleEvent(BeforeAbilityManagerOpenEvent E)
         {
-            DescribeMyActivatedAbility(ID, CollectStats);
+            DescribeMyActivatedAbility(SpellID, CollectStats);
             return base.HandleEvent(E);
+        }
+
+        public virtual void RemoveSpell()
+        {
+            RemoveMyActivatedAbility(ref SpellID);
+            ParentObject.RemovePart(this);
         }
 
         public virtual void SyncLevels(int NewLevel)
@@ -80,7 +76,7 @@ namespace XRL.World.Parts
 
         public bool RealityCheck(Cell cell) //get real
         {
-            Event E = Event.New("InitiateRealityDistortionTransit", "Object", ParentObject, TAG, this, "Cell", cell);
+            Event E = Event.New("InitiateRealityDistortionTransit", "Object", ParentObject, CLASS, this, "Cell", cell);
             if (!ParentObject.FireEvent(E) || !ParentObject.CurrentCell.FireEvent(E))
             {
                 RealityStabilized.ShowGenericInterdictMessage(ParentObject);
@@ -91,18 +87,18 @@ namespace XRL.World.Parts
 
         public bool EnoughBlood(string text)
         {
-            if (ParentObject.GetIntProperty(FLAGS.BLOOD_VALUE) > Cost)
+            if (ParentObject.GetIntProperty(FLAGS.BLOOD_VALUE) > Cost())
                 return true;
             else
                 return ParentObject.ShowFailure("You don't have enough {{R|blood}} " + text + "!");
         }
 
-        public bool Cast(string SpellType, int cooldown, string ToDo)
+        public bool Cast(string ToDo)
         {
             if (EnoughBlood(ToDo))
             {
-                ParentObject.UseEnergy(1000, $"{TAG} {SpellType}");
-                CooldownMyActivatedAbility(ID, cooldown);
+                ParentObject.UseEnergy(1000, $"{CLASS} {SpellType()}");
+                CooldownMyActivatedAbility(SpellID, Cooldown());
                 return true;
             }
             return false;
@@ -118,7 +114,7 @@ namespace XRL.World.Parts
         //ExpendBlood should be invoked after Cast() returns true
         public void ExpendBlood()
         {
-            ParentObject.GetPart<Vitae>().SubtractBlood(Cost);
+            ParentObject.GetPart<Vitae>().SubtractBlood(Cost());
         }
     }
 }
