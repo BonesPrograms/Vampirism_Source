@@ -42,9 +42,9 @@ namespace Nexus.Attack
 
         bool SpotterCheck(Nightbeast n)
         {
-            if (new SpotterGenerator(n, SpotterGenerator.GiveDefaultList(n)).BeginAttackCheckIfSpotted<OpinionDominate>(out GameObject spotter) == Spot.SPOTTER_IN_DETECTION)
+            if (SpotterGenerator.GeneratorWithDefaultList(n).BeginAttackCheckIfSpotted<OpinionDominate>(out GameObject spotter) == Spot.SPOTTER_IN_DETECTION)
             {
-                Alert alert = new(n, Alert.GiveDefaultList(n), spotter);
+                Alert alert = Alert.AlertWithDefaultList(n, spotter);
                 alert.SafeAdd(Target);
                 alert.RemoveSleepFromWitnesses();
                 alert.AddOpinionToWitnessesAndExposer<OpinionDominate>();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using XRL.World.Parts;
 using XRL.World.Parts.Mutation;
 using System.Linq;
+using Nexus.Core;
 
 namespace Nexus.Frenzy
 {
@@ -16,7 +17,7 @@ namespace Nexus.Frenzy
         public Search(TheBeast Source) => this.Source = Source;
         public bool TryScan(out GameObject Object)
         {
-            RegisterTargets();
+            Source.ParentObject.CurrentZone.RegisterPeopleWho(ValidForRegistration, x => x.DistanceTo(Source.ParentObject), Source.TargetRegistry, true);
             Object = Source.TargetRegistry.Any(x => x.Value != TheBeast.FLAG_AVOID) ? Select() : null;
             return Object is not null;
         }
@@ -46,8 +47,9 @@ namespace Nexus.Frenzy
         }
         bool ValidForRegistration(GameObject target)
          =>
-            !Source.TargetRegistry.ContainsKey(target)
-            && target != Source.ParentObject
+            target != Source.ParentObject
+            && target.HasHitpoints()
+            && target.HasTagOrProperty("Bleeds")
             && target?.CurrentCell?.GetCombatTarget(Source.ParentObject) is not null
             && Source.ParentObject.HasLOSTo(target, IncludeSolid: false)
             && Source.ParentObject.canPathTo(target.CurrentCell)
@@ -55,15 +57,6 @@ namespace Nexus.Frenzy
             && target.InSameZone(Source.ParentObject) //noticed a bug in early testing where you would run off the map to targets in nearbyzones if this wasnt here 
             && !target.IsFlying //though its been so long im not sure if i was just doing an improper Clean()
             && LightCheck(target, Source.ParentObject.DistanceTo(target));
-
-        void RegisterTargets()
-        {
-            List<GameObject> targets = Source.ParentObject.CurrentZone.GetObjectsWithTagOrProperty("Bleeds");
-            for (int i = 0; i < targets.Count; i++)
-                if (ValidForRegistration(targets[i]))
-                    Source.TargetRegistry.Add(targets[i], targets[i].DistanceTo(Source.ParentObject));
-        }
-
 
     }
 }

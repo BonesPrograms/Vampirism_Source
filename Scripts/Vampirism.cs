@@ -40,6 +40,7 @@ namespace XRL.World.Parts.Mutation
 
 		public override bool ChangeLevel(int NewLevel)
 		{
+			AddPlayerMessage("LEvelChangeDetected");
 			if (Options.GetOptionBool(OPTIONS.SPELLS))
 				SyncLevels(NewLevel);
 			return base.ChangeLevel(NewLevel);

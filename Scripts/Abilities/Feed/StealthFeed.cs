@@ -82,7 +82,7 @@ namespace XRL.World.Effects
 		}
 		void CaughtInTheAct()
 		{
-			DoAlert(new Alert(Stealthpart, Alert.GiveDefaultList(Stealthpart)));
+			DoAlert(Alert.AlertWithDefaultList(Stealthpart));
 			if (other?.Object?.MakeSave("Toughness", 13, null, null, "Woke During Feeding") is false)
 				other.Object.ApplyEffect(new Terrified(WikiRng.Next(16, 20), base.Object, false, false));
 			Duration = 0;

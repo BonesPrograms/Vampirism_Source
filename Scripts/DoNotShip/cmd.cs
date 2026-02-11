@@ -36,6 +36,8 @@ namespace XRL.World.Parts
     [Serializable]
     public class cmd : IPart
     {
+
+        #region Vampirism
         public bool showvitae = false;
         public bool showStealthed = false;
         public bool ShowActiveStealthed = false;
@@ -47,7 +49,11 @@ namespace XRL.World.Parts
         public bool showHumanity = false;
         public bool showCombat = false;
         public bool showWater = false;
+        public bool showbloodtype = false;
 
+        #endregion
+
+        #region Message Timers
 
         public bool SkipABeat = false;
         public int BeatSkipValue;
@@ -55,28 +61,36 @@ namespace XRL.World.Parts
         public int SkipValue;
         public bool BigSkip = false;
         public int BigSkipValue;
+        #endregion
+
+        #region Stealth
 
         public bool names = false;
+
+        #endregion
+
         public bool refresh = false;
         public bool showturns = false;
-        public bool showbloodtype = false;
 
+        #region other
+        #endregion
         public override bool WantEvent(int ID, int cascade)
         {
             if (!base.WantEvent(ID, cascade))
                 return ID == SingletonEvent<BeforeTakeActionEvent>.ID;
             return true;
         }
-
-
+        Nightbeast _n;
+        Nightbeast n => _n ??= ParentObject.GetPart<Nightbeast>();
         public override bool HandleEvent(BeforeTakeActionEvent E)
         {
-            Nightbeast n = ParentObject.GetPart<Nightbeast>();
             Properties(ParentObject);
             if (showStealthed || showStealthy || ShowActiveStealthed)
                 Properties(ParentObject, n.StealthStage1, n.StealthStage2);
             if (names == true)
-                ShowStealthList(n.ActiveWitnesses);
+            {
+                ShowStealthList(n.Witnesses);
+            }
             if (refresh == true)
                 Refresh();
             if (showturns == true)
@@ -117,6 +131,277 @@ namespace XRL.World.Parts
                 AddPlayerMessage($"field {nameOf} does not exist in {typeof(T)} or is not bool");
         }
 
+        #region Switches
+
+        [WishCommand(Command = "switch")]
+
+        public void SwitchHandler()
+        {
+            cmd cmd = The.Player.RequirePart<cmd>();
+            cmd.showvitae = false;
+            cmd.showStealthed = false;
+            cmd.ShowActiveStealthed = false;
+            cmd.showGO = false;
+            cmd.showFeed = false;
+            cmd.showFrenzy = false;
+            cmd.showStatus = false;
+            cmd.showStealthy = false;
+            cmd.showHumanity = false;
+            cmd.showCombat = false;
+            cmd.showturns = false;
+            cmd.showbloodtype = false;
+            cmd.names = false;
+            msg("Everything off");
+        }
+
+        [WishCommand(Command = "reswitch")]
+
+        public void Reswitch()
+        {
+            cmd cmd = The.Player.RequirePart<cmd>();
+            cmd.showvitae = true;
+            cmd.showStealthed = true;
+            cmd.ShowActiveStealthed = true;
+            cmd.showGO = true;
+            cmd.showFeed = true;
+            cmd.showFrenzy = true;
+            cmd.showStatus = true;
+            cmd.showStealthy = true;
+            cmd.showHumanity = true;
+            cmd.showCombat = true;
+            msg("Everythign true");
+        }
+
+        [WishCommand(Command = "bigskip")]
+
+        public void bigskip()
+        {
+            cmdSwitchFlipper(nameof(BigSkip));
+        }
+
+        [WishCommand(Command = "showallstealth")]
+        public void ShowAllSteath()
+        {
+            cmdSwitchFlipper(nameof(showStealthed));
+            cmdSwitchFlipper(nameof(showStealthy));
+            cmdSwitchFlipper(nameof(ShowActiveStealthed));
+            msg("ShowAlLStealth");
+        }
+
+        [WishCommand(Command = "showFrenzy")]
+
+        public void ShowFrenzy()
+        {
+            cmdSwitchFlipper(nameof(showFrenzy));
+        }
+
+        [WishCommand(Command = "showvitae")]
+
+        public void Showvitae()
+        {
+            cmdSwitchFlipper(nameof(showvitae));
+        }
+
+        [WishCommand(Command = "showstealthed")]
+
+        public void ShowStealthedMethod()
+        {
+            cmdSwitchFlipper(nameof(showStealthed));
+        }
+
+        [WishCommand(Command = "showasm")]
+
+        public void ShowASM()
+        {
+            cmdSwitchFlipper(nameof(ShowActiveStealthed));
+        }
+
+        [WishCommand(Command = "showGO")]
+
+        public void ShowGOTo()
+        {
+            cmdSwitchFlipper(nameof(showGO));
+        }
+
+        [WishCommand(Command = "showFeed")]
+
+        public void FeedsHow()
+        {
+            cmdSwitchFlipper(nameof(showFeed));
+        }
+
+        [WishCommand(Command = "ShowStatus")]
+
+        public void ShowBloodStatus()
+        {
+            cmdSwitchFlipper(nameof(showStatus));
+        }
+
+        [WishCommand(Command = "showstealthy")]
+
+        public void ShowStealthyStatus()
+        {
+            cmdSwitchFlipper(nameof(showStealthy));
+        }
+
+        [WishCommand(Command = "showHumanity")]
+
+        public void ShowHumanityValue()
+        {
+            cmdSwitchFlipper(nameof(showHumanity));
+        }
+
+        [WishCommand(Command = "showCombat")]
+
+        public void showCombatValue()
+        {
+            cmdSwitchFlipper(nameof(showCombat));
+        }
+
+        [WishCommand(Command = "skip")]
+
+        public void skip()
+        {
+            cmdSwitchFlipper(nameof(Skip));
+        }
+
+
+        [WishCommand(Command = "skipabeat")]
+
+        public void skipabeat()
+        {
+            cmdSwitchFlipper(nameof(SkipABeat));
+        }
+
+
+        [WishCommand("showturns")]
+
+        public void showTurns()
+        {
+            cmdSwitchFlipper(nameof(showturns));
+        }
+
+        [WishCommand("refreshme")]
+
+        public void refreshme()
+        {
+            cmdSwitchFlipper(nameof(refresh));
+        }
+
+        [WishCommand("shownames")]
+
+        public void shownames()
+        {
+            cmdSwitchFlipper(nameof(names));
+        }
+
+        [WishCommand("showbloodtype")]
+
+        public void ShowBloodType()
+        {
+            cmdSwitchFlipper(nameof(showbloodtype));
+        }
+
+        [WishCommand("showwater")]
+
+        public void showwater() => cmdSwitchFlipper(nameof(showWater));
+
+        #endregion
+
+
+
+
+        #region Vampirism Wishes
+
+        [WishCommand("splatterme")]
+
+        public void splatterme() => The.Player.Bloodsplatter();
+
+        [WishCommand("checkfrenzy")]
+
+        public static void checkfrenzy()
+        {
+            var frenzy = The.Player.GetPart<TheBeast>();
+            if (frenzy != null)
+            {
+                Log(frenzy.TargetRegistry);
+            }
+        }
+
+        [WishCommand(Command = "onehum")]
+
+        public void Onehum() => The.Player.GetPart<Humanity>().Score = 1;
+
+        [WishCommand("vampirize")]
+
+        public static void Vampirize()
+        {
+            GameObject GO = The.Player;
+            if (GO.CmdTarget("vampirize", out var pick))
+            {
+                Mutations m = pick.RequirePart<Mutations>();
+                if (!m.HasMutation(nameof(Vampirism)))
+                    m.AddMutation(nameof(Vampirism));
+                if (pick.HasPart<Vampirism>())
+                    IComponent<GameObject>.AddPlayerMessage("Vampirized");
+            }
+        }
+
+
+
+        [WishCommand("unvampirize")]
+
+        public static void Unvampirize()
+        {
+            GameObject GO = The.Player;
+            if (GO.CmdTarget("unvampirize", out var pick) && pick.HasPart<Vampirism>())
+            {
+                Mutations m = pick.GetPart<Mutations>();
+                var v = m.GetMutation(nameof(Vampirism));
+                m.RemoveMutation(v);
+                if (!pick.HasPart<Vampirism>())
+                    IComponent<GameObject>.AddPlayerMessage("unVampirized");
+            }
+        }
+
+        [WishCommand("autowin")]
+
+        public static void autowin()
+        {
+            StaticSwitchFlipper<Nexus.Attack.FeedCommand>(nameof(Nexus.Attack.FeedCommand.AutoWin));
+        }
+
+        [WishCommand("badliquid")]
+        public static void badliquid()
+        {
+            if (The.Player.CmdTarget("badliquid", out var pick))
+            {
+                var BadLiquids = new Nexus.Bite.Bite().BadLiquids.Copy();
+                int range = WikiRng.Next(0, BadLiquids.Length - 1);
+                string liquid = BadLiquids[range].Item1;
+                pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
+                cmd.msg($"badliquified {pick} {liquid} {range}");
+            }
+        }
+
+
+        [WishCommand("lust")]
+
+        public static void lust()
+        {
+            StaticSwitchFlipper<Vitae>(nameof(Vitae.AntiPuke));
+
+        }
+
+
+        [WishCommand("autolevel")]
+
+        public static void AutoLevel()
+        {
+            StaticSwitchFlipper<IFeeding>(nameof(IFeeding.AutoLevel));
+        }
+
+
         [WishCommand("ReadCopy")]
         public static void ReadCopy()
         {
@@ -139,42 +424,6 @@ namespace XRL.World.Parts
             }
         }
 
-        [WishCommand("getstaticplayer")]
-
-        public static void getstaticplayer() => GetStaticPlayer();
-
-        [WishCommand("showstaticplayer")]
-
-        public static void GetStaticPlayer()
-        {
-            cmd.msg($"{DeathHandler.Player?.DisplayName} sent");
-        }
-
-        [WishCommand("forcelight")]
-
-        public static void ForceLight()
-        {
-            Cell cell = The.Player.PickDirection("ForceLight");
-            if (cell != null)
-            {
-                var obj = cell.GetFirstObjectPart<TorchProperties>();
-                if (obj != null)
-                    obj.Light();
-                else
-                    msg("No torch in cell");
-            }
-        }
-
-        [WishCommand("removepart", null)]
-
-        public static void removepart(string value)
-        {
-            if (The.Player.RemovePart(value))
-                msg("removed");
-            else
-                msg("does not exist");
-        }
-
         [WishCommand("embrace")]
 
         public static void embraceable()
@@ -191,20 +440,34 @@ namespace XRL.World.Parts
             }
         }
 
-        [WishCommand("addpart", null)]
-
-        public static void addpart(string value)
+        [WishCommand("forcelight")]
+        public static void ForceLight()
         {
-            value = "XRL.World.Parts." + value;
-            Type type = Type.GetType(value, false);
-            if (type != null && Activator.CreateInstance(type) is IPart obj)
+            Cell cell = The.Player.PickDirection("ForceLight");
+            if (cell != null)
             {
-                msg("requirepart " + value);
-                The.Player.RequirePart(obj);
+                var obj = cell.GetFirstObjectPart<TorchProperties>();
+                if (obj != null)
+                    obj.Light();
+                else
+                    msg("No torch in cell");
             }
-            else
-                msg($"{value} is not IPart");
         }
+
+        [WishCommand("getstaticplayer")]
+
+        public static void getstaticplayer() => GetStaticPlayer();
+
+        [WishCommand("showstaticplayer")]
+
+        public static void GetStaticPlayer()
+        {
+            cmd.msg($"{DeathHandler.Player?.DisplayName} sent");
+        }
+
+        #endregion
+
+        #region Scanneras
 
         [WishCommand("scanfor", null)]
 
@@ -237,13 +500,6 @@ namespace XRL.World.Parts
             }
         }
 
-        [WishCommand("autolevel")]
-
-        public static void AutoLevel()
-        {
-            StaticSwitchFlipper<IFeeding>(nameof(IFeeding.AutoLevel));
-        }
-
         static void ScanObject(GameObject obj)
         {
             Log($"\nSTART {obj.DisplayName}, ID_{obj.ID}");
@@ -259,82 +515,6 @@ namespace XRL.World.Parts
             Log(obj.Effects);
             Log($"END {obj.DisplayName}, ID_{obj.ID}");
         }
-
-        static void Log<T>(IList<T> obj)
-        {
-            for (int i = 0; i < obj.Count; i++)
-            {
-                Log($"{obj[i]}");
-            }
-        }
-
-        static void Log<TKey, TValue>(IDictionary<TKey, TValue> obj)
-        {
-            foreach (var item in obj)
-            {
-                Log(item);
-            }
-        }
-
-        static void Log<TKey, TValue>(KeyValuePair<TKey, TValue> obj) => Log($"{obj.Key}, {obj.Value}");
-
-        static new void Log(string text) => MetricsManager.LogInfo(text);
-
-        [WishCommand("autowin")]
-
-        public static void autowin()
-        {
-            StaticSwitchFlipper<Nexus.Attack.FeedCommand>(nameof(Nexus.Attack.FeedCommand.AutoWin));
-        }
-
-        [WishCommand("badliquid")]
-
-        public static void badliquid()
-        {
-            if (The.Player.CmdTarget("badliquid", out var pick))
-            {
-                var BadLiquids = new Nexus.Bite.Bite().BadLiquids.Copy();
-                int range = WikiRng.Next(0, BadLiquids.Length - 1);
-                string liquid = BadLiquids[range].Item1;
-                pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
-                cmd.msg($"badliquified {pick} {liquid} {range}");
-            }
-        }
-
-        [WishCommand("liquify")]
-        public static void liquify(string liquid)
-        {
-            if (The.Player.CmdTarget("liquify", out var pick))
-            {
-                pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
-                cmd.msg($"Liquified {liquid} {pick}");
-            }
-        }
-
-        [WishCommand("slimify")]
-        public static void slimify() => liquify("slime");
-
-        [WishCommand("lust")]
-
-        public static void lust()
-        {
-            StaticSwitchFlipper<Vitae>(nameof(Vitae.AntiPuke));
-
-        }
-
-        [WishCommand("kill")]
-
-        public static void kill()
-        {
-            if (The.Player.TryGetTarget("kill", "kill", out var pick))
-            {
-                pick.TakeDamage(100000, The.Player, "Killed");
-            }
-        }
-
-        [WishCommand("farmer")]
-        public static void Farmer() => Spawn(The.Player.CurrentCell, "WatervineFarmerJoppa");
-        public static GameObject Spawn(Cell cell, string param) => cell.getClosestEmptyCell().AddObject(GameObject.Create(param));
 
         [WishCommand("checkfx")]
 
@@ -367,60 +547,18 @@ namespace XRL.World.Parts
 
         public static void ShowTypes()
         {
-            GameObject GO = The.Player;
-            Cell Cell = GO.PickDirection("showtypes");
-            List<GameObject> objects = Cell?.GetObjects();
-            if (objects != null)
+            Cell Cell = The.Player.PickDirection("showtypes");
+            if (Cell != null)
             {
-                foreach (var obj in objects)
+                AddPlayerMessage("Logging types");
+                for (int i = 0; i < Cell.Objects.Count; i++)
                 {
-                    var type = obj.GetType();
-                    MetricsManager.LogInfo($"{type}, {type.Name}, {type.Namespace}, {type.BaseType}, {type.GUID}");
+                    var type = Cell.Objects[i].GetType();
+                    MetricsManager.LogInfo($"{type}, {type.Namespace}, {type.BaseType}, {type.GUID}");
                 }
             }
         }
 
-        [WishCommand("vampirize")]
-
-        public static void Vampirize()
-        {
-            GameObject GO = The.Player;
-            if (GO.CmdTarget("vampirize", out var pick))
-            {
-                Mutations m = pick.RequirePart<Mutations>();
-                if (!m.HasMutation(nameof(Vampirism)))
-                    m.AddMutation(nameof(Vampirism));
-                if (pick.HasPart<Vampirism>())
-                    IComponent<GameObject>.AddPlayerMessage("Vampirized");
-            }
-        }
-
-        [WishCommand("killall")]
-
-        public static void KillAll()
-        {
-            GameObject GO = The.Player;
-            List<GameObject> combatobjects = GO.CurrentZone.GetObjectsWithPart(nameof(Combat));
-            foreach (var obj in combatobjects)
-                if (obj != GO)
-                    obj.TakeDamage(1000, GO, "KillAll");
-            AddPlayerMessage("AllKilled");
-        }
-
-        [WishCommand("unvampirize")]
-
-        public static void Unvampirize()
-        {
-            GameObject GO = The.Player;
-            if (GO.CmdTarget("unvampirize", out var pick) && pick.HasPart<Vampirism>())
-            {
-                Mutations m = pick.GetPart<Mutations>();
-                var v = m.GetMutation(nameof(Vampirism));
-                m.RemoveMutation(v);
-                if (!pick.HasPart<Vampirism>())
-                    IComponent<GameObject>.AddPlayerMessage("unVampirized");
-            }
-        }
 
         [WishCommand("checkprops")]
         public static void CheckStringProperties()
@@ -434,89 +572,269 @@ namespace XRL.World.Parts
                     MetricsManager.LogInfo($"{obj}, {prop.Key}, {prop.Value}");
             }
         }
-        [WishCommand("showwater")]
 
-        public void showwater() => cmdSwitchFlipper(nameof(showWater));
+        #endregion
 
-        [WishCommand("splatterme")]
 
-        public void splatterme() => The.Player.Bloodsplatter();
+
+
+
+        #region Liquids
+
+
+
+        [WishCommand("liquify")]
+        public static void liquify(string liquid)
+        {
+            if (The.Player.CmdTarget("liquify", out var pick))
+            {
+                pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
+                cmd.msg($"Liquified {liquid} {pick}");
+            }
+        }
+
+        [WishCommand("slimify")]
+        public static void slimify() => liquify("slime");
+
+        #endregion
+
+
+        #region Spawn and Kill
+
+        public static GameObject Spawn(Cell cell, string param) => cell.getClosestEmptyCell().AddObject(GameObject.Create(param));
+
+        [WishCommand("kill")]
+
+        public static void kill()
+        {
+            if (The.Player.TryGetTarget("kill", "kill", out var pick))
+            {
+                pick.TakeDamage(100000, The.Player, "Killed");
+            }
+        }
+
+        [WishCommand("farmer")]
+        public static void Farmer() => Spawn(The.Player.CurrentCell, "WatervineFarmerJoppa");
+
+        [WishCommand("killall")]
+
+        public static void KillAll()
+        {
+            GameObject GO = The.Player;
+            Zone zone = GO.CurrentZone;
+            List<GameObject> combatobjects = zone.GetObjectsWithPart(nameof(Combat));
+            for (int y = 0; y < zone.Height; y++)
+            {
+                for (int x = 0; x < zone.Width; x++)
+                {
+                    Cell cell = zone.Map[y][x];
+                    for (int i = 0; i < cell.Objects.Count; i++)
+                    {
+                        GameObject obj = cell.Objects[i];
+                        if (obj != GO && obj.HasPart<Combat>())
+                        {
+                            obj.TakeDamage(1000, GO, "KIllAll");
+                        }
+                    }
+                }
+
+            }
+            AddPlayerMessage("AllKilled");
+        }
+
+        #endregion
+
+
+
+        [WishCommand(Command = "spawnsleeper")]
+
+        public void SpawnSleeper()
+        {
+            List<Cell> cells = The.Player.CurrentCell.GetAdjacentCells();
+            int i = 0;
+            foreach (Cell cell in cells)
+            {
+                i++;
+                if (i < 3)
+                {
+                    GameObject Object = GameObject.Create("WatervineFarmerJoppa");
+                    Object.ApplyEffect(new Asleep(100));
+                    cell.AddObject(Object);
+                }
+                else
+                    return;
+            }
+        }
+
+        #region Misc
+
+        [WishCommand(Command = "removebleed")]
+
+        public void removebleed()
+        {
+            Cell cell = The.Player.PickDirection("RemoveBleed");
+            GameObject Victim = cell.GetCombatTarget(The.Player);
+            Victim.RemoveEffect<Bleeding>();
+            Victim.RemoveEffect<LiquidCovered>();
+        }
+
+
+        [WishCommand(Command = "refresh")]
+        public void Refresh()
+        {
+            ActivatedAbilities activatedAbilities = The.Player.ActivatedAbilities;
+            if (activatedAbilities is not null)
+            {
+                foreach (ActivatedAbilityEntry value in activatedAbilities.AbilityByGuid.Values)
+                {
+                    if (value.Cooldown != 0)
+                        value.Cooldown = 0;
+
+
+                }
+            }
+        }
+
+        [WishCommand("removepart", null)]
+
+        public static void removepart(string value)
+        {
+            if (The.Player.RemovePart(value))
+                msg("removed");
+            else
+                msg(value + " not on player");
+        }
+
+        [WishCommand("addpart", null)]
+
+        public static void addpart(string value)
+        {
+            value = "XRL.World.Parts." + value;
+            Type type = Type.GetType(value, false);
+            if (type != null && Activator.CreateInstance(type) is IPart obj)
+            {
+                msg("requirepart " + value);
+                The.Player.RequirePart(obj);
+            }
+            else
+                msg($"{value} is not IPart");
+        }
+
+        [WishCommand("bloodify")]
+
+        public void bloodify()
+        {
+            Cell cell = The.Player.PickDirection("bloodify");
+            GameObject obj = cell.GetCombatTarget(The.Player);
+            obj.ApplyEffect(new LiquidCovered("blood", 10, 10, false));
+        }
+
+        [WishCommand(Command = "hurt")]
+        public void Hurt()
+        {
+            Cell cell = The.Player.PickDirection("RemoveBleed");
+            GameObject Victim = cell.GetCombatTarget(The.Player);
+            Victim.ApplyEffect(new Bleeding("1", 20));
+        }
+
+        [WishCommand(Command = "mod")]
+        public void Developer()
+        {
+            Popup.Suppress = true;
+            Mutations m = The.Player.RequirePart<Mutations>();
+            m.AddMutation("Domination");
+            m.AddMutation("Beguiling");
+            m.AddMutation("Phasing");
+            m.AddMutation("Sunder Mind");
+            The.Player.GetStat("Ego").AddShift(100, null, false);
+            The.Player.GetStat("Intelligence").AddShift(100, null, false);
+            The.Player.GetStat("Agility").AddShift(100, null, false);
+            The.Player.GetStat("SP").AddShift(10000, null, false);
+            The.Player.AddSkill<ShortBlades_Bloodletter>();
+            //ParentObject.GetStat("Level").Value += 10;
+            IComponent<GameObject>.AddPlayerMessage("Developer");
+            Popup.Suppress = false;
+        }
+
+        [WishCommand(Command = "boxmein")]
+
+        public void Boxmein()
+        {
+            List<Cell> cells = The.Player.CurrentCell.GetAdjacentCells();
+            foreach (Cell cell in cells)
+            {
+                cell.AddObject("GlassWall");
+            }
+        }
+
+        [WishCommand(Command = "lavawall")]
+
+        public void LavaWall()
+        {
+            List<Cell> cells = The.Player.CurrentCell.GetAdjacentCells();
+            foreach (Cell cell in cells)
+            {
+                cell.AddObject("LavaPuddle");
+            }
+        }
+
+        [WishCommand(Command = "confuseme")]
+
+        public void ConfuseMe()
+        {
+            The.Player.ApplyEffect(new Confused(10, 1, 1));
+            IComponent<GameObject>.AddPlayerMessage("Confuseme");
+        }
+
+        [WishCommand(Command = "tough")]
+        public void Tough()
+        {
+            The.Player.GetStat("Toughness").AddShift(100, null, false);
+            IComponent<GameObject>.AddPlayerMessage("Tough");
+        }
+
+
+        #endregion
+
+
+
+        #region Helpers (not commands)
 
         static cmd Get()
         {
             return The.Player.RequirePart<cmd>();
         }
 
-
-        bool Method(bool cmdbool, string text)
+        static void Log<T>(IList<T> obj)
         {
-            if (cmdbool == false)
+            for (int i = 0; i < obj.Count; i++)
             {
-                msg(text + " on");
-                return true;
-            }
-            else
-            {
-                msg(text + " off");
-                return false;
+                Log($"{obj[i]}");
             }
         }
 
-        [WishCommand("showbloodtype")]
-
-        public void ShowBloodType()
+        static void Log<TKey, TValue>(IDictionary<TKey, TValue> obj)
         {
-            Get().showbloodtype = Method(Get().showbloodtype, "showbloodtype");
-        }
-
-        [WishCommand("showturns")]
-
-        public void showTurns()
-        {
-            cmdSwitchFlipper(nameof(showturns));
-        }
-
-        [WishCommand("refreshme")]
-
-        public void refreshme()
-        {
-            cmdSwitchFlipper(nameof(refresh));
-        }
-
-        [WishCommand("shownames")]
-
-        public void shownames()
-        {
-            cmdSwitchFlipper(nameof(names));
-        }
-
-        [WishCommand(Command = "admin")]
-
-        public static void admin()
-        {
-            if (!The.Player.HasPart<Vampirism>())
-                AddPlayerMessage("No");
-            else
+            foreach (var item in obj)
             {
-                if (!The.Player.HasPart<cmd>())
-                {
-                    The.Player.AddPart<cmd>();
-                    AddPlayerMessage("ADMN");
-                }
-                else
-                    cmd.msg("AlreadyAdmin!");
+                Log(item);
             }
         }
 
-        public void ShowStealthList(List<GameObject> ActiveWitnesses)
+        static void Log<TKey, TValue>(KeyValuePair<TKey, TValue> obj) => Log($"{obj.Key}, {obj.Value}");
+
+        static new void Log(string text) => MetricsManager.LogInfo(text);
+
+        public static void msg(string text) => IComponent<GameObject>.AddPlayerMessage(text);
+        public void msg(string text, char color)
         {
-            if (ActiveWitnesses.Count != 0)
-            {
-                foreach (GameObject obj in ActiveWitnesses)
-                {
-                    Names(obj, ParentObject, 'W');
-                }
-            }
+            string message = "{{" + color + "|" + text + "}}";
+            msg(message);
+        }
+        public void msg(string text, char color, string text2)
+        {
+            string message = "{{" + color + "|" + text + "}} " + text2;
+            msg(message);
         }
 
         public void Properties(GameObject tgt)
@@ -656,346 +974,24 @@ namespace XRL.World.Parts
                 }
                 IComponent<GameObject>.AddPlayerMessage(msg);
             }
+
         }
 
-
-        void Out(out cmd cmd)
+        public void ShowStealthList(HashSet<GameObject> ActiveWitnesses)
         {
-            cmd = The.Player.GetPart<cmd>();
-            if (cmd is null)
-                AddPlayerMessage("not admin");
-        }
-
-        [WishCommand(Command = "bigskip")]
-
-        public void bigskip()
-        {
-            Out(out cmd cmd);
-            cmd.BigSkip = true;
-            cmd.msg("Bigskip True");
-        }
-        [WishCommand(Command = "bigskipoff")]
-
-        public void bigskipoff()
-        {
-            Out(out cmd cmd);
-            cmd.BigSkip = false;
-            cmd.msg("Bigskip false");
-        }
-
-        [WishCommand(Command = "showallstealth")]
-        public void ShowAllSteath()
-        {
-            cmdSwitchFlipper(nameof(showStealthed));
-            cmdSwitchFlipper(nameof(showStealthy));
-            cmdSwitchFlipper(nameof(ShowActiveStealthed));
-            msg("ShowAlLStealth");
-        }
-
-        [WishCommand(Command = "showFrenzy")]
-
-        public void ShowFrenzy()
-        {
-            Out(out cmd cmd);
-            cmd.showFrenzy = true;
-            cmd.msg("Showfrenzy");
-        }
-
-        [WishCommand(Command = "showvitae")]
-
-        public void Showvitae()
-        {
-            Out(out cmd cmd);
-            cmd.showvitae = true;
-            cmd.msg("showvitae");
-        }
-
-        [WishCommand(Command = "showstealthed")]
-
-        public void ShowStealthedMethod()
-        {
-            Out(out cmd cmd);
-            cmd.showStealthed = true;
-            cmd.msg("showstealthed");
-        }
-
-        [WishCommand(Command = "showasm")]
-
-        public void ShowASM()
-        {
-            Out(out cmd cmd);
-            cmd.ShowActiveStealthed = true;
-            msg("showasm");
-        }
-
-        [WishCommand(Command = "showGO")]
-
-        public void ShowGOTo()
-        {
-            Out(out cmd cmd);
-            cmd.showGO = true;
-            msg("showgo");
-        }
-
-        [WishCommand(Command = "showFeed")]
-
-        public void FeedsHow()
-        {
-            Out(out cmd cmd);
-            cmd.showFeed = true;
-            msg("showfeed");
-        }
-
-        [WishCommand(Command = "ShowStatus")]
-
-        public void ShowBloodStatus()
-        {
-            Out(out cmd cmd);
-            cmd.showStatus = true;
-            msg("showstatus");
-        }
-
-        [WishCommand(Command = "showstealthy")]
-
-        public void ShowStealthyStatus()
-        {
-            Out(out cmd cmd);
-            cmd.showStealthy = true;
-            msg("showstealthy");
-        }
-
-        [WishCommand(Command = "showHumanity")]
-
-        public void ShowHumanityValue()
-        {
-            Out(out cmd cmd);
-            cmd.showHumanity = true;
-            msg("showhumanity");
-        }
-
-        [WishCommand(Command = "showCombat")]
-
-        public void showCombatValue()
-        {
-            Out(out cmd cmd);
-            cmd.showCombat = true;
-            msg("showcombat");
-        }
-
-
-
-        [WishCommand(Command = "skip")]
-
-        public void skip()
-        {
-            Out(out cmd cmd);
-            cmd.Skip = true;
-            msg("skip");
-        }
-
-        [WishCommand(Command = "skipoff")]
-
-        public void skipoff()
-        {
-            Out(out cmd cmd);
-            cmd.Skip = false;
-            cmd.msg("skipoff");
-        }
-
-        [WishCommand(Command = "skipabeat")]
-
-        public void skipabeat()
-        {
-            Out(out cmd cmd);
-            cmd.SkipABeat = true;
-            cmd.msg("skipabeat");
-        }
-
-        [WishCommand(Command = "skipabeatoff")]
-
-        public void skipabeatoff()
-        {
-            Out(out cmd cmd);
-            cmd.SkipABeat = false;
-            cmd.msg("skipabeatoff");
-        }
-
-        [WishCommand(Command = "spawnsleeper")]
-
-        public void SpawnSleeper()
-        {
-            List<Cell> cells = The.Player.CurrentCell.GetAdjacentCells();
-            int i = 0;
-            foreach (Cell cell in cells)
+            if (ActiveWitnesses.Count != 0)
             {
-                i++;
-                if (i < 3)
+                foreach (var obj in ActiveWitnesses)
                 {
-                    GameObject Object = GameObject.Create("WatervineFarmerJoppa");
-                    Object.ApplyEffect(new Asleep(100));
-                    cell.AddObject(Object);
-                }
-                else
-                    return;
-            }
-        }
-
-        [WishCommand(Command = "removebleed")]
-
-        public void removebleed()
-        {
-            Cell cell = The.Player.PickDirection("RemoveBleed");
-            GameObject Victim = cell.GetCombatTarget(The.Player);
-            Victim.RemoveEffect<Bleeding>();
-            Victim.RemoveEffect<LiquidCovered>();
-        }
-
-
-        [WishCommand(Command = "refresh")]
-        public void Refresh()
-        {
-            ActivatedAbilities activatedAbilities = The.Player.ActivatedAbilities;
-            if (activatedAbilities is not null)
-            {
-                foreach (ActivatedAbilityEntry value in activatedAbilities.AbilityByGuid.Values)
-                {
-                    if (value.Cooldown != 0)
-                        value.Cooldown = 0;
-
-
+                    Names(obj, ParentObject, 'W');
                 }
             }
         }
 
-        [WishCommand(Command = "switch")]
-
-        public void SwitchHandler()
-        {
-            Out(out cmd cmd);
-            cmd.showvitae = false;
-            cmd.showStealthed = false;
-            cmd.ShowActiveStealthed = false;
-            cmd.showGO = false;
-            cmd.showFeed = false;
-            cmd.showFrenzy = false;
-            cmd.showStatus = false;
-            cmd.showStealthy = false;
-            cmd.showHumanity = false;
-            cmd.showCombat = false;
-            cmd.showturns = false;
-            cmd.showbloodtype = false;
-            cmd.names = false;
-            msg("Everything off");
-        }
-
-        [WishCommand(Command = "reswitch")]
-
-        public void Reswitch()
-        {
-            Out(out cmd cmd);
-            cmd.showvitae = true;
-            cmd.showStealthed = true;
-            cmd.ShowActiveStealthed = true;
-            cmd.showGO = true;
-            cmd.showFeed = true;
-            cmd.showFrenzy = true;
-            cmd.showStatus = true;
-            cmd.showStealthy = true;
-            cmd.showHumanity = true;
-            cmd.showCombat = true;
-            msg("Everythign true");
-        }
-
-        public static void log(string text) => MetricsManager.LogInfo(text);
-        public static void msg(string text) => IComponent<GameObject>.AddPlayerMessage(text);
-        public void msg(string text, char color)
-        {
-            string message = "{{" + color + "|" + text + "}}";
-            msg(message);
-        }
-        public void msg(string text, char color, string text2)
-        {
-            string message = "{{" + color + "|" + text + "}} " + text2;
-            msg(message);
-        }
-
-        [WishCommand("bloodify")]
-
-        public void bloodify()
-        {
-            Cell cell = The.Player.PickDirection("bloodify");
-            GameObject obj = cell.GetCombatTarget(The.Player);
-            obj.ApplyEffect(new LiquidCovered("blood", 10, 10, false));
-        }
-
-        [WishCommand(Command = "hurt")]
-        public void Hurt()
-        {
-            Cell cell = The.Player.PickDirection("RemoveBleed");
-            GameObject Victim = cell.GetCombatTarget(The.Player);
-            Victim.ApplyEffect(new Bleeding("1", 20));
-        }
-
-        [WishCommand(Command = "mod")]
-        public void Developer()
-        {
-            Popup.Suppress = true;
-            Mutations m = The.Player.RequirePart<Mutations>();
-            m.AddMutation("Domination");
-            m.AddMutation("Beguiling");
-            m.AddMutation("Phasing");
-            m.AddMutation("Sunder Mind");
-            The.Player.GetStat("Ego").AddShift(100, null, false);
-            The.Player.GetStat("Intelligence").AddShift(100, null, false);
-            The.Player.GetStat("Agility").AddShift(100, null, false);
-            The.Player.GetStat("SP").AddShift(10000, null, false);
-            The.Player.AddSkill<ShortBlades_Bloodletter>();
-            //ParentObject.GetStat("Level").Value += 10;
-            IComponent<GameObject>.AddPlayerMessage("Developer");
-            Popup.Suppress = false;
-        }
-
-        [WishCommand(Command = "boxmein")]
-
-        public void Boxmein()
-        {
-            List<Cell> cells = The.Player.CurrentCell.GetAdjacentCells();
-            foreach (Cell cell in cells)
-            {
-                cell.AddObject("GlassWall");
-            }
-        }
-
-        [WishCommand(Command = "lavawall")]
-
-        public void LavaWall()
-        {
-            List<Cell> cells = The.Player.CurrentCell.GetAdjacentCells();
-            foreach (Cell cell in cells)
-            {
-                cell.AddObject("LavaPuddle");
-            }
-        }
-
-        [WishCommand(Command = "confuseme")]
-
-        public void ConfuseMe()
-        {
-            The.Player.ApplyEffect(new Confused(10, 1, 1));
-            IComponent<GameObject>.AddPlayerMessage("Confuseme");
-        }
-
-        [WishCommand(Command = "tough")]
-        public void Tough()
-        {
-            The.Player.GetStat("Toughness").AddShift(100, null, false);
-            IComponent<GameObject>.AddPlayerMessage("Tough");
-        }
 
 
-        [WishCommand(Command = "onehum")]
+        #endregion
 
-        public void Onehum() => The.Player.GetPart<Humanity>().Score = 1;
 
     }
 }

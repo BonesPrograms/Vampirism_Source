@@ -24,7 +24,7 @@ namespace Nexus.Core
 		{
 			result = zone.GetZoneProperty(property);
 			return !result?.IsNullOrEmpty() ?? false;
-		}	
+		}
 
 		/// <summary>
 		/// Returns true/false values from object string properties. Default true.
@@ -297,9 +297,118 @@ namespace Nexus.Core
 			}
 			return false;
 		}
+
+		public static T GetMutation<T>(this GameObject Object) where T : BaseMutation
+		{
+			var mutations = Object.GetPart<Mutations>();
+			for (int i = 0; i < mutations.MutationList.Count; i++)
+			{
+				var mutation = mutations.MutationList[i];
+				if (mutation.GetType() == typeof(T))
+				{
+					return mutation as T;
+				}
+			}
+			return null;
+		}
+
+	
+		public static void RegisterPeopleWho<TValue>(this Zone zone, Predicate<GameObject> condition, Func<GameObject, TValue> value, IDictionary<GameObject, TValue> dic, bool remove)
+		{
+			for (int y = 0; y < zone.Height; y++)
+			{
+				for (int x = 0; x < zone.Width; x++)
+				{
+					Cell cell = zone.Map[y][x];
+					cell.RegisterPeopleWho(condition, value, dic, remove);
+				}
+			}
+		}
+
+		public static void RegisterPeopleWho<TValue>(this Cell cell, Predicate<GameObject> condition, Func<GameObject, TValue> value, IDictionary<GameObject, TValue> dic, bool remove)
+		{
+			for (int i = 0; i < cell.Objects.Count; i++)
+			{
+				GameObject obj = cell.Objects[i];
+				if (condition(obj))
+					dic[obj] = value(obj);
+				else if (remove)
+					dic.Remove(obj);
+			}
+
+		}
+
+		public static void SetPeopleWho(this Zone zone, Predicate<GameObject> condition, Action<GameObject> set)
+		{
+			for (int y = 0; y < zone.Height; y++)
+			{
+				for (int x = 0; x < zone.Width; x++)
+				{
+					Cell cell = zone.Map[y][x];
+					cell.SetPeopleWho(condition, set);
+				}
+			}
+		}
+
+		public static void SetPeopleWho(this Cell cell, Predicate<GameObject> condition, Action<GameObject> set)
+		{
+			for (int i = 0; i < cell.Objects.Count; i++)
+			{
+				GameObject obj = cell.Objects[i];
+				if (condition(obj))
+					set(obj);
+			}
+
+		}
+	
+
+		public static List<GameObject> ListPeopleWho(this Zone zone, Predicate<GameObject> method)
+		{
+			List<GameObject> list = new();
+			for (int y = 0; y < zone.Height; y++)
+			{
+				for (int x = 0; x < zone.Width; x++)
+				{
+					Cell cell = zone.Map[y][x];
+					cell.AddPeopleWho(method, list);
+				}
+			}
+			return list;
+		}
+
+		public static void AddPeopleWho(this Cell cell, Predicate<GameObject> method, List<GameObject> list)
+		{
+			for (int i = 0; i < cell.Objects.Count; i++)
+			{
+				GameObject obj = cell.Objects[i];
+				if (method(obj))
+					list.Add(obj);
+			}
+
+		}
 	}
 	public static class Extensions
 	{
+
+		#region List
+
+		//to prevent adding duplicate reference types to list
+		public static void SafeAdd<T>(this IList<T> list, T obj) where T : class
+		{
+			bool OnList = false;
+			for (int i = 0; i < list.Count; i++)
+			{
+				if (list[i] == obj)
+				{
+					OnList = true;
+					break;
+				}
+			}
+			if (!OnList)
+				list.Add(obj);
+
+		}
+		#endregion
 		#region Type
 		public static T ConvertToClass<T>(this Type t) where T : class
 		{
@@ -322,7 +431,7 @@ namespace Nexus.Core
 
 		#region T[] and (T1,T2)[]
 
-		public static T[] Copy<T>(this T[] source) 
+		public static T[] Copy<T>(this T[] source)
 		{
 			T[] array = new T[source.Length];
 			for (int i = 0; i < array.Length; i++)
@@ -338,13 +447,13 @@ namespace Nexus.Core
 					return true;
 			return false;
 		}
-		public static void Reset<T1, T2>(this (T1,T2)[] array, T2 value = default) where T2 : struct
+		public static void Reset<T1, T2>(this (T1, T2)[] array, T2 value = default) where T2 : struct
 		{
 			for (int i = 0; i < array.Length; i++)
 				array[i].Item2 = value;
 		}
 
-		public static int CountValuesEqualTo<T1, T2>(this (T1,T2)[] array, T2 value) where T2 : IEquatable<T2>
+		public static int CountValuesEqualTo<T1, T2>(this (T1, T2)[] array, T2 value) where T2 : IEquatable<T2>
 		{
 			int capacity = 0;
 			for (int i = 0; i < array.Length; i++)

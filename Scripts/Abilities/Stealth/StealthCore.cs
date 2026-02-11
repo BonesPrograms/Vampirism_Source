@@ -91,40 +91,6 @@ namespace Nexus.Stealth
                 null => BadLight(),
                 _ => false
             };
-        void GetValidSentients()
-        {
-            for (int i = 0; i < Source.Sentients.Count; i++)
-            {
-                GameObject witness = Source.Sentients[i];
-                if (!Source.ValidSentients.Contains(witness) && ValidSentient(witness) && witness != Source.ParentObject)
-                    Source.ValidSentients.Add(witness);
-            }
-        }
-        void GetNearbySentientsInLOS()
-        {
-            for (int i = 0; i < Source.ValidSentients.Count; i++)
-            {
-                GameObject witness = Source.ValidSentients[i];
-                if (!Source.NearbySentients.Contains(witness) && NearbySentient(witness))
-                    Source.NearbySentients.Add(witness);
-            }
-        }
-        void GetActiveWitnesses()
-        {
-
-            for (int i = 0; i < Source.NearbySentients.Count; i++)
-            {
-                GameObject witness = Source.NearbySentients[i];
-                if (!Source.ActiveWitnesses.Contains(witness) && ActiveWitness(witness))
-                {
-                    if (StealthCore.Inanimate(witness))
-                        continue;
-                    else
-                        Source.ActiveWitnesses.Add(witness);
-                }
-            }
-
-        }
 
         bool BadLight()
         {
@@ -146,17 +112,12 @@ namespace Nexus.Stealth
             //   return true; // suspeneded until i can figure out how the actual range for nightvision works
             return false;
         }
-        void Clean(List<GameObject> List, bool ActiveWitnesses, bool NearbySentients)
+        void Clean()
         {
-            for (int i = List.Count - 1; i >= 0; i--)
+            foreach (var obj in Source.Witnesses.ToArray())
             {
-                GameObject obj = List[i];
-                if (obj?.CurrentCell is null || !ValidSentient(obj))
-                    List.Remove(obj);
-                else if ((NearbySentients || ActiveWitnesses) && !NearbySentient(obj))
-                    List.Remove(obj);
-                else if (ActiveWitnesses && (!ActiveWitness(obj) || Inanimate(obj))) //else if prevents us from attempting to evaluate null objects in these two methods
-                    List.Remove(obj);                                                   //unaware and SpottedByDarkvision are not prepared for null objects
+                if (obj.CurrentZone != Source.Zone || !obj.HasHitpoints())
+                    Source.Witnesses.Remove(obj);
             }
         }
 
@@ -165,12 +126,30 @@ namespace Nexus.Stealth
         /// </summary>
         public void ScanEnvironment()
         {
-            Clean(Source.ValidSentients, false, false);
-            Clean(Source.NearbySentients, false, true);
-            Clean(Source.ActiveWitnesses, true, false);
-            GetValidSentients();
-            GetNearbySentientsInLOS();
-            GetActiveWitnesses();
+            ScanZone();
+            Clean();
+        }
+
+        void CheckValidity(GameObject obj)
+        {
+            if (ValidSentient(obj) && NearbySentient(obj) && ActiveWitness(obj) && !Inanimate(obj))
+                Source.Witnesses.Add(obj);
+        }
+        void ScanZone()
+        {
+            for (int y = 0; y < Source.Zone.Height; y++)
+            {
+                for (int x = 0; x < Source.Zone.Width; x++)
+                {
+                    Cell cell = Source.Zone.Map[y][x];
+                    for (int i = 0; i < cell.Objects.Count; i++)
+                    {
+                        GameObject obj = cell.Objects[i];
+                        if (obj != Source.ParentObject && obj.HasPart<Brain>())
+                            CheckValidity(obj);
+                    }
+                }
+            }
         }
     }
 }

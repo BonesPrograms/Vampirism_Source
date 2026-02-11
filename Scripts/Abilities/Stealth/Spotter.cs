@@ -34,11 +34,20 @@ namespace Nexus.Stealth
         readonly Nightbeast Source;
         readonly Dictionary<GameObject, int> SpotterRanges = new();
         KeyValuePair<GameObject, int> package;
-        readonly List<GameObject> PotentialSpotters;
+        List<GameObject> PotentialSpotters;
         public SpotterGenerator(Nightbeast Source, List<GameObject> PotentialSpotters)
         {
             this.Source = Source;
             this.PotentialSpotters = PotentialSpotters;
+        }
+
+        SpotterGenerator(Nightbeast Source) => this.Source = Source;
+
+        public static SpotterGenerator GeneratorWithDefaultList(Nightbeast Source)
+        {
+            SpotterGenerator gen = new(Source);
+            gen.GiveDefaultList();
+            return gen;
         }
 
         ///AI_RADIUS+1 to prevent a bug: if AI is 1 tile outside radius and Spotter effect is applied, 
@@ -49,16 +58,9 @@ namespace Nexus.Stealth
         /// 
         bool Spotted(int distance, GameObject Spotter) => distance == Nexus.Rules.STEALTH.AI_RADIUS + 1 && Spotter.HasLOSTo(Source.ParentObject);
         static string DefaultMessage(GameObject Spotter) => $"You try to sneak attack, but {Spotter.t()} spots you from a distance!";
-        public static List<GameObject> GiveDefaultList(Nightbeast Source)
+        public void GiveDefaultList()
         {
-            List<GameObject> local = new();
-            for (int i = 0; i < Source.ValidSentients.Count; i++)
-            {
-                GameObject witness = Source.ValidSentients[i];
-                if (!witness.Unaware(false) && !StealthCore.Inanimate(witness))
-                    local.Add(witness);
-            }
-            return local;
+            PotentialSpotters = Source.Zone.ListPeopleWho(witness => Source.Core.ValidSentient(witness) && !witness.Unaware(false) && !StealthCore.Inanimate(witness));
         }
         public Spot BeginAttackCheckIfSpotted<T>(string message = default) where T : IOpinionSubject, new()
         {

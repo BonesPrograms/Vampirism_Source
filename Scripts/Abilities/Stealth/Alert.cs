@@ -45,6 +45,19 @@ namespace Nexus.Stealth
             this.Exposer = Exposer;
         }
 
+        Alert(Nightbeast Source, GameObject Exposer = null)
+        {
+            this.Source = Source;
+            this.Exposer = Exposer;
+        }
+
+        public static Alert AlertWithDefaultList(Nightbeast Source, GameObject Exposer = null)
+        {
+            Alert alert = new(Source, Exposer);
+            alert.GiveDefaultList();
+            return alert;
+        }
+
         bool Validated(GameObject obj, uint AoE) => obj != null && obj.DistanceTo(Source.ParentObject) <= AoE;
 
 
@@ -77,17 +90,11 @@ namespace Nexus.Stealth
         /// <param name="Source"></param>
         /// <returns></returns>
 
-        public static List<GameObject> GiveDefaultList(Nightbeast Source)
+        public void GiveDefaultList()
         {
-            List<GameObject> local = new(); //Notice how we pull from ValidSentients, which has no LOS, awareness, or distance restrictions.
-            for (int i = 0; i < Source.ValidSentients.Count; i++)
-            {
-                GameObject obj = Source.ValidSentients[i];
-                if (!StealthCore.Inanimate(obj))
-                    local.Add(obj);
-            }
-            return local;
+            Witnesses = Source.Zone.ListPeopleWho(x=> Source.Core.ValidSentient(x) && !StealthCore.Inanimate(x));
         }
+
         /// <summary>
         /// Quick access method to wake up sleepers.
         /// </summary>

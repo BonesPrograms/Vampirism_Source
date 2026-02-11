@@ -58,7 +58,7 @@ namespace XRL.World.Parts
 		}
 		public override bool HandleEvent(BeginTakeActionEvent E)
 		{
-			Clean();
+			//Clean();
 			if (!ParentObject.CheckFlag(FLAGS.FEED) && !frenzied && !Incap() && HasFangs())
 				Core.FrenzyChances();
 			if (GameOver)
@@ -83,12 +83,12 @@ namespace XRL.World.Parts
 
 		}
 
-		public void Clean()
-		{
-			foreach (GameObject obj in TargetRegistry.KeyArray())
-				if (obj?.CurrentCell?.GetCombatTarget(ParentObject) is null || !obj.HasHitpoints() || !obj.InSameZone(ParentObject))
-					TargetRegistry.Remove(obj);
-		}
+		// public void Clean()
+		// {
+		// 	foreach (GameObject obj in TargetRegistry.KeyArray())
+		// 		if (obj?.CurrentCell?.GetCombatTarget(ParentObject) == null || !obj.HasHitpoints() || !obj.InSameZone(ParentObject))
+		// 			TargetRegistry.Remove(obj);
+		// }
 	}
 
 }

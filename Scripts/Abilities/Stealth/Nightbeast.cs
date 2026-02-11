@@ -15,34 +15,9 @@ namespace XRL.World.Parts
 	public class Nightbeast : IPart
 	{
 
-
-		/// <summary>
-		/// All objects with part brain in the zone. Avoid writing to this.
-		/// </summary>
 		[NonSerialized]
-		public List<GameObject> Sentients = new();
 
-		/// <summary>
-		/// List of verified (see StealthCore.ValidSentient()) Sentients. Companions not included. This list is useful if you want to mess with people who are not nearby or in LOS.
-		/// Usually when stealth is broken, only a small portion of people will actually be in LOS. Avoid writing to this.
-		/// </summary>
-		[NonSerialized]
-		public List<GameObject> ValidSentients = new();
-
-		/// <summary>
-		/// List of nearby objects in LOS and within the AI_RADIUS. Avoid writing to this.
-		/// </summary>
-
-		[NonSerialized]
-		public List<GameObject> NearbySentients = new();
-
-		/// <summary>
-		/// List of NearbySentients that are aware, can see you(based on lighting) and are (usually) not plants. This is the primary list that is actually
-		/// used to evaluate stealth.
-		/// </summary>
-
-		[NonSerialized]
-		public List<GameObject> ActiveWitnesses = new();
+		public HashSet<GameObject> Witnesses = new();
 
 		/// <summary>
 		/// Stage one means that there is only one witness.
@@ -58,7 +33,7 @@ namespace XRL.World.Parts
 		public StealthCore Core => _Core ??= new StealthCore(this);
 		ActiveStealth _ActiveStealth;
 		public ActiveStealth ActiveStealth => _ActiveStealth ??= new ActiveStealth(this);
-
+		public Zone Zone => ParentObject.CurrentZone;
 		public override bool WantEvent(int ID, int cascade)
 		{
 			if (!AutoAct.IsActive() && ParentObject.IsPlayer() && ID == SingletonEvent<BeforeTakeActionEvent>.ID)
@@ -87,10 +62,9 @@ namespace XRL.World.Parts
 		}
 		void RunStealthSystem()
 		{
-			Sentients = ParentObject.CurrentZone.GetObjectsWithPart(nameof(Brain));
 			Core.LightLevel = ParentObject.CurrentCell?.GetLight();
 			Core.ScanEnvironment();
-			ActiveStealth.SetStealth(ActiveWitnesses.Count);
+			ActiveStealth.SetStealth(Witnesses.Count);
 		}
 
 		/// <summary>
@@ -99,7 +73,7 @@ namespace XRL.World.Parts
 		/// </summary>
 		/// <param name="Target"></param>
 		/// <returns></returns>
-		public bool ValidateStealthATK(GameObject Target) => (StealthStage1 || StealthStage2) && (ActiveWitnesses.Count == 0 || ActiveWitnesses.Contains(Target));
+		public bool ValidateStealthATK(GameObject Target) => (StealthStage1 || StealthStage2) && (Witnesses.Count == 0 || Witnesses.Contains(Target));
 
 	}
 }
