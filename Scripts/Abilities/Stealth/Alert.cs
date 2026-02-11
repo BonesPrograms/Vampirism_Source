@@ -225,13 +225,13 @@ namespace Nexus.Stealth
         {
             if (distances.Count != 0)
             {
-                if (distances.Count != 1)
+                if (distances.Count > 1)
                 {
                     int min = distances.Values.Min();
                     return distances.First(x => x.Value == min).Key;
                 }
                 else
-                    return distances.ElementAt(0).Key;
+                    return distances.Single().Key;
             }
             else
             {

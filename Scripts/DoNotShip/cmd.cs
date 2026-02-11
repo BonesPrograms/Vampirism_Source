@@ -38,6 +38,8 @@ namespace XRL.World.Parts
     public class cmd : IPart
     {
 
+        bool wantsVampirism => showvitae || showStealthed || ShowActiveStealthed || showGO || showFeed || showFrenzy || showStatus || showStealthy || showHumanity;
+
         #region Vampirism
         public bool showvitae = false;
         public bool showStealthed = false;
@@ -85,9 +87,16 @@ namespace XRL.World.Parts
         Nightbeast n => _n ??= ParentObject.GetPart<Nightbeast>();
         public override bool HandleEvent(BeforeTakeActionEvent E)
         {
-            Properties(ParentObject);
-            if (showStealthed || showStealthy || ShowActiveStealthed)
-                Properties(ParentObject, n.StealthStage1, n.StealthStage2);
+            if(wantsVampirism)
+            {
+                ParentObject.RequireMutation<Vampirism>();
+            }
+            if (ParentObject.IsVampire())
+            {
+                Properties();
+                if (showStealthed || showStealthy || ShowActiveStealthed)
+                    Properties(ParentObject, n.StealthStage1, n.StealthStage2);
+            }
             if (names == true)
             {
                 ShowStealthList(n.Witnesses);
@@ -102,7 +111,7 @@ namespace XRL.World.Parts
                 cmd.msg($"{ParentObject.GetPart<Stomach>().Water}");
             return base.HandleEvent(E);
         }
-        void cmdSwitchFlipper(string nameOf) //nameof(Boolean)
+        static void cmdSwitchFlipper(string nameOf) //nameof(Boolean)
         {
             var cmd = Get();
             InstanceSwitchFlipper(nameOf, cmd);
@@ -136,7 +145,7 @@ namespace XRL.World.Parts
 
         [WishCommand(Command = "switch")]
 
-        public void SwitchHandler()
+        public static void SwitchHandler()
         {
             cmd cmd = The.Player.RequirePart<cmd>();
             cmd.showvitae = false;
@@ -157,7 +166,7 @@ namespace XRL.World.Parts
 
         [WishCommand(Command = "reswitch")]
 
-        public void Reswitch()
+        public static void Reswitch()
         {
             cmd cmd = The.Player.RequirePart<cmd>();
             cmd.showvitae = true;
@@ -175,13 +184,13 @@ namespace XRL.World.Parts
 
         [WishCommand(Command = "bigskip")]
 
-        public void bigskip()
+        public static void bigskip()
         {
             cmdSwitchFlipper(nameof(BigSkip));
         }
 
         [WishCommand(Command = "showallstealth")]
-        public void ShowAllSteath()
+        public static void ShowAllSteath()
         {
             cmdSwitchFlipper(nameof(showStealthed));
             cmdSwitchFlipper(nameof(showStealthy));
@@ -191,77 +200,77 @@ namespace XRL.World.Parts
 
         [WishCommand(Command = "showFrenzy")]
 
-        public void ShowFrenzy()
+        public static void ShowFrenzy()
         {
             cmdSwitchFlipper(nameof(showFrenzy));
         }
 
         [WishCommand(Command = "showvitae")]
 
-        public void Showvitae()
+        public static void Showvitae()
         {
             cmdSwitchFlipper(nameof(showvitae));
         }
 
         [WishCommand(Command = "showstealthed")]
 
-        public void ShowStealthedMethod()
+        public static void ShowStealthedMethod()
         {
             cmdSwitchFlipper(nameof(showStealthed));
         }
 
         [WishCommand(Command = "showasm")]
 
-        public void ShowASM()
+        public static void ShowASM()
         {
             cmdSwitchFlipper(nameof(ShowActiveStealthed));
         }
 
         [WishCommand(Command = "showGO")]
 
-        public void ShowGOTo()
+        public static void ShowGOTo()
         {
             cmdSwitchFlipper(nameof(showGO));
         }
 
         [WishCommand(Command = "showFeed")]
 
-        public void FeedsHow()
+        public static void FeedsHow()
         {
             cmdSwitchFlipper(nameof(showFeed));
         }
 
         [WishCommand(Command = "ShowStatus")]
 
-        public void ShowBloodStatus()
+        public static void ShowBloodStatus()
         {
             cmdSwitchFlipper(nameof(showStatus));
         }
 
         [WishCommand(Command = "showstealthy")]
 
-        public void ShowStealthyStatus()
+        public static void ShowStealthyStatus()
         {
             cmdSwitchFlipper(nameof(showStealthy));
         }
 
         [WishCommand(Command = "showHumanity")]
 
-        public void ShowHumanityValue()
+        public static void ShowHumanityValue()
         {
             cmdSwitchFlipper(nameof(showHumanity));
         }
 
         [WishCommand(Command = "showCombat")]
 
-        public void showCombatValue()
+        public static void showCombatValue()
         {
             cmdSwitchFlipper(nameof(showCombat));
         }
 
         [WishCommand(Command = "skip")]
 
-        public void skip()
+        public static void skip()
         {
             cmdSwitchFlipper(nameof(Skip));
         }
@@ -269,7 +278,7 @@ namespace XRL.World.Parts
 
         [WishCommand(Command = "skipabeat")]
 
-        public void skipabeat()
+        public static void skipabeat()
         {
             cmdSwitchFlipper(nameof(SkipABeat));
         }
@@ -277,35 +286,35 @@ namespace XRL.World.Parts
 
         [WishCommand("showturns")]
 
-        public void showTurns()
+        public static void showTurns()
         {
             cmdSwitchFlipper(nameof(showturns));
         }
 
         [WishCommand("refreshme")]
 
-        public void refreshme()
+        public static void refreshme()
         {
             cmdSwitchFlipper(nameof(refresh));
         }
 
         [WishCommand("shownames")]
 
-        public void shownames()
+        public static void shownames()
         {
             cmdSwitchFlipper(nameof(names));
         }
 
         [WishCommand("showbloodtype")]
 
-        public void ShowBloodType()
+        public static void ShowBloodType()
         {
             cmdSwitchFlipper(nameof(showbloodtype));
         }
 
         [WishCommand("showwater")]
 
-        public void showwater() => cmdSwitchFlipper(nameof(showWater));
+        public static void showwater() => cmdSwitchFlipper(nameof(showWater));
 
         #endregion
 
@@ -316,7 +325,7 @@ namespace XRL.World.Parts
 
         [WishCommand("splatterme")]
 
-        public void splatterme() => The.Player.Bloodsplatter();
+        public static void splatterme() => The.Player.Bloodsplatter();
 
         [WishCommand("checkfrenzy")]
 
@@ -331,7 +340,7 @@ namespace XRL.World.Parts
 
         [WishCommand(Command = "onehum")]
 
-        public void Onehum() => The.Player.GetPart<Humanity>().Score = 1;
+        public static void Onehum() => The.Player.GetPart<Humanity>().Score = 1;
 
         [WishCommand("vampirize")]
 
@@ -340,10 +349,7 @@ namespace XRL.World.Parts
             GameObject GO = The.Player;
             if (GO.CmdTarget("vampirize", out var pick))
             {
-                Mutations m = pick.RequirePart<Mutations>();
-                if (!m.HasMutation(nameof(Vampirism)))
-                    m.AddMutation(nameof(Vampirism));
-                if (pick.HasPart<Vampirism>())
+                    GO.RequireMutation<Vampirism>();
                     IComponent<GameObject>.AddPlayerMessage("Vampirized");
             }
         }
@@ -355,13 +361,9 @@ namespace XRL.World.Parts
         public static void Unvampirize()
         {
             GameObject GO = The.Player;
-            if (GO.CmdTarget("unvampirize", out var pick) && pick.HasPart<Vampirism>())
+            if (GO.CmdTarget("unvampirize", out var pick))
             {
-                Mutations m = pick.GetPart<Mutations>();
-                var v = m.GetMutation(nameof(Vampirism));
-                m.RemoveMutation(v);
-                if (!pick.HasPart<Vampirism>())
-                    IComponent<GameObject>.AddPlayerMessage("unVampirized");
+                pick.RemoveMutation<Vampirism>();
             }
         }
 
@@ -478,11 +480,17 @@ namespace XRL.World.Parts
             if (cell != null)
             {
                 msg("scanfor " + value);
-                foreach (var obj in cell.Objects)
+                for (int i = 0; i < cell.Objects.Count; i++)
                 {
-                    if (obj.HasPart(value))
+                    GameObject obj = cell.Objects[i];
+                    for (int x = 0; x < obj.PartsList.Count; x++)
                     {
-                        msg($"{obj} haspart {value}");
+                        IPart part = obj.PartsList[i];
+                        if (part.Name == value)
+                        {
+                            msg($"{obj} haspart {value}");
+                            return;
+                        }
                     }
                 }
             }
@@ -583,10 +591,14 @@ namespace XRL.World.Parts
             GameObject GO = The.Player;
             Cell cell = GO.PickDirection("checkprops");
             List<GameObject> objects = cell.GetObjects();
-            foreach (var obj in objects)
+            if (cell != null)
             {
-                foreach (var prop in obj.Property)
-                    MetricsManager.LogInfo($"{obj}, {prop.Key}, {prop.Value}");
+                for (int i = 0; i < cell.Objects.Count; i++)
+                {
+                    GameObject obj = cell.Objects[i];
+                    Log($"\n {obj}, {obj.ID} CHECKING STRING PROPS");
+                    Log(obj.Property);
+                }
             }
         }
 
@@ -612,6 +624,9 @@ namespace XRL.World.Parts
 
         [WishCommand("slimify")]
         public static void slimify() => liquify("slime");
+
+        [WishCommand("bloodify")]
+        public void bloodify() => liquify("blood");
 
         #endregion
 
@@ -639,12 +654,11 @@ namespace XRL.World.Parts
         {
             GameObject GO = The.Player;
             Zone zone = GO.CurrentZone;
-            List<GameObject> combatobjects = zone.GetObjectsWithPart(nameof(Combat));
             for (int y = 0; y < zone.Height; y++)
             {
                 for (int x = 0; x < zone.Width; x++)
                 {
-                    Cell cell = zone.Map[y][x];
+                    Cell cell = zone.Map[x][y];
                     for (int i = 0; i < cell.Objects.Count; i++)
                     {
                         GameObject obj = cell.Objects[i];
@@ -665,21 +679,16 @@ namespace XRL.World.Parts
 
         [WishCommand(Command = "spawnsleeper")]
 
-        public void SpawnSleeper()
+        public static void SpawnSleeper()
         {
-            List<Cell> cells = The.Player.CurrentCell.GetAdjacentCells();
-            int i = 0;
-            foreach (Cell cell in cells)
+            if (The.Player.LocalCells(out var cells))
             {
-                i++;
-                if (i < 3)
+                for (int i = 0; i < 3; i++)
                 {
                     GameObject Object = GameObject.Create("WatervineFarmerJoppa");
                     Object.ApplyEffect(new Asleep(100));
-                    cell.AddObject(Object);
+                    cells[i].AddObject(Object);
                 }
-                else
-                    return;
             }
         }
 
@@ -687,27 +696,27 @@ namespace XRL.World.Parts
 
         [WishCommand(Command = "removebleed")]
 
-        public void removebleed()
+        public static void removebleed()
         {
             Cell cell = The.Player.PickDirection("RemoveBleed");
-            GameObject Victim = cell.GetCombatTarget(The.Player);
-            Victim.RemoveEffect<Bleeding>();
-            Victim.RemoveEffect<LiquidCovered>();
+            if (cell != null)
+            {
+                GameObject Victim = cell.GetCombatTarget(The.Player);
+                Victim.RemoveEffect<Bleeding>();
+                Victim.RemoveEffect<LiquidCovered>();
+            }
         }
 
 
         [WishCommand(Command = "refresh")]
-        public void Refresh()
+        public static void Refresh()
         {
             ActivatedAbilities activatedAbilities = The.Player.ActivatedAbilities;
-            if (activatedAbilities is not null)
+            if (activatedAbilities != null)
             {
                 foreach (ActivatedAbilityEntry value in activatedAbilities.AbilityByGuid.Values)
                 {
-                    if (value.Cooldown != 0)
-                        value.Cooldown = 0;
-
-
+                    value.Cooldown = 0;
                 }
             }
         }
@@ -737,17 +746,9 @@ namespace XRL.World.Parts
                 msg($"{value} is not IPart");
         }
 
-        [WishCommand("bloodify")]
-
-        public void bloodify()
-        {
-            Cell cell = The.Player.PickDirection("bloodify");
-            GameObject obj = cell.GetCombatTarget(The.Player);
-            obj.ApplyEffect(new LiquidCovered("blood", 10, 10, false));
-        }
 
         [WishCommand(Command = "hurt")]
-        public void Hurt()
+        public static void Hurt()
         {
             Cell cell = The.Player.PickDirection("RemoveBleed");
             GameObject Victim = cell.GetCombatTarget(The.Player);
@@ -755,7 +756,7 @@ namespace XRL.World.Parts
         }
 
         [WishCommand(Command = "mod")]
-        public void Developer()
+        public static void Developer()
         {
             Popup.Suppress = true;
             Mutations m = The.Player.RequirePart<Mutations>();
@@ -775,36 +776,40 @@ namespace XRL.World.Parts
 
         [WishCommand(Command = "boxmein")]
 
-        public void Boxmein()
+        public static void Boxmein()
         {
-            List<Cell> cells = The.Player.CurrentCell.GetAdjacentCells();
-            foreach (Cell cell in cells)
+            if (The.Player.LocalCells(out var cells))
             {
-                cell.AddObject("GlassWall");
+                for (int i = 0; i < cells.Count; i++)
+                {
+                    cells[i].AddObject("GlassWall");
+                }
             }
         }
 
         [WishCommand(Command = "lavawall")]
 
-        public void LavaWall()
+        public static void LavaWall()
         {
-            List<Cell> cells = The.Player.CurrentCell.GetAdjacentCells();
-            foreach (Cell cell in cells)
+            if (The.Player.LocalCells(out var cells))
             {
-                cell.AddObject("LavaPuddle");
+                for (int i = 0; i < cells.Count; i++)
+                {
+                    cells[i].AddObject("LavaPuddle");
+                }
             }
         }
 
         [WishCommand(Command = "confuseme")]
 
-        public void ConfuseMe()
+        public static void ConfuseMe()
         {
             The.Player.ApplyEffect(new Confused(10, 1, 1));
             IComponent<GameObject>.AddPlayerMessage("Confuseme");
         }
 
         [WishCommand(Command = "tough")]
-        public void Tough()
+        public static void Tough()
         {
             The.Player.GetStat("Toughness").AddShift(100, null, false);
             IComponent<GameObject>.AddPlayerMessage("Tough");
@@ -843,20 +848,20 @@ namespace XRL.World.Parts
         static new void Log(string text) => MetricsManager.LogInfo(text);
 
         public static void msg(string text) => IComponent<GameObject>.AddPlayerMessage(text);
-        public void msg(string text, char color)
+        public static void msg(string text, char color)
         {
             string message = "{{" + color + "|" + text + "}}";
             msg(message);
         }
-        public void msg(string text, char color, string text2)
+        public static void msg(string text, char color, string text2)
         {
             string message = "{{" + color + "|" + text + "}} " + text2;
             msg(message);
         }
 
-        public void Properties(GameObject tgt)
+        public void Properties()
         {
-            Properties(tgt, "");
+            Properties("");
         }
 
         //ADMN.Properties(ParentObject, Stealthed, "Stealthed", ActiveStealthFeed, "ActiveStealth");
@@ -867,17 +872,17 @@ namespace XRL.World.Parts
                 message += TextMaker(Stealthed, "Stage1", 'B');
             if (ShowActiveStealthed)
                 message += TextMaker(ActiveStealth, "Stage2", 'b');
-            Properties(tgt, message);
+            Properties(message);
         }
 
         public void Properties(GameObject tgt, bool stealth, string type)
         {
             string message = "";
             message += TextMaker(stealth, type, 'b');
-            Properties(tgt, message);
+            Properties(message);
         }
 
-        char MakeColor(bool state)
+        static char MakeColor(bool state)
         {
             if (state == true)
                 return 'G';
@@ -885,21 +890,21 @@ namespace XRL.World.Parts
                 return 'R';
         }
 
-        string TextMaker(int value, string text, char choosecolor)
+        static string TextMaker(int value, string text, char choosecolor)
         {
             string Other = TextMaker(text, choosecolor);
             string New = $"{value}" + " " + Other;
             return New;
         }
 
-        string TextMaker(bool state, string text, char choosecolor)
+        static string TextMaker(bool state, string text, char choosecolor)
         {
             string color = "{{" + MakeColor(state) + "|";
             string msg = color + state + "}}, " + TextMaker(text, choosecolor);
             return msg;
         }
 
-        string TextMaker(string text, string text2, char choosecolor)
+        static string TextMaker(string text, string text2, char choosecolor)
         {
             string other = TextMaker(text, choosecolor);
             string New = text2 + " " + other;
@@ -907,14 +912,15 @@ namespace XRL.World.Parts
 
         }
 
-        string TextMaker(string text, char choosecolor)
+        static string TextMaker(string text, char choosecolor)
         {
             string msg = "{{" + choosecolor + "|" + text + "}}; ";
             return msg;
         }
 
-        void Properties(GameObject tgt, string text)
+        void Properties(string text)
         {
+            var tgt = ParentObject;
             bool HumanityGameOver = tgt.CheckFlag(FLAGS.GO);
             bool Feeding = tgt.CheckFlag(FLAGS.FEED);
             bool Frenzying = tgt.CheckFlag(FLAGS.FRENZY);
@@ -978,14 +984,14 @@ namespace XRL.World.Parts
                 IComponent<GameObject>.AddPlayerMessage(text);
         }
 
-        public void Names(GameObject witness, GameObject player, char color)
+        public void Names(GameObject witness, char color)
         {
             if (witness is not null && witness.ID is not null && witness.CurrentCell is not null)
             {
-                bool los = witness.HasLOSTo(player, false);
+                bool los = witness.HasLOSTo(ParentObject, false);
                 string name = witness.ToString();
-                string msg = "{{" + color + "|_ID - }}" + $"{name}, " + "{{M|ID:}}" + $"{witness.ID}, " + "{{G|D:}}" + $"{witness.DistanceTo(player.CurrentCell)}, " + "{{O|L:}}" + $"{witness.CurrentCell.GetLight()}, " + "{{C|LOS:}}" + los;
-                if (witness == player)
+                string msg = "{{" + color + "|_ID - }}" + $"{name}, " + "{{M|ID:}}" + $"{witness.ID}, " + "{{G|D:}}" + $"{witness.DistanceTo(ParentObject.CurrentCell)}, " + "{{O|L:}}" + $"{witness.CurrentCell.GetLight()}, " + "{{C|LOS:}}" + los;
+                if (witness == ParentObject)
                 {
                     msg = "{{R sequence|PLAYER}}" + "{{O|LIGHT_}}" + $"{witness.CurrentCell.GetLight()}";
                 }
@@ -1000,12 +1006,10 @@ namespace XRL.World.Parts
             {
                 foreach (var obj in ActiveWitnesses)
                 {
-                    Names(obj, ParentObject, 'W');
+                    Names(obj, 'W');
                 }
             }
         }
-
-
 
         #endregion
 

@@ -62,8 +62,7 @@ namespace Nexus.Stealth
         {
             if (Source.StealthStage1 || Source.StealthStage2)
             {
-
-                    IComponent<GameObject>.AddPlayerMessage(Display(count));
+                IComponent<GameObject>.AddPlayerMessage(Display(count));
                 Source.StealthStage2 = false;
                 Source.StealthStage1 = false;
                 Source.ParentObject.SetStringProperty(FLAGS.STEALTH, FLAGS.FALSE);
@@ -74,7 +73,7 @@ namespace Nexus.Stealth
             count switch
             {
                 NONE => "{{B|No witnesses.}}",
-                SINGLE => "{{O|" + Source.Witnesses.ElementAt(0).t() + " is the only witness.}}",
+                SINGLE => "{{O|" + Source.Witnesses.Single().t() + " is the only witness.}}",
                 _ => "{{R|Witnesses!}}",
             };
 

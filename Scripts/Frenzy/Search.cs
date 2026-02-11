@@ -17,20 +17,41 @@ namespace Nexus.Frenzy
         public Search(TheBeast Source) => this.Source = Source;
         public bool TryScan(out GameObject Object)
         {
-            Source.ParentObject.CurrentZone.RegisterPeopleWho(ValidForRegistration, x => x.DistanceTo(Source.ParentObject), Source.TargetRegistry, true);
-            Object = Source.TargetRegistry.Any(x => x.Value != TheBeast.FLAG_AVOID) ? Select() : null;
+            Register();
+            Object = Valid() ? Select() : null;
             return Object != null;
+        }
+
+        bool Valid()
+        {
+            foreach (var obj in Source.TargetRegistry)
+            {
+                if (obj.Value != TheBeast.FLAG_AVOID)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         GameObject Select()
         {
             if (Source.TargetRegistry.Count > 1)
             {
-                int minimum = Source.TargetRegistry.Values.Min();
-                return Source.TargetRegistry.First(x => x.Value == minimum).Key;
+                return Closest(Source.TargetRegistry.Values.Min());
             }
             else
-                return Source.TargetRegistry.ElementAt(0).Key;
+                return Source.TargetRegistry.Single().Key;
+        }
+
+        GameObject Closest(int min)
+        {
+            foreach (var obj in Source.TargetRegistry)
+            {
+                if (obj.Value == min)
+                    return obj.Key;
+            }
+            return null;
         }
         bool LightCheck(GameObject tgt, int distance)
         {
@@ -44,18 +65,55 @@ namespace Nexus.Frenzy
             }
             return true;
         }
-        bool ValidForRegistration(GameObject target)
+
+        public void Register()
+        {
+            Zone zone = Source.ParentObject.CurrentZone;
+            for (int y = 0; y < zone.Height; y++)
+            {
+                for (int x = 0; x < zone.Width; x++)
+                {
+                    Cell cell = zone.Map[x][y];
+                    Register(cell);
+                }
+            }
+        }
+
+        public void Register(Cell cell)
+        {
+            for (int i = 0; i < cell.Objects.Count; i++)
+            {
+                GameObject obj = cell.Objects[i];
+                if (BadKey(obj))
+                {
+                    if (obj?.CurrentZone != Source.ParentObject.CurrentZone || !obj.HasHitpoints())
+                        Source.TargetRegistry.Remove(obj);
+                    continue;
+                }
+                if (ValidForRegistration(obj))
+                    Source.TargetRegistry[obj] = obj.DistanceTo(Source.ParentObject);
+                else
+                    Source.TargetRegistry.Remove(obj);
+            }
+        }
+        public bool BadKey(GameObject Actor)
+        {
+            Source.TargetRegistry.TryGetValue(Actor, out int value);
+            return value == TheBeast.FLAG_AVOID;
+        }
+        public bool ValidForRegistration(GameObject target)
          =>
             target != Source.ParentObject
+            && target != null
+            && target.CurrentCell?.GetCombatTarget(Source.ParentObject) != null
             && target.CurrentZone == Source.ParentObject.CurrentZone //noticed a bug in early testing where you would run off the map to targets in nearbyzones if this wasnt here 
             && !target.IsFlying //though its been so long im not sure if i was just doing an improper Clean()
             && target.HasTagOrProperty("Bleeds")
             && target.HasHitpoints()
-            && target?.CurrentCell?.GetCombatTarget(Source.ParentObject) is not null
             && Source.ParentObject.HasLOSTo(target, IncludeSolid: false)
             && Source.ParentObject.canPathTo(target.CurrentCell)
+            && target.IsVisible()
             && Core.Checks.Applicable(target)
             && LightCheck(target, Source.ParentObject.DistanceTo(target));
-
     }
 }

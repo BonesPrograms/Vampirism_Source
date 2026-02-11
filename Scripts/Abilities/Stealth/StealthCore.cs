@@ -49,8 +49,7 @@ namespace Nexus.Stealth
         /// <returns></returns>
         public bool ValidSentient(GameObject witness)
           =>
-            witness != null
-            && CheckParts(witness.PartsList)
+            witness?.Brain != null
             && !Inanimate(witness)
             && !witness.IsFriendly(Source.ParentObject)
             && witness.HasHitpoints()
@@ -76,22 +75,33 @@ namespace Nexus.Stealth
         public static bool Inanimate(GameObject witness)
          =>
              witness.Body?.Anatomy == "Echinoid"
-            || CheckTags(witness.GetBlueprint());
+            || CheckTags(witness.GetBlueprint())
+            || CheckParts(witness.PartsList);
 
         static bool CheckTags(GameObjectBlueprint Blueprint)
         {
 
-            foreach (var data in Blueprint.Tags)
+            if (Blueprint?.Tags != null)
             {
-                if (data.Key == "Culture" && (data.Value == "Plant" || data.Value == "Fungal"))
-                    return true;
-                else if (data.Key == "Class" && (data.Value == "fungus" || data.Value == "root"))
-                    return true;
-                else if (data.Key == "Species" && data.Value == "root")
-                    return true;
-                else
-                    return CheckKey(data.Key);
+                foreach (var data in Blueprint.Tags)
+                {
+                    if (CheckPair(data))
+                        return true;
+                }
             }
+            return false;
+        }
+
+        static bool CheckPair(KeyValuePair<string, string> data)
+        {
+            if (data.Key == "Culture" && (data.Value == "Plant" || data.Value == "Fungal"))
+                return true;
+            if (data.Key == "Class" && (data.Value == "fungus" || data.Value == "root"))
+                return true;
+            if (data.Key == "Species" && data.Value == "root")
+                return true;
+            if (CheckKey(data.Key))
+                return true;
             return false;
         }
 
@@ -107,10 +117,8 @@ namespace Nexus.Stealth
                 System.Type Type = rack[i].GetType();
                 if (Type == typeof(Harvestable) || Type == typeof(PlantProperties) || Type == typeof(FungusProperties))
                     return false;
-                else if (Type == typeof(Brain))
-                    return true;
             }
-            return false;
+            return true;
         }
         /// <summary>
         /// Simple method that evaluates if you are detectable via lighting. Light levels in a cell are relative to what the player can see only,
@@ -149,21 +157,16 @@ namespace Nexus.Stealth
             //   return true; // suspeneded until i can figure out how the actual range for nightvision works
             return false;
         }
-
-        /// <summary>
-        /// This method isn't really for you, it is for the main stealth part. It is not advised to invoke this yourself.
-        /// </summary>
         public void ScanEnvironment()
         {
             for (int y = 0; y < Source.Zone.Height; y++)
             {
                 for (int x = 0; x < Source.Zone.Width; x++)
                 {
-                    Cell cell = Source.Zone.Map[y][x];
+                    Cell cell = Source.Zone.Map[x][y];
                     for (int i = 0; i < cell.Objects.Count; i++)
                     {
-                        GameObject obj = cell.Objects[i];
-                        CheckValidity(obj);
+                        CheckValidity(cell.Objects[i]);
                     }
                 }
             }

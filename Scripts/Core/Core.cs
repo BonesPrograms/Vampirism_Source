@@ -298,9 +298,29 @@ namespace Nexus.Core
 			return false;
 		}
 
+		public static T RequireMutation<T>(this GameObject Object) where T : BaseMutation, new()
+		{
+			var mutations = Object.RequirePart<Mutations>();
+			if (mutations.TryGetMutation(out T obj))
+				return obj;
+			return mutations.AddMutation<T>();
+		}
+
 		public static T GetMutation<T>(this GameObject Object) where T : BaseMutation
 		{
 			var mutations = Object.GetPart<Mutations>();
+			return mutations?.GetMutation<T>();
+		}
+
+		public static bool TryGetMutation<T>(this GameObject Object, out T obj) where T : BaseMutation
+		{
+			var mutations = Object.GetPart<Mutations>();
+			obj = mutations?.GetMutation<T>();
+			return obj != null;
+		}
+
+		public static T GetMutation<T>(this Mutations mutations) where T : BaseMutation
+		{
 			for (int i = 0; i < mutations.MutationList.Count; i++)
 			{
 				var mutation = mutations.MutationList[i];
@@ -312,33 +332,29 @@ namespace Nexus.Core
 			return null;
 		}
 
-	/// <summary>
-	/// Updates objects in a dictionary that meet the conditions and assigns a value to their KeyValuePair from Func value.
-	/// </summary>
-	/// case use for Func value: x => x.DistanceTo(ParentObject) as a good example for a dictionary that tracks ranges
-		public static void RegisterPeopleWho<TValue>(this Zone zone, Predicate<GameObject> condition, Func<GameObject, TValue> value, IDictionary<GameObject, TValue> dic, bool remove) where TValue : struct
+		public static bool TryGetMutation<T>(this Mutations mutations, out T obj) where T : BaseMutation
 		{
-			for (int y = 0; y < zone.Height; y++)
+			obj = mutations.GetMutation<T>();
+			return obj != null;
+		}
+
+		public static T AddMutation<T>(this Mutations mutations) where T : BaseMutation, new()
+		{
+			T obj = new();
+			mutations.AddMutation(obj);
+			return obj;
+		}
+
+		public static void RemoveMutation<T>(this GameObject Object) where T : BaseMutation
+		{
+			if (Object.TryGetPart(out Mutations part))
 			{
-				for (int x = 0; x < zone.Width; x++)
-				{
-					Cell cell = zone.Map[y][x];
-					cell.RegisterPeopleWho(condition, value, dic, remove);
-				}
+				if (part.TryGetMutation(out T obj))
+					part.RemoveMutation(obj);
 			}
 		}
 
-		public static void RegisterPeopleWho<TValue>(this Cell cell, Predicate<GameObject> condition, Func<GameObject, TValue> value, IDictionary<GameObject, TValue> dic, bool remove) where TValue : struct
-		{
-			for (int i = 0; i < cell.Objects.Count; i++)
-			{
-				GameObject obj = cell.Objects[i];
-				if (condition(obj))
-					dic[obj] = value(obj);
-				else if (remove)
-					dic.Remove(obj);
-			}
-		}
+
 
 		// public static void SetPeopleWho(this Zone zone, Predicate<GameObject> condition, Action<GameObject> set)
 		// {
@@ -362,7 +378,7 @@ namespace Nexus.Core
 		// 	}
 
 		// }
-	
+
 
 		public static List<GameObject> ListPeopleWho(this Zone zone, Predicate<GameObject> method)
 		{
@@ -371,7 +387,7 @@ namespace Nexus.Core
 			{
 				for (int x = 0; x < zone.Width; x++)
 				{
-					Cell cell = zone.Map[y][x];
+					Cell cell = zone.Map[x][y];
 					cell.AddPeopleWho(method, list);
 				}
 			}
@@ -392,25 +408,6 @@ namespace Nexus.Core
 	public static class Extensions
 	{
 
-		#region List
-
-		//to prevent adding duplicate reference types to list
-		public static void SafeAdd<T>(this IList<T> list, T obj) where T : class
-		{
-			bool OnList = false;
-			for (int i = 0; i < list.Count; i++)
-			{
-				if (list[i] == obj)
-				{
-					OnList = true;
-					break;
-				}
-			}
-			if (!OnList)
-				list.Add(obj);
-
-		}
-		#endregion
 		#region Type
 		public static T ConvertToClass<T>(this Type t) where T : class
 		{

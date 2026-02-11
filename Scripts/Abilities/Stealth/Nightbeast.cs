@@ -17,6 +17,11 @@ namespace XRL.World.Parts
 
 		[NonSerialized]
 		public HashSet<GameObject> Witnesses = new();
+		public StealthCore Core => _Core ??= new StealthCore(this);
+		public ActiveStealth ActiveStealth => _ActiveStealth ??= new ActiveStealth(this);
+		public Zone Zone => ParentObject.CurrentZone;
+		StealthCore _Core;
+		ActiveStealth _ActiveStealth;
 
 		/// <summary>
 		/// Stage one means that there is only one witness.
@@ -28,11 +33,6 @@ namespace XRL.World.Parts
 		/// Stage two means there are no witnesses.
 		/// </summary>
 		public bool StealthStage2;
-		StealthCore _Core;
-		public StealthCore Core => _Core ??= new StealthCore(this);
-		ActiveStealth _ActiveStealth;
-		public ActiveStealth ActiveStealth => _ActiveStealth ??= new ActiveStealth(this);
-		public Zone Zone => ParentObject.CurrentZone;
 		public override bool WantEvent(int ID, int cascade)
 		{
 			if (!AutoAct.IsActive() && ParentObject.IsPlayer() && ID == SingletonEvent<BeforeTakeActionEvent>.ID)

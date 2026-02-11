@@ -23,7 +23,6 @@ namespace XRL.World.Effects
         public readonly bool gameover;
         bool activated;
         int feedtime;
-
         public FrenzyAI() => DisplayName = "frenzyAI";
         public FrenzyAI(int Duration, TheBeast Source, GameObject Target, bool gameover)
             : this()
@@ -43,7 +42,7 @@ namespace XRL.World.Effects
         }
         public override bool HandleEvent(TookDamageEvent E)
         {
-            if (ValidTarget(E.Actor, Object) && !BadKey(E.Actor))
+            if (ValidTarget(E.Actor, Object) && !Source.Core.Search.BadKey(E.Actor))
                 Target = E.Actor;
             return base.HandleEvent(E);
         }
@@ -67,22 +66,13 @@ namespace XRL.World.Effects
             Object == base.Object
             && !InRange
             && !Object.CheckFlag(FLAGS.FEED) //fun bug here. because frenzy never uses energy, if you are attacked by a group, you will stack feeding on all of them and become god. so we check for if FEED == false before swapping targets
-            && Actor?.CurrentCell?.GetCombatTarget(base.Object) != null
-            && Checks.Applicable(Actor)
-            && base.Object.HasLOSTo(Actor, IncludeSolid: false)
-            && base.Object.canPathTo(Actor.CurrentCell)
-            && Actor.IsVisible()
-            && !Actor.IsFlying;
+            && this.Source.Core.Search.ValidForRegistration(Actor);
 
 
         /// <summary>
         /// Prevents already-avoided objects from being assigned to Target to prevent softlocking.
         /// </summary>
-        bool BadKey(GameObject Actor)
-        {
-            Source.TargetRegistry.TryGetValue(Actor, out int value);
-            return value == TheBeast.FLAG_AVOID;
-        }
+
 
         /// <summary>
         /// Initiates a local timer for feeding duration to avoid desync and ensure Frenzy is removed when feed is over.

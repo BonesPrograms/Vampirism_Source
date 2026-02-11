@@ -93,7 +93,7 @@ namespace Nexus.Stealth
 
         GameObject OneKey()
         {
-            package = SpotterRanges.ElementAt(0);
+            package = SpotterRanges.Single();
             return package.Key;
         }
         GameObject ManyKeys()
