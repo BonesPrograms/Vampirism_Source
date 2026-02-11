@@ -560,6 +560,22 @@ namespace XRL.World.Parts
             }
         }
 
+        [WishCommand("checktags")]
+
+        public static void CheckTags()
+        {
+            if (The.Player.CmdTarget("checktags", out var pick))
+            {
+                var bp = pick.GetBlueprint();
+                Log($"LOGGING BLUEPRINT OF {pick}, {pick.ID}");
+                Log("TAGS");
+                foreach (var obj in bp.Tags)
+                    Log(obj);
+                Log("PROPS");
+                foreach (var obj in bp.Props)
+                    Log(obj);
+            }
+        }
 
         [WishCommand("checkprops")]
         public static void CheckStringProperties()

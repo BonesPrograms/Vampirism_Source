@@ -19,7 +19,7 @@ namespace Nexus.Frenzy
         {
             Source.ParentObject.CurrentZone.RegisterPeopleWho(ValidForRegistration, x => x.DistanceTo(Source.ParentObject), Source.TargetRegistry, true);
             Object = Source.TargetRegistry.Any(x => x.Value != TheBeast.FLAG_AVOID) ? Select() : null;
-            return Object is not null;
+            return Object != null;
         }
 
         GameObject Select()

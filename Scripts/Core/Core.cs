@@ -340,28 +340,28 @@ namespace Nexus.Core
 			}
 		}
 
-		public static void SetPeopleWho(this Zone zone, Predicate<GameObject> condition, Action<GameObject> set)
-		{
-			for (int y = 0; y < zone.Height; y++)
-			{
-				for (int x = 0; x < zone.Width; x++)
-				{
-					Cell cell = zone.Map[y][x];
-					cell.SetPeopleWho(condition, set);
-				}
-			}
-		}
+		// public static void SetPeopleWho(this Zone zone, Predicate<GameObject> condition, Action<GameObject> set)
+		// {
+		// 	for (int y = 0; y < zone.Height; y++)
+		// 	{
+		// 		for (int x = 0; x < zone.Width; x++)
+		// 		{
+		// 			Cell cell = zone.Map[y][x];
+		// 			cell.SetPeopleWho(condition, set);
+		// 		}
+		// 	}
+		// }
 
-		public static void SetPeopleWho(this Cell cell, Predicate<GameObject> condition, Action<GameObject> set)
-		{
-			for (int i = 0; i < cell.Objects.Count; i++)
-			{
-				GameObject obj = cell.Objects[i];
-				if (condition(obj))
-					set(obj);
-			}
+		// public static void SetPeopleWho(this Cell cell, Predicate<GameObject> condition, Action<GameObject> set)
+		// {
+		// 	for (int i = 0; i < cell.Objects.Count; i++)
+		// 	{
+		// 		GameObject obj = cell.Objects[i];
+		// 		if (condition(obj))
+		// 			set(obj);
+		// 	}
 
-		}
+		// }
 	
 
 		public static List<GameObject> ListPeopleWho(this Zone zone, Predicate<GameObject> method)

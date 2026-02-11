@@ -52,29 +52,62 @@ namespace Nexus.Stealth
             !witness.IsFriendly(Source.ParentObject)
             && witness.HasHitpoints()
             && witness.InSameZone(Source.ParentObject)
-            && !witness.HasEffect<Dominating>()
-            && !witness.HasEffect<Dominated>();
+            && CheckEffect(witness.Effects);
 
         /// <summary>
         /// It is recommended to exclude plants from your lists of witnesses (you'll see me do it often in Alert and Spotter), because being spotted by vines, roots and
         /// ivories felt strange.
         /// </summary>
+        /// 
+
+        public static bool CheckEffect(XRL.Collections.Rack<Effect> effects)
+        {
+            for (int i = 0; i < effects.Count; i++)
+            {
+                System.Type type = effects[i].GetType();
+                if (type == typeof(Dominated) || type == typeof(Dominating))
+                    return false;
+            }
+            return true;
+        }
         public static bool Inanimate(GameObject witness)
          =>
-             witness.HasTagOrProperty("root")
-            || witness.HasTagOrProperty("LivePlant")
-            || witness.HasTagOrProperty("Plant") //im awware this excludes all plants even sentients but i found it really annoying being spotted by inanimate plants in caves
-            || witness.HasTagOrProperty("Plank")
-            || witness.HasTagOrProperty("ExcludeFromHostiles")
-            || witness.HasTagOrProperty("HangingSupport")
-            || witness.HasTagOrProperty("Fungus")
-            || witness.HasTagOrProperty("LiveFungus")
-            || witness.GetSpecies() == "root"
-            || witness?.Body?.Anatomy == "Echinoid"
-            || witness.HasPart<Harvestable>()
-            || witness.HasPart<PlantProperties>()
-            || witness.HasPart<FungusProperties>();
+             witness.Body?.Anatomy == "Echinoid"
+            || CheckTags(witness.GetBlueprint())
+            || CheckParts(witness.PartsList);
 
+        static bool CheckTags(GameObjectBlueprint Blueprint)
+        {
+
+            foreach (var data in Blueprint.Tags)
+            {
+                if (data.Key == "Culture" && (data.Value == "Plant" || data.Value == "Fungal"))
+                    return true;
+                else if (data.Key == "Class" && (data.Value == "fungus" || data.Value == "root"))
+                    return true;
+                else if (data.Key == "Species" && data.Value == "root")
+                    return true;
+                else
+                    return CheckKey(data.Key);
+            }
+            return false;
+        }
+
+        static bool CheckKey(string key)
+        {
+            return key == "LivePlant" || key == "Plank" || key == "HangingSupport" || key == "LiveFungus" || key == "ExcludeFromHostiles";
+        }
+
+        static bool CheckParts(PartRack rack)
+        {
+            for (int i = 0; i < rack.Count; i++)
+            {
+                System.Type Type = rack[i].GetType();
+                if (Type == typeof(Harvestable) || Type == typeof(PlantProperties) || Type == typeof(FungusProperties))
+                    return true;
+            }
+            return false;
+        }
         /// <summary>
         /// Simple method that evaluates if you are detectable via lighting. Light levels in a cell are relative to what the player can see only,
         ///  and if you are using nightvision, your light level is technically not dark. This method considers those extra possibilities to ensure everything works.
@@ -112,14 +145,6 @@ namespace Nexus.Stealth
             //   return true; // suspeneded until i can figure out how the actual range for nightvision works
             return false;
         }
-        void Clean()
-        {
-            foreach (var obj in Source.Witnesses.ToArray())
-            {
-                if (obj.CurrentZone != Source.Zone || !obj.HasHitpoints())
-                    Source.Witnesses.Remove(obj);
-            }
-        }
 
         /// <summary>
         /// This method isn't really for you, it is for the main stealth part. It is not advised to invoke this yourself.
@@ -127,7 +152,7 @@ namespace Nexus.Stealth
         public void ScanEnvironment()
         {
             ScanZone();
-            Clean();
+            Source.Witnesses.RemoveWhere(x => x?.CurrentZone != Source.Zone || !x.HasHitpoints());
         }
 
         void CheckValidity(GameObject obj)
@@ -137,7 +162,7 @@ namespace Nexus.Stealth
             else
                 Source.Witnesses.Remove(obj);
         }
-        void ScanZone()
+        void ScanZone() //i already have a method that can do this w/ delegate parameters (see alert, spotter, search) but because stealthcore runs so often, we want to reduce potential lag as much as possible
         {
             for (int y = 0; y < Source.Zone.Height; y++)
             {
