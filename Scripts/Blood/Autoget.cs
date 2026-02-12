@@ -12,20 +12,19 @@ namespace Nexus.Blood
     public class Autoget //honestly i just didnt want people to complain that blood autoget doesnt work for my mod when its not my fault... lol...
     {               ///this probably isnt as good/efficient of code as the dev's autoget but it works more consistently
         readonly GameObject Player;
-        List<LiquidVolume> PureBlood;
-        List<GameObject> containers;
+        HashSet<LiquidVolume> PureBlood;
+        HashSet<GameObject> ContainerCache = new();
         const int MAX = 64;
         const string Container = "WaterContainer";
         const string Blood = "blood";
         public Autoget(GameObject Player) => this.Player = Player;
-
         public void Autogetter()
         {
-            containers = Player.Inventory.GetObjectsWithTag(Container);
-            if (containers.Count != 0)
+            ValidateCache();
+            if (ContainerCache.Count > 0)
             {
                 FindBlood();
-                if (PureBlood != null && PureBlood.Count > 0)
+                if (PureBlood != null)
                 {
                     AddBlood();
                     PureBlood = null;
@@ -33,6 +32,41 @@ namespace Nexus.Blood
                 }
             }
         }
+        void ValidateCache()
+        {
+            int value = 0;
+            for (int i = 0; i < Player.Inventory.Objects.Count; i++)
+            {
+                GameObject obj = Player.Inventory.Objects[i];
+                if (CheckTag(obj.GetBlueprint()))
+                    value++;
+            }
+            if (value != ContainerCache.Count) //reduces our need to reset or re-instance the containers list over and over, which i expect to not change often
+            {
+                ContainerCache = new(value);
+                for (int i = 0; i < Player.Inventory.Objects.Count; i++)
+                {
+                    GameObject obj = Player.Inventory.Objects[i];
+                    if (CheckTag(obj.GetBlueprint()))
+                        ContainerCache.Add(obj);
+                }
+            }
+        }
+
+        bool CheckTag(GameObjectBlueprint blueprint)
+        {
+            bool hidden = false;
+            bool container = false;
+            foreach (var obj in blueprint.Tags)
+            {
+                if (obj.Key == "HiddenInInventory")
+                    hidden = true;
+                if (obj.Key == Container)
+                    container = true;
+            }
+            return container && !hidden;
+        }
+
         // void SecretlyRearrangeBlood() //solution for unsolved issue with my current system where blood is not pooled into a single container but is spread out over all of them
         // {
         //     List<LiquidVolume> pools = new();
@@ -74,13 +108,13 @@ namespace Nexus.Blood
         // }
         void AddBlood()
         {
-            for (int i = 0; i < containers.Count; i++)
+            foreach (var container in ContainerCache)
             {
                 if (PureBlood.Count > 0)
                 {
-                    LiquidVolume Part = containers[i].GetPart<LiquidVolume>();
+                    LiquidVolume Part = container.GetPart<LiquidVolume>();
                     if (!Part.Sealed && Part.Volume < MAX)
-                        CheckForStoredLiquids(Part, containers[i]);
+                        CheckForStoredLiquids(Part, container);
                 }
             }
         }
@@ -156,7 +190,7 @@ namespace Nexus.Blood
             if (Player.LocalCells(out var cells))
             {
                 for (int i = 0; i < cells.Count; i++)
-                    if (cells[i].HasObjectWithPart(nameof(LiquidVolume))) 
+                    if (cells[i].HasObjectWithPart(nameof(LiquidVolume)))
                         DealWithLiquid(cells[i]);
             }
         }
@@ -169,8 +203,7 @@ namespace Nexus.Blood
                 if (!liquidSource.HasTag(Container) && $"{liquidSource}" != "FangBloodDrop" && liquidSource.TryGetPart<LiquidVolume>(out var part) && part != null && part.ContainsLiquid(Blood) && part.IsPureLiquid())
                 {
                     PureBlood ??= new();
-                    if (!PureBlood.Contains(part))
-                        PureBlood.Add(part);
+                    PureBlood.Add(part);
                 }
             }
         }

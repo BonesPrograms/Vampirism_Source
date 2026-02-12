@@ -52,9 +52,22 @@ namespace XRL.World.Parts
 
 		public override bool WantEvent(int ID, int cascade)
 		{
-			if (Options.GetOptionBool(Nexus.Rules.OPTIONS.FRENZY) && ParentObject.IsPlayer() && ID == SingletonEvent<BeginTakeActionEvent>.ID)
-				return true;
+			if (Options.GetOptionBool(Nexus.Rules.OPTIONS.FRENZY) && ParentObject.IsPlayer())
+			{
+				if (ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == EnteringZoneEvent.ID)
+					return true;
+			}
 			return base.WantEvent(ID, cascade);
+		}
+
+		public override bool HandleEvent(EnteringZoneEvent E)
+		{
+			foreach (var obj in TargetRegistry.KeyArray())
+			{
+				if (!obj?.InSamePartyAs(ParentObject) ?? true)
+					TargetRegistry.Remove(obj);
+			}
+			return base.HandleEvent(E);
 		}
 		public override bool HandleEvent(BeginTakeActionEvent E)
 		{

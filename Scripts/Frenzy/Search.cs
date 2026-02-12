@@ -18,15 +18,15 @@ namespace Nexus.Frenzy
         public bool TryScan(out GameObject Object)
         {
             Register();
-            Object = Valid() ? Select() : null;
+            Object = Valid() ? Source.TargetRegistry.Pick(Source.TargetRegistry.Values.Min()) : null;
             return Object != null;
         }
 
-        bool Valid()
+        bool Valid() //dual purpose : returns false if dictionary is empty
         {
             foreach (var obj in Source.TargetRegistry)
             {
-                if (obj.Value != TheBeast.FLAG_AVOID)
+                if (obj.Value != TheBeast.FLAG_AVOID) //kind of like Linq Any(), just checking if any are valid
                 {
                     return true;
                 }
@@ -34,25 +34,8 @@ namespace Nexus.Frenzy
             return false;
         }
 
-        GameObject Select()
-        {
-            if (Source.TargetRegistry.Count > 1)
-            {
-                return Closest(Source.TargetRegistry.Values.Min());
-            }
-            else
-                return Source.TargetRegistry.Single().Key;
-        }
 
-        GameObject Closest(int min)
-        {
-            foreach (var obj in Source.TargetRegistry)
-            {
-                if (obj.Value == min)
-                    return obj.Key;
-            }
-            return null;
-        }
+
         bool LightCheck(GameObject tgt, int distance)
         {
             if (tgt.CurrentCell.GetLight() == LightLevel.None)

@@ -116,10 +116,11 @@ namespace Nexus.Stealth
             {
                 System.Type Type = rack[i].GetType();
                 if (Type == typeof(Harvestable) || Type == typeof(PlantProperties) || Type == typeof(FungusProperties))
-                    return false;
+                    return true;
             }
-            return true;
+            return false;
         }
+
         /// <summary>
         /// Simple method that evaluates if you are detectable via lighting. Light levels in a cell are relative to what the player can see only,
         ///  and if you are using nightvision, your light level is technically not dark. This method considers those extra possibilities to ensure everything works.
@@ -174,10 +175,10 @@ namespace Nexus.Stealth
 
         void CheckValidity(GameObject obj)
         {
-            if (ValidSentient(obj) && NearbySentient(obj) && ActiveWitness(obj))
-                Source.Witnesses.Add(obj);
-            else
-                Source.Witnesses.Remove(obj);
+            bool Check = ValidSentient(obj) && NearbySentient(obj) && ActiveWitness(obj);
+            Source.Witnesses[obj] = Check;
+            if (Check)
+                Source.TrueCount++;
         }
     }
 }

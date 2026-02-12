@@ -90,7 +90,7 @@ namespace XRL.World.Effects
 
 		void DoAlert(Alert alert)
 		{
-			alert.FindClosestExposerInListExcept(alert.SafeAdd(other));
+			alert.FindClosestExposerInListExcept(alert.Add(other));
 			alert.RemoveSleepFromWitnesses();
 			alert.AddOpinionToWitnessesAndExposer<OpinionDominate>();
 			alert.Popup(true, "You are caught in the act of predation by", "You are caught in the act of predation!");

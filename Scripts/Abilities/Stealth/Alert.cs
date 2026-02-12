@@ -101,21 +101,21 @@ namespace Nexus.Stealth
         /// <param name="AoE"></param>
         public void RemoveSleepFromWitnesses(uint AoE = default) => RemoveEffectFromWitness<Asleep>(AoE);
 
-        public GameObject SafeAdd(GameObjectReference Target)
+        public GameObject Add(GameObjectReference Target)
         {
-            return SafeAdd(Target?.Object);
+            return Add(Target?.Object);
         }
 
-        public GameObject SafeAdd(GameObjectReference Target, out bool IsNull)
+        public GameObject Add(GameObjectReference Target, out bool IsNull)
         {
             return SafeAdd(Target?.Object, out IsNull);
         }
 
-        public GameObject SafeAdd(GameObject Target)
+        public GameObject Add(GameObject Target)
         {
-            if (Target != null && !Witnesses.Contains(Target))
+            if (Target != null)
             {
-                Witnesses.Add(Target);
+                Witnesses.SafeAdd(Target);
             }
             return Target;
         }
@@ -129,7 +129,7 @@ namespace Nexus.Stealth
         /// <returns></returns>
         public GameObject SafeAdd(GameObject Target, out bool IsNull)
         {
-            SafeAdd(Target);
+            Add(Target);
             IsNull = Target is null;
             return Target;
         }

@@ -38,6 +38,12 @@ namespace XRL.World.Parts
     public class cmd : IPart
     {
 
+        public bool IsVampire;
+
+        public cmd(bool IsVampire)
+        {
+            this.IsVampire = IsVampire;
+        }
         bool wantsVampirism => showvitae || showStealthed || ShowActiveStealthed || showGO || showFeed || showFrenzy || showStatus || showStealthy || showHumanity;
 
         #region Vampirism
@@ -72,10 +78,12 @@ namespace XRL.World.Parts
 
         #endregion
 
+
+        #region other
+
         public bool refresh = false;
         public bool showturns = false;
 
-        #region other
         #endregion
         public override bool WantEvent(int ID, int cascade)
         {
@@ -87,20 +95,22 @@ namespace XRL.World.Parts
         Nightbeast n => _n ??= ParentObject.GetPart<Nightbeast>();
         public override bool HandleEvent(BeforeTakeActionEvent E)
         {
-            if(wantsVampirism)
+            if (IsVampire)
             {
-                ParentObject.RequireMutation<Vampirism>();
-            }
-            if (ParentObject.IsVampire())
-            {
-                Properties();
                 if (showStealthed || showStealthy || ShowActiveStealthed)
                     Properties(ParentObject, n.StealthStage1, n.StealthStage2);
+                else
+                    Properties();
+                if (names == true)
+                    ShowStealthList(n.Witnesses);
             }
-            if (names == true)
+            else if (wantsVampirism)
             {
-                ShowStealthList(n.Witnesses);
+                msg("Making into vampire due to wish");
+                IsVampire = true;
+                ParentObject.RequireMutation<Vampirism>();
             }
+
             if (refresh == true)
                 Refresh();
             if (showturns == true)
@@ -111,35 +121,7 @@ namespace XRL.World.Parts
                 cmd.msg($"{ParentObject.GetPart<Stomach>().Water}");
             return base.HandleEvent(E);
         }
-        static void cmdSwitchFlipper(string nameOf) //nameof(Boolean)
-        {
-            var cmd = Get();
-            InstanceSwitchFlipper(nameOf, cmd);
-        }
 
-        static void StaticSwitchFlipper<T>(string nameOf) where T : class
-        {
-            var field = typeof(T).GetField(nameOf, BindingFlags.Static | BindingFlags.Public);
-            SwitchFlipper<T>(field, nameOf, null);
-        }
-
-        static void InstanceSwitchFlipper<T>(string nameOf, T obj) where T : class
-        {
-            var field = typeof(T).GetField(nameOf, BindingFlags.Instance | BindingFlags.Public);
-            SwitchFlipper(field, nameOf, obj);
-        }
-
-        static void SwitchFlipper<T>(FieldInfo field, string nameOf, T obj) where T : class
-        {
-            if (field?.GetValue(obj) is bool value)
-            {
-                value = !value;
-                msg($"{nameOf} is {(value ? "on" : "off")}.");
-                field.SetValue(obj, value);
-            }
-            else
-                AddPlayerMessage($"field {nameOf} does not exist in {typeof(T)} or is not bool");
-        }
 
         #region Switches
 
@@ -147,7 +129,7 @@ namespace XRL.World.Parts
 
         public static void SwitchHandler()
         {
-            cmd cmd = The.Player.RequirePart<cmd>();
+            cmd cmd = Get();
             cmd.showvitae = false;
             cmd.showStealthed = false;
             cmd.ShowActiveStealthed = false;
@@ -168,7 +150,7 @@ namespace XRL.World.Parts
 
         public static void Reswitch()
         {
-            cmd cmd = The.Player.RequirePart<cmd>();
+            cmd cmd = Get();
             cmd.showvitae = true;
             cmd.showStealthed = true;
             cmd.ShowActiveStealthed = true;
@@ -349,8 +331,8 @@ namespace XRL.World.Parts
             GameObject GO = The.Player;
             if (GO.CmdTarget("vampirize", out var pick))
             {
-                    GO.RequireMutation<Vampirism>();
-                    IComponent<GameObject>.AddPlayerMessage("Vampirized");
+                GO.RequireMutation<Vampirism>();
+                IComponent<GameObject>.AddPlayerMessage("Vampirized");
             }
         }
 
@@ -364,6 +346,7 @@ namespace XRL.World.Parts
             if (GO.CmdTarget("unvampirize", out var pick))
             {
                 pick.RemoveMutation<Vampirism>();
+                IComponent<GameObject>.AddPlayerMessage("UnVampirized");
             }
         }
 
@@ -509,21 +492,6 @@ namespace XRL.World.Parts
             }
         }
 
-        static void ScanObject(GameObject obj)
-        {
-            Log($"\nSTART {obj.DisplayName}, ID_{obj.ID}");
-            Log($"Blueprint, {obj.Blueprint}");
-            Log($"Level, {obj.Level}");
-            Log("\n--STRING AND LONG PROPS--");
-            Log(obj.Property);
-            Log("\n-INTPROPS");
-            Log(obj.IntProperty);
-            Log("\n--PARTS--");
-            Log(obj.PartsList);
-            Log("\n-EFFECTS-");
-            Log(obj.Effects);
-            Log($"END {obj.DisplayName}, ID_{obj.ID}");
-        }
 
         [WishCommand("checkfx")]
 
@@ -633,7 +601,7 @@ namespace XRL.World.Parts
 
         #region Spawn and Kill
 
-        public static GameObject Spawn(Cell cell, string param) => cell.getClosestEmptyCell().AddObject(GameObject.Create(param));
+
 
         [WishCommand("kill")]
 
@@ -822,9 +790,57 @@ namespace XRL.World.Parts
 
         #region Helpers (not commands)
 
+        public static GameObject Spawn(Cell cell, string param) => cell.getClosestEmptyCell().AddObject(GameObject.Create(param));
+
+        static void ScanObject(GameObject obj)
+        {
+            Log($"\nSTART {obj.DisplayName}, ID_{obj.ID}");
+            Log($"Blueprint, {obj.Blueprint}");
+            Log($"Level, {obj.Level}");
+            Log("\n--STRING AND LONG PROPS--");
+            Log(obj.Property);
+            Log("\n-INTPROPS");
+            Log(obj.IntProperty);
+            Log("\n--PARTS--");
+            Log(obj.PartsList);
+            Log("\n-EFFECTS-");
+            Log(obj.Effects);
+            Log($"END {obj.DisplayName}, ID_{obj.ID}");
+        }
+
+        static void cmdSwitchFlipper(string nameOf) //nameof(Boolean)
+        {
+            var cmd = Get();
+            InstanceSwitchFlipper(nameOf, cmd);
+        }
+
+        static void StaticSwitchFlipper<T>(string nameOf) where T : class
+        {
+            var field = typeof(T).GetField(nameOf, BindingFlags.Static | BindingFlags.Public);
+            SwitchFlipper<T>(field, nameOf, null);
+        }
+
+        static void InstanceSwitchFlipper<T>(string nameOf, T obj) where T : class
+        {
+            var field = typeof(T).GetField(nameOf, BindingFlags.Instance | BindingFlags.Public);
+            SwitchFlipper(field, nameOf, obj);
+        }
+
+        static void SwitchFlipper<T>(FieldInfo field, string nameOf, T obj) where T : class
+        {
+            if (field?.GetValue(obj) is bool value)
+            {
+                value = !value;
+                msg($"{nameOf} is {(value ? "on" : "off")}.");
+                field.SetValue(obj, value);
+            }
+            else
+                AddPlayerMessage($"field {nameOf} does not exist in {typeof(T)} or is not bool");
+        }
+
         static cmd Get()
         {
-            return The.Player.RequirePart<cmd>();
+            return The.Player.RequirePart(new cmd(The.Player.IsVampire()));
         }
 
         static void Log<T>(IList<T> obj)

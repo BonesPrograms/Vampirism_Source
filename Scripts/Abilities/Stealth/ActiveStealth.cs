@@ -2,6 +2,7 @@ using Nexus.Properties;
 using XRL.World;
 using XRL.World.Parts;
 using System.Linq;
+using Nexus.Core;
 
 namespace Nexus.Stealth
 {
@@ -73,7 +74,7 @@ namespace Nexus.Stealth
             count switch
             {
                 NONE => "{{B|No witnesses.}}",
-                SINGLE => "{{O|" + Source.Witnesses.Single().t() + " is the only witness.}}",
+                SINGLE => "{{O|" + Source.Witnesses.Pick(true) + " is the only witness.}}",
                 _ => "{{R|Witnesses!}}",
             };
 

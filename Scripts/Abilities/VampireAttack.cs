@@ -45,7 +45,7 @@ namespace Nexus.Attack
             if (SpotterGenerator.GeneratorWithDefaultList(n).BeginAttackCheckIfSpotted<OpinionDominate>(out GameObject spotter) == Spot.SPOTTER_IN_DETECTION)
             {
                 Alert alert = Alert.AlertWithDefaultList(n, spotter);
-                alert.SafeAdd(Target);
+                alert.Add(Target);
                 alert.RemoveSleepFromWitnesses();
                 alert.AddOpinionToWitnessesAndExposer<OpinionDominate>();
                 return false;

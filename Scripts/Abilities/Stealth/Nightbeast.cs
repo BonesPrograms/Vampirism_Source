@@ -16,7 +16,10 @@ namespace XRL.World.Parts
 	{
 
 		[NonSerialized]
-		public HashSet<GameObject> Witnesses = new();
+		public Dictionary<GameObject,bool> Witnesses = new();
+
+		[NonSerialized]
+		public int TrueCount;
 		public StealthCore Core => _Core ??= new StealthCore(this);
 		public ActiveStealth ActiveStealth => _ActiveStealth ??= new ActiveStealth(this);
 		public Zone Zone => ParentObject.CurrentZone;
@@ -37,11 +40,20 @@ namespace XRL.World.Parts
 		{
 			if (!AutoAct.IsActive() && ParentObject.IsPlayer() && ID == SingletonEvent<BeforeTakeActionEvent>.ID)
 				return true;
+			if(ID == EnteringZoneEvent.ID)
+			return true;
 			return base.WantEvent(ID, cascade);
 		}
 		/// maybe?:
 		/// For those who want to evaluate or modify stealth externally, especially on a turn-by-turn basis, it is paramount to do so within the BeforeTakeActionEvent handler, so that they are perfectly synced.
 		/// Any "reactions" (such as Run, stealth being broken, setting an effect duration to 0) should also be handled in the same method to avoid a noticeable waiting period. The EndTurnEvent is not recommended.
+		/// 
+		
+		public override bool HandleEvent(EnteringZoneEvent E)
+		{
+			Witnesses = new();
+			return base.HandleEvent(E);
+		}
 		public override bool HandleEvent(BeforeTakeActionEvent E)
 		{
 			if (!ParentObject.IsInCombat())
@@ -61,9 +73,10 @@ namespace XRL.World.Parts
 		}
 		void RunStealthSystem()
 		{
+			TrueCount = default;
 			Core.LightLevel = ParentObject.CurrentCell?.GetLight();
 			Core.ScanEnvironment();
-			ActiveStealth.SetStealth(Witnesses.Count);
+			ActiveStealth.SetStealth(TrueCount);
 		}
 
 		/// <summary>
@@ -72,7 +85,7 @@ namespace XRL.World.Parts
 		/// </summary>
 		/// <param name="Target"></param>
 		/// <returns></returns>
-		public bool ValidateStealthATK(GameObject Target) => (StealthStage1 || StealthStage2) && (Witnesses.Count == 0 || Witnesses.Contains(Target));
+		public bool ValidateStealthATK(GameObject Target) => (StealthStage1 || StealthStage2) && (Witnesses.Count == 0 || Witnesses.ContainsKey(Target));
 
 	}
 }

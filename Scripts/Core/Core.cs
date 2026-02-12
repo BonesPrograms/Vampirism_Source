@@ -408,6 +408,23 @@ namespace Nexus.Core
 	public static class Extensions
 	{
 
+
+		#region List
+
+		/// <summary>
+		/// For when you dont feel like remaking your code to support a hash set. Don't use on a substantially large list.
+		/// </summary>
+		public static void SafeAdd<T>(this IList<T> obj, T add) where T : class
+		{
+			for (int i = 0; i < obj.Count; i++)
+			{
+				if (obj[i] == add)
+					return;
+			}
+			obj.Add(add);
+		}
+		#endregion
+
 		#region Type
 		public static T ConvertToClass<T>(this Type t) where T : class
 		{
@@ -416,6 +433,26 @@ namespace Nexus.Core
 		#endregion
 
 		#region IDictionary
+
+		//you should ensure your dictionary has a count > 0 before using this. it does not check on its own because i expect you to send in something like a Min() which requires you to check before using anyways
+		public static TKey Pick<TKey, TValue>(this IDictionary<TKey, TValue> obj, TValue value) where TValue : IEquatable<TValue> //similar to LINQ First, get first keyvalue == value
+		{
+			if (obj.Count > 1)
+			{
+				return obj.ByValue(value);
+			}
+			return obj.Single().Key;
+		}
+
+		public static TKey ByValue<TKey, TValue>(this IDictionary<TKey, TValue> objs, TValue value) where TValue : IEquatable<TValue>
+		{
+			foreach (var obj in objs)
+			{
+				if (obj.Value.Equals(value))
+					return obj.Key;
+			}
+			return default;
+		}
 		public static TKey[] KeyArray<TKey, TValue>(this IDictionary<TKey, TValue> source)
 		{
 			return source.Keys.ToArray();

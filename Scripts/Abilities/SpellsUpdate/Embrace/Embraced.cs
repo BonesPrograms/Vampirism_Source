@@ -47,9 +47,7 @@ namespace XRL.World.Effects
 
         public override bool HandleEvent(BeginTakeActionEvent E)
         {
-            if (!Object.IsPlayer() || !UI.Options.GetOptionBool(OPTIONS.FRENZY)) //prevents clean from running twice if object is player
-                Beast.Clean();                                                    //if object is player and frenzy is disabled, enables clean
-            if (!Beast.frenzied && !Beast.Incap() && Beast.HasFangs())           //(because disabling frenzy disables the internal clean in TheBeast)
+            if (!Beast.frenzied && !Beast.Incap() && Beast.HasFangs())        
                 Beast.Core.EmbraceFrenzy();
             return base.HandleEvent(E);
         }
