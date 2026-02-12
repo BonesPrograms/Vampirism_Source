@@ -4,10 +4,8 @@ using XRL.World.Parts;
 using XRL.World.Capabilities;
 using Nexus.Properties;
 using Nexus.Core;
-
 using Nexus.Rules;
 using Nexus.Frenzy;
-using XRL.World.Parts.Mutation;
 
 namespace XRL.World.Effects
 {
@@ -17,12 +15,14 @@ namespace XRL.World.Effects
     public class FrenzyAI : Effect
     {
         public GameObject Target;
+        
+        [System.NonSerialized]
         public readonly TheBeast Source;
         readonly Action Action;
         public bool InRange => base.Object.DistanceTo(Target) <= 1;
         public readonly bool gameover;
-        bool activated;
-        int feedtime;
+        //    bool activated;
+        //   int feedtime;
         public FrenzyAI() => DisplayName = "frenzyAI";
         public FrenzyAI(int Duration, TheBeast Source, GameObject Target, bool gameover)
             : this()
@@ -36,9 +36,31 @@ namespace XRL.World.Effects
 
         public override bool WantEvent(int ID, int Cascade)
         {
-            if (!base.WantEvent(ID, Cascade) && ID != SingletonEvent<BeginTakeActionEvent>.ID && ID != TookDamageEvent.ID)
-                return ID == SingletonEvent<EndTurnEvent>.ID;
-            return true;
+            if (ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == TookDamageEvent.ID || ID == SingletonEvent<EndTurnEvent>.ID || ID == EffectRemovedEvent.ID || ID == KilledEvent.ID)
+                return true;
+            return base.WantEvent(ID, Cascade);
+        }
+
+        public override bool HandleEvent(KilledEvent E)
+        {
+            if (E.Killer == Object && E.Dying == Target)
+            {
+                if (!gameover)
+                    Duration = 0;
+                else
+                    Target = null;
+            //    Source.TargetRegistry.Remove(E.Dying);
+            }
+            return base.HandleEvent(E);
+        }
+
+        public override bool HandleEvent(EffectRemovedEvent E)
+        {
+            if (!gameover && E.Effect is IFeeding feed && feed.isAttacker)
+            {
+                Duration = 0;
+            }
+            return base.HandleEvent(E);
         }
         public override bool HandleEvent(TookDamageEvent E)
         {
@@ -55,9 +77,11 @@ namespace XRL.World.Effects
         }
         public override bool HandleEvent(EndTurnEvent E)
         {
-            XRLCore.Core.RenderDelay(100);
-            EndingTimer();
-            Action.Act();
+            if (Duration > 0)
+            {
+                XRLCore.Core.RenderDelay(100);
+                Action.Act();
+            }
             return base.HandleEvent(E);
         }
 
@@ -77,29 +101,29 @@ namespace XRL.World.Effects
         /// <summary>
         /// Initiates a local timer for feeding duration to avoid desync and ensure Frenzy is removed when feed is over.
         /// </summary>
-        void EndingTimer()
-        {
-            if (!gameover)
-            {
-                if (!activated && base.Object.CheckFlag(FLAGS.FEED))
-                    StartCountdown();
-                if (activated)
-                    Countdown();
-            }
-        }
+        // void EndingTimer()
+        // {
+        //     if (!gameover)
+        //     {
+        //         if (!activated && base.Object.CheckFlag(FLAGS.FEED))
+        //             StartCountdown();
+        //         if (activated)
+        //             Countdown();
+        //     }
+        // }
 
-        void Countdown()
-        {
-            feedtime--;
-            if (feedtime == 0 || !base.Object.CheckFlag(FLAGS.FEED))
-                Duration = 0;
-        }
+        // void Countdown()
+        // {
+        //     feedtime--;
+        //     if (feedtime == 0 || !base.Object.CheckFlag(FLAGS.FEED))
+        //         Duration = 0;
+        // }
 
-        void StartCountdown()
-        {
-            activated = true;
-            feedtime = FEED.DURATION;
-        }
+        // void StartCountdown()
+        // {
+        //     activated = true;
+        //     feedtime = FEED.DURATION;
+        // }
 
         public override void Remove(GameObject Object)
         {
@@ -112,8 +136,10 @@ namespace XRL.World.Effects
 
         void Cleanup()
         {
+            base.Object.RemoveEffect<Running>();
             CheckBloodAndCooldown();
             Source.frenzied = false;
+        //    Source.TargetRegistry = new();
             base.Object.SetStringProperty(FLAGS.FRENZY, FLAGS.FALSE);
         }
 

@@ -17,23 +17,20 @@ namespace Nexus.Frenzy
         public Search(TheBeast Source) => this.Source = Source;
         public bool TryScan(out GameObject Object)
         {
+            Sift();
             Register();
-            Object = Valid() ? Source.TargetRegistry.Pick(Source.TargetRegistry.Values.Min()) : null;
+            Object = Source.TargetRegistry.AnyIsnt(TheBeast.FLAG_AVOID) ? Source.TargetRegistry.Pick(Source.TargetRegistry.Values.Min()) : null;
             return Object != null;
         }
 
-        bool Valid() //dual purpose : returns false if dictionary is empty
+        void Sift()
         {
-            foreach (var obj in Source.TargetRegistry)
+            foreach (var obj in Source.TargetRegistry.KeyArray())
             {
-                if (obj.Value != TheBeast.FLAG_AVOID) //kind of like Linq Any(), just checking if any are valid
-                {
-                    return true;
-                }
+                if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(Source.ParentObject))
+                    Source.TargetRegistry.Remove(obj);
             }
-            return false;
         }
-
 
 
         bool LightCheck(GameObject tgt, int distance)
@@ -69,10 +66,11 @@ namespace Nexus.Frenzy
                 GameObject obj = cell.Objects[i];
                 if (BadKey(obj))
                 {
-                    if (obj?.CurrentZone != Source.ParentObject.CurrentZone || !obj.HasHitpoints())
+                    if (obj?.InSameZone(Source.ParentObject) ?? true|| !obj.HasHitpoints())
                         Source.TargetRegistry.Remove(obj);
                     continue;
                 }
+
                 if (ValidForRegistration(obj))
                     Source.TargetRegistry[obj] = obj.DistanceTo(Source.ParentObject);
                 else

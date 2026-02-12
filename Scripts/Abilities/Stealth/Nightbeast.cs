@@ -16,7 +16,7 @@ namespace XRL.World.Parts
 	{
 
 		[NonSerialized]
-		public Dictionary<GameObject,bool> Witnesses = new();
+		public Dictionary<GameObject, bool> Witnesses = new();
 
 		[NonSerialized]
 		public int TrueCount;
@@ -40,15 +40,15 @@ namespace XRL.World.Parts
 		{
 			if (!AutoAct.IsActive() && ParentObject.IsPlayer() && ID == SingletonEvent<BeforeTakeActionEvent>.ID)
 				return true;
-			if(ID == EnteringZoneEvent.ID)
-			return true;
+			if (ID == EnteringZoneEvent.ID)
+				return true;
 			return base.WantEvent(ID, cascade);
 		}
 		/// maybe?:
 		/// For those who want to evaluate or modify stealth externally, especially on a turn-by-turn basis, it is paramount to do so within the BeforeTakeActionEvent handler, so that they are perfectly synced.
 		/// Any "reactions" (such as Run, stealth being broken, setting an effect duration to 0) should also be handled in the same method to avoid a noticeable waiting period. The EndTurnEvent is not recommended.
 		/// 
-		
+
 		public override bool HandleEvent(EnteringZoneEvent E)
 		{
 			Witnesses = new();

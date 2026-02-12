@@ -42,7 +42,7 @@ namespace XRL.World.Effects
 		}
 		public sealed override string GetDescription() => isAttacker ? "{{R sequence|feeding}}" : "";
 		public sealed override string GetDetails() => Damage + " damage per turn.";
-		bool InvalidActor() => other?.Object?.IsInvalid() ?? true || base.Object == null || other.Object.CurrentZone != Object.CurrentZone;
+		bool InvalidActor() => other?.Object?.IsInvalid() ?? true || base.Object == null || other.Object.InSameZone(Object);
 		public override bool WantEvent(int ID, int cascade)
 		{
 			if (isAttacker)

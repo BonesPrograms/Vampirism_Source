@@ -30,8 +30,6 @@ namespace XRL.World.Parts
                 return true;
             if (ID == DeathEvent.ID)
                 return true;
-            if (ID == ZoneActivatedEvent.ID)
-                return true;
             return base.WantEvent(ID, cascade);
         }
 

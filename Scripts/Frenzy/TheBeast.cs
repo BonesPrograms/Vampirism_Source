@@ -64,7 +64,9 @@ namespace XRL.World.Parts
 		{
 			foreach (var obj in TargetRegistry.KeyArray())
 			{
-				if (!obj?.InSamePartyAs(ParentObject) ?? true)
+				Log($"{E.Cell.ParentZone == ParentObject.CurrentZone}");
+				Log($"{obj}. {obj.CurrentZone == ParentObject.CurrentZone}");
+				if (!obj.InSameZone(ParentObject))
 					TargetRegistry.Remove(obj);
 			}
 			return base.HandleEvent(E);

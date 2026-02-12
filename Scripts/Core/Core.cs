@@ -82,7 +82,7 @@ namespace Nexus.Core
 		public static bool IsFriendly(this GameObject who, GameObject toWho)
 		{
 			if (toWho != null)
-				return who.IsAlliedTowards(toWho) || who.IsInLoveWith(toWho) || (toWho.IsPlayer() && (who.IsPlayerControlled() || who.IsPlayerLed()));
+				return who.IsAlliedTowards(toWho) || who.IsInLoveWith(toWho) || who.InSamePartyAs(toWho) || (toWho.IsPlayer() && (who.IsPlayerControlled() || who.IsPlayerLed()));
 			return false;
 		}
 
@@ -354,30 +354,27 @@ namespace Nexus.Core
 			}
 		}
 
+		public static void SetPeopleWho(this Zone zone, Action<GameObject> set)
+		{
+			for (int y = 0; y < zone.Height; y++)
+			{
+				for (int x = 0; x < zone.Width; x++)
+				{
+					Cell cell = zone.Map[x][y];
+					cell.SetPeopleWho( set);
+				}
+			}
+		}
 
+		public static void SetPeopleWho(this Cell cell, Action<GameObject> set)
+		{
+			for (int i = 0; i < cell.Objects.Count; i++)
+			{
+				GameObject obj = cell.Objects[i];
+				set(obj);
+			}
 
-		// public static void SetPeopleWho(this Zone zone, Predicate<GameObject> condition, Action<GameObject> set)
-		// {
-		// 	for (int y = 0; y < zone.Height; y++)
-		// 	{
-		// 		for (int x = 0; x < zone.Width; x++)
-		// 		{
-		// 			Cell cell = zone.Map[y][x];
-		// 			cell.SetPeopleWho(condition, set);
-		// 		}
-		// 	}
-		// }
-
-		// public static void SetPeopleWho(this Cell cell, Predicate<GameObject> condition, Action<GameObject> set)
-		// {
-		// 	for (int i = 0; i < cell.Objects.Count; i++)
-		// 	{
-		// 		GameObject obj = cell.Objects[i];
-		// 		if (condition(obj))
-		// 			set(obj);
-		// 	}
-
-		// }
+		}
 
 
 		public static List<GameObject> ListPeopleWho(this Zone zone, Predicate<GameObject> method)
@@ -433,6 +430,16 @@ namespace Nexus.Core
 		#endregion
 
 		#region IDictionary
+
+		public static bool AnyIsnt<TKey, TValue>(this IDictionary<TKey, TValue> objs, TValue value) where TValue : IEquatable<TValue>
+		{
+			foreach (var obj in objs)
+			{
+				if (!obj.Value.Equals(value))
+					return true;
+			}
+			return false;
+		}
 
 		//you should ensure your dictionary has a count > 0 before using this. it does not check on its own because i expect you to send in something like a Min() which requires you to check before using anyways
 		public static TKey Pick<TKey, TValue>(this IDictionary<TKey, TValue> obj, TValue value) where TValue : IEquatable<TValue> //similar to LINQ First, get first keyvalue == value

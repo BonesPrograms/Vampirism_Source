@@ -24,13 +24,15 @@
   <option
   ID="enablevampiricpowers"
   DisplayText="Enable blood magic update (requires save/load). This option prevents Vampires from obtaining Beguiling."
+  Category="Vampirism"
   Type="Checkbox"
   Default="Yes">
   </option>
   <option
   ID="CoffinAutoWin"
-  Requires="enablevampiricpowers"
+  Requires="enablevampiricpowers==Yes"
   DisplayText="As long as you are not on cooldown, you will always return to your coffin on death (except for fire damage)."
+  Category="Vampirism"
   Type="Checkbox"
   Default="No">
   </option>

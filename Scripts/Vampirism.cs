@@ -24,14 +24,15 @@ namespace XRL.World.Parts.Mutation
 		public const string ABILITY_NAME = "Feed";
 		public const string BodyPartType = "Face";
 		public Guid FangsActivatedAbilityID = Guid.Empty;
-		public string ManagerID => ParentObject.ID + "::Vampiric Fangs";
 		public GameObject FangsObject;
+		FeedCommand _FeedCommand;
+		public FeedCommand FeedCommand => _FeedCommand ??= new FeedCommand(this);
+		public string ManagerID => ParentObject.ID + "::Vampiric Fangs";
 		public override bool CanSelectVariant => false;
 		public override bool UseVariantName => false;
 		public bool GameOver;
 		public int bloodycounter;
-		FeedCommand _FeedCommand;
-		public FeedCommand FeedCommand => _FeedCommand ??= new FeedCommand(this);
+
 
 		[NonSerialized]
 		public bool WasTerrifiedByFlames;
@@ -60,18 +61,6 @@ namespace XRL.World.Parts.Mutation
 				< 3 => Level % 2 == 1 ? "2d3" : "2d4",
 				_ => Level % 2 == 1 ? $"2d3+ {Level / 2}" : $"2d4+ {(Level - 1) / 2}",
 			};
-		public override bool CompatibleWith(GameObject go)
-		{
-			if (Options.GetOptionBool(OPTIONS.SPELLS))
-			{
-				if (MutationFactory.HasMutation(nameof(Beguiling)))
-				{
-					if (go.HasPart(nameof(Beguiling)))
-						return false;
-				}
-			}
-			return base.CompatibleWith(go);
-		}
 		public override void CollectStats(Templates.StatCollector stats, int Level)
 		{
 			int num = Math.Max(ParentObject.StatMod("Agility"), Level) + ParentObject.GetStat("Level").Value;
@@ -106,7 +95,8 @@ namespace XRL.World.Parts.Mutation
 			{
 				case Events.UPDATE:
 					cmd.msg("Events.UPDATE heard! " + ParentObject);
-					Nexus.Update.Update.Check(ParentObject);
+					if (!ParentObject.IsPlayer())
+						Nexus.Update.Update.Check(ParentObject);
 					break;
 				case Events.GAMEOVER:
 					GameOver = true;
@@ -153,7 +143,25 @@ namespace XRL.World.Parts.Mutation
 						return true;
 				}
 			}
+			if (Options.GetOptionBool(OPTIONS.SPELLS))
+			{
+				if (ID == EnteringZoneEvent.ID)
+					return true;
+			}
 			return base.WantEvent(ID, cascade);
+		}
+
+		public override bool HandleEvent(EnteringZoneEvent E)
+		{
+			Zone zone = ParentObject.CurrentZone;
+			zone.SetPeopleWho(NeedUpdate);
+			return base.HandleEvent(E);
+		}
+
+		void NeedUpdate(GameObject obj)
+		{
+			if (obj.IsVampire())
+				obj.FireEvent(Events.UPDATE);
 		}
 
 		public override bool HandleEvent(EffectRemovedEvent E)

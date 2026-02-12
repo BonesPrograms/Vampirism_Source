@@ -31,7 +31,7 @@ namespace Nexus.Frenzy
                 AI.Duration = 0;
             else if (!AI.Object.CheckFlag(FLAGS.FEED))
             {
-                if (AI.Object.canPathTo(AI.Target?.CurrentCell)) //canpathto does nullcheck for us
+                if (AI.Target?.HasHitpoints() ?? false && AI.Object.canPathTo(AI.Target.CurrentCell)) //canpathto does nullcheck for us
                     DecideAction();
                 else
                     FindNewTarget();

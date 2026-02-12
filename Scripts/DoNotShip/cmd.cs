@@ -10,6 +10,8 @@ using XRL.World.Parts.Mutation;
 using XRL.World;
 using XRL.World.Parts;
 using System.Reflection;
+using HarmonyLib;
+using XRL;
 
 namespace Nexus.Core
 {
@@ -24,6 +26,44 @@ namespace Nexus.Core
             if (!value && Cell != null)
                 Popup.ShowFail(Cell.HasObjectWithPart(nameof(Combat)) ? $"There is no one there you can {text}." : $"There is no one there to {text}");
             return value;
+        }
+    }
+}
+
+namespace Nexus.Patches
+{
+    [HarmonyPatch(typeof(BaseMutation), nameof(BaseMutation.CompatibleWith))]
+    public static class CompatDbg
+    {
+        [HarmonyPrefix]
+
+        public static void Prefix(BaseMutation __instance, GameObject go)
+        {
+            List<MutationEntry> mutationEntries = MutationFactory.GetMutationEntries(__instance);
+            if (mutationEntries == null)
+            {
+                return;
+            }
+
+            foreach (MutationEntry item in mutationEntries)
+            {
+                string[] exclusions = item.GetExclusions();
+                cmd.Log($"{item}");
+                cmd.Log(exclusions);
+                foreach (string name in exclusions)
+                {
+                    if (MutationFactory.HasMutation(name))
+                    {
+                        cmd.Log(name);
+                        string name2 = MutationFactory.GetMutationEntryByName(name).Class;
+                        if (go.HasPart(name2))
+                        {
+                            cmd.Log(name2);
+                        }
+                    }
+                }
+            }
+
         }
     }
 }
@@ -91,7 +131,7 @@ namespace XRL.World.Parts
                 return ID == SingletonEvent<BeforeTakeActionEvent>.ID;
             return true;
         }
-        Nightbeast _n;
+        Nightbeast _n = null;
         Nightbeast n => _n ??= ParentObject.GetPart<Nightbeast>();
         public override bool HandleEvent(BeforeTakeActionEvent E)
         {
@@ -316,6 +356,8 @@ namespace XRL.World.Parts
             var frenzy = The.Player.GetPart<TheBeast>();
             if (frenzy != null)
             {
+                msg("CHecking frenzy registry");
+                Log("\nBREAK:::::");
                 Log(frenzy.TargetRegistry);
             }
         }
@@ -843,7 +885,7 @@ namespace XRL.World.Parts
             return The.Player.RequirePart(new cmd(The.Player.IsVampire()));
         }
 
-        static void Log<T>(IList<T> obj)
+        public static void Log<T>(IList<T> obj)
         {
             for (int i = 0; i < obj.Count; i++)
             {
@@ -851,7 +893,7 @@ namespace XRL.World.Parts
             }
         }
 
-        static void Log<TKey, TValue>(IDictionary<TKey, TValue> obj)
+        public static void Log<TKey, TValue>(IDictionary<TKey, TValue> obj)
         {
             foreach (var item in obj)
             {
@@ -859,9 +901,9 @@ namespace XRL.World.Parts
             }
         }
 
-        static void Log<TKey, TValue>(KeyValuePair<TKey, TValue> obj) => Log($"{obj.Key}, {obj.Value}");
+        public static void Log<TKey, TValue>(KeyValuePair<TKey, TValue> obj) => Log($"{obj.Key}, {obj.Value}");
 
-        static new void Log(string text) => MetricsManager.LogInfo(text);
+        public static new void Log(string text) => MetricsManager.LogInfo(text);
 
         public static void msg(string text) => IComponent<GameObject>.AddPlayerMessage(text);
         public static void msg(string text, char color)
@@ -1016,14 +1058,12 @@ namespace XRL.World.Parts
 
         }
 
-        public void ShowStealthList(HashSet<GameObject> ActiveWitnesses)
+        public void ShowStealthList(Dictionary<GameObject, bool> ActiveWitnesses)
         {
-            if (ActiveWitnesses.Count != 0)
+            foreach (var obj in ActiveWitnesses)
             {
-                foreach (var obj in ActiveWitnesses)
-                {
-                    Names(obj, 'W');
-                }
+                if(obj.Value == true)
+                Names(obj.Key, 'W');
             }
         }
 

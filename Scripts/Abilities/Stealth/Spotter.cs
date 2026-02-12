@@ -147,7 +147,7 @@ namespace XRL.World.Effects
         }
         public override bool HandleEvent(EndTurnEvent E)
         {
-            if (!Player.Object.CheckFlag(FLAGS.FEED))
+            if (!Player.Object?.CheckFlag(FLAGS.FEED) ?? true)
                 Duration = 0;
             else if (pathonly && Duration > 0)
             {
