@@ -228,7 +228,7 @@ namespace Nexus.Stealth
                 if (distances.Count > 1)
                 {
                     int min = distances.Values.Min();
-                    return distances.First(x => x.Value == min).Key;
+                    return distances.PickFirst(min).Key;
                 }
                 else
                     return distances.Single().Key;

@@ -48,17 +48,17 @@ namespace Nexus.Patches
             foreach (MutationEntry item in mutationEntries)
             {
                 string[] exclusions = item.GetExclusions();
-                cmd.Log($"{item}");
-                cmd.Log(exclusions);
+                admn.Log($"{item}");
+                admn.Log(exclusions);
                 foreach (string name in exclusions)
                 {
                     if (MutationFactory.HasMutation(name))
                     {
-                        cmd.Log(name);
+                        admn.Log(name);
                         string name2 = MutationFactory.GetMutationEntryByName(name).Class;
                         if (go.HasPart(name2))
                         {
-                            cmd.Log(name2);
+                            admn.Log(name2);
                         }
                     }
                 }
@@ -75,12 +75,12 @@ namespace XRL.World.Parts
     [HasWishCommand]
 
     [Serializable]
-    public class cmd : IPart
+    public class admn : IPart
     {
 
-        public bool IsVampire;
+        public bool IsVampire = default;
 
-        public cmd(bool IsVampire)
+        public admn(bool IsVampire)
         {
             this.IsVampire = IsVampire;
         }
@@ -154,11 +154,11 @@ namespace XRL.World.Parts
             if (refresh == true)
                 Refresh();
             if (showturns == true)
-                cmd.msg($"{The.Game.Turns}");
+                admn.msg($"{The.Game.Turns}");
             if (showbloodtype == true)
-                cmd.msg(ParentObject.GetStringProperty("BleedLiquid") + "bloodtype");
+                admn.msg(ParentObject.GetStringProperty("BleedLiquid") + "bloodtype");
             if (showWater)
-                cmd.msg($"{ParentObject.GetPart<Stomach>().Water}");
+                admn.msg($"{ParentObject.GetPart<Stomach>().Water}");
             return base.HandleEvent(E);
         }
 
@@ -169,7 +169,7 @@ namespace XRL.World.Parts
 
         public static void SwitchHandler()
         {
-            cmd cmd = Get();
+            admn cmd = Get();
             cmd.showvitae = false;
             cmd.showStealthed = false;
             cmd.ShowActiveStealthed = false;
@@ -190,7 +190,7 @@ namespace XRL.World.Parts
 
         public static void Reswitch()
         {
-            cmd cmd = Get();
+            admn cmd = Get();
             cmd.showvitae = true;
             cmd.showStealthed = true;
             cmd.ShowActiveStealthed = true;
@@ -208,15 +208,15 @@ namespace XRL.World.Parts
 
         public static void bigskip()
         {
-            cmdSwitchFlipper(nameof(BigSkip));
+            cmdSwitch(nameof(BigSkip));
         }
 
         [WishCommand(Command = "showallstealth")]
         public static void ShowAllSteath()
         {
-            cmdSwitchFlipper(nameof(showStealthed));
-            cmdSwitchFlipper(nameof(showStealthy));
-            cmdSwitchFlipper(nameof(ShowActiveStealthed));
+            cmdSwitch(nameof(showStealthed));
+            cmdSwitch(nameof(showStealthy));
+            cmdSwitch(nameof(ShowActiveStealthed));
             msg("ShowAlLStealth");
         }
 
@@ -224,77 +224,77 @@ namespace XRL.World.Parts
 
         public static void ShowFrenzy()
         {
-            cmdSwitchFlipper(nameof(showFrenzy));
+            cmdSwitch(nameof(showFrenzy));
         }
 
         [WishCommand(Command = "showvitae")]
 
         public static void Showvitae()
         {
-            cmdSwitchFlipper(nameof(showvitae));
+            cmdSwitch(nameof(showvitae));
         }
 
         [WishCommand(Command = "showstealthed")]
 
         public static void ShowStealthedMethod()
         {
-            cmdSwitchFlipper(nameof(showStealthed));
+            cmdSwitch(nameof(showStealthed));
         }
 
         [WishCommand(Command = "showasm")]
 
         public static void ShowASM()
         {
-            cmdSwitchFlipper(nameof(ShowActiveStealthed));
+            cmdSwitch(nameof(ShowActiveStealthed));
         }
 
         [WishCommand(Command = "showGO")]
 
         public static void ShowGOTo()
         {
-            cmdSwitchFlipper(nameof(showGO));
+            cmdSwitch(nameof(showGO));
         }
 
         [WishCommand(Command = "showFeed")]
 
         public static void FeedsHow()
         {
-            cmdSwitchFlipper(nameof(showFeed));
+            cmdSwitch(nameof(showFeed));
         }
 
         [WishCommand(Command = "ShowStatus")]
 
         public static void ShowBloodStatus()
         {
-            cmdSwitchFlipper(nameof(showStatus));
+            cmdSwitch(nameof(showStatus));
         }
 
         [WishCommand(Command = "showstealthy")]
 
         public static void ShowStealthyStatus()
         {
-            cmdSwitchFlipper(nameof(showStealthy));
+            cmdSwitch(nameof(showStealthy));
         }
 
         [WishCommand(Command = "showHumanity")]
 
         public static void ShowHumanityValue()
         {
-            cmdSwitchFlipper(nameof(showHumanity));
+            cmdSwitch(nameof(showHumanity));
         }
 
         [WishCommand(Command = "showCombat")]
 
         public static void showCombatValue()
         {
-            cmdSwitchFlipper(nameof(showCombat));
+            cmdSwitch(nameof(showCombat));
         }
 
         [WishCommand(Command = "skip")]
 
         public static void skip()
         {
-            cmdSwitchFlipper(nameof(Skip));
+            cmdSwitch(nameof(Skip));
         }
 
 
@@ -302,7 +302,7 @@ namespace XRL.World.Parts
 
         public static void skipabeat()
         {
-            cmdSwitchFlipper(nameof(SkipABeat));
+            cmdSwitch(nameof(SkipABeat));
         }
 
 
@@ -310,33 +310,33 @@ namespace XRL.World.Parts
 
         public static void showTurns()
         {
-            cmdSwitchFlipper(nameof(showturns));
+            cmdSwitch(nameof(showturns));
         }
 
         [WishCommand("refreshme")]
 
         public static void refreshme()
         {
-            cmdSwitchFlipper(nameof(refresh));
+            cmdSwitch(nameof(refresh));
         }
 
         [WishCommand("shownames")]
 
         public static void shownames()
         {
-            cmdSwitchFlipper(nameof(names));
+            cmdSwitch(nameof(names));
         }
 
         [WishCommand("showbloodtype")]
 
         public static void ShowBloodType()
         {
-            cmdSwitchFlipper(nameof(showbloodtype));
+            cmdSwitch(nameof(showbloodtype));
         }
 
         [WishCommand("showwater")]
 
-        public static void showwater() => cmdSwitchFlipper(nameof(showWater));
+        public static void showwater() => cmdSwitch(nameof(showWater));
 
         #endregion
 
@@ -345,13 +345,27 @@ namespace XRL.World.Parts
 
         #region Vampirism Wishes
 
-        [WishCommand("splatterme")]
+        [WishCommand("comparelevels")]
+
+        public static void CompareLevels() //for the diablerie update
+        {
+            var v = The.Player.GetPart<Vampirism>();
+            if (v != null)
+            {
+                msg($"Level {v.Level}");
+                msg($"BaseLevel {v.BaseLevel}");
+            }
+            else
+                msg("Not a vampire");
+        }
+
+        [WishCommand("splatterme")] //for testing humanity by bloodletting
 
         public static void splatterme() => The.Player.Bloodsplatter();
 
         [WishCommand("checkfrenzy")]
 
-        public static void checkfrenzy()
+        public static void checkfrenzy() //for testing if the target registry is being cleaned properly
         {
             var frenzy = The.Player.GetPart<TheBeast>();
             if (frenzy != null)
@@ -364,7 +378,7 @@ namespace XRL.World.Parts
 
         [WishCommand(Command = "onehum")]
 
-        public static void Onehum() => The.Player.GetPart<Humanity>().Score = 1;
+        public static void Onehum() => The.Player.GetPart<Humanity>().Score = 1; //old way to test frenzy
 
         [WishCommand("vampirize")]
 
@@ -373,7 +387,8 @@ namespace XRL.World.Parts
             GameObject GO = The.Player;
             if (GO.CmdTarget("vampirize", out var pick))
             {
-                GO.RequireMutation<Vampirism>();
+                var v = GO.RequireMutation<Vampirism>();
+                //    v.Mutate(GO, 1);
                 IComponent<GameObject>.AddPlayerMessage("Vampirized");
             }
         }
@@ -394,9 +409,9 @@ namespace XRL.World.Parts
 
         [WishCommand("autowin")]
 
-        public static void autowin()
+        public static void autowin() //for diablerie
         {
-            StaticSwitchFlipper<Nexus.Attack.FeedCommand>(nameof(Nexus.Attack.FeedCommand.AutoWin));
+            Switch<Nexus.Attack.FeedCommand>(nameof(Nexus.Attack.FeedCommand.AutoWin), null);
         }
 
         [WishCommand("badliquid")]
@@ -408,7 +423,7 @@ namespace XRL.World.Parts
                 int range = WikiRng.Next(0, BadLiquids.Length - 1);
                 string liquid = BadLiquids[range].Item1;
                 pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
-                cmd.msg($"badliquified {pick} {liquid} {range}");
+                admn.msg($"badliquified {pick} {liquid} {range}");
             }
         }
 
@@ -417,7 +432,7 @@ namespace XRL.World.Parts
 
         public static void lust()
         {
-            StaticSwitchFlipper<Vitae>(nameof(Vitae.AntiPuke));
+            Switch<Vitae>(nameof(Vitae.AntiPuke), null);
 
         }
 
@@ -426,7 +441,7 @@ namespace XRL.World.Parts
 
         public static void AutoLevel()
         {
-            StaticSwitchFlipper<IFeeding>(nameof(IFeeding.AutoLevel));
+            Switch<IFeeding>(nameof(IFeeding.AutoLevel), null);
         }
 
 
@@ -490,7 +505,7 @@ namespace XRL.World.Parts
 
         public static void GetStaticPlayer()
         {
-            cmd.msg($"{DeathHandler.Player?.DisplayName} sent");
+            admn.msg($"{DeathHandler.Player?.DisplayName} sent");
         }
 
         #endregion
@@ -628,7 +643,7 @@ namespace XRL.World.Parts
             if (The.Player.CmdTarget("liquify", out var pick))
             {
                 pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
-                cmd.msg($"Liquified {liquid} {pick}");
+                admn.msg($"Liquified {liquid} {pick}");
             }
         }
 
@@ -703,6 +718,18 @@ namespace XRL.World.Parts
         }
 
         #region Misc
+
+        [WishCommand(Command = "heal")]
+
+        public static void heal()
+        {
+            GameObject g = The.Player;
+            int basehp = g.baseHitpoints;
+            int hp = g.hitpoints;
+            AddPlayerMessage($"{basehp} {hp}");
+            int heal = basehp - hp;
+            The.Player.Heal(heal, true, true, false);
+        }
 
         [WishCommand(Command = "removebleed")]
 
@@ -850,25 +877,19 @@ namespace XRL.World.Parts
             Log($"END {obj.DisplayName}, ID_{obj.ID}");
         }
 
-        static void cmdSwitchFlipper(string nameOf) //nameof(Boolean)
+        static void cmdSwitch(string nameOf) //nameof(Boolean)
         {
             var cmd = Get();
-            InstanceSwitchFlipper(nameOf, cmd);
+            Switch(nameOf, cmd);
         }
-
-        static void StaticSwitchFlipper<T>(string nameOf) where T : class
+        static void Switch<T>(string nameOf, T obj) // T obj = null for static 
         {
-            var field = typeof(T).GetField(nameOf, BindingFlags.Static | BindingFlags.Public);
-            SwitchFlipper<T>(field, nameOf, null);
-        }
-
-        static void InstanceSwitchFlipper<T>(string nameOf, T obj) where T : class
-        {
-            var field = typeof(T).GetField(nameOf, BindingFlags.Instance | BindingFlags.Public);
+            BindingFlags flag = obj == null ? BindingFlags.Static : BindingFlags.Instance;
+            var field = typeof(T).GetField(nameOf, flag | BindingFlags.Public);
             SwitchFlipper(field, nameOf, obj);
         }
 
-        static void SwitchFlipper<T>(FieldInfo field, string nameOf, T obj) where T : class
+        static void SwitchFlipper<T>(FieldInfo field, string nameOf, T obj)
         {
             if (field?.GetValue(obj) is bool value)
             {
@@ -880,9 +901,9 @@ namespace XRL.World.Parts
                 AddPlayerMessage($"field {nameOf} does not exist in {typeof(T)} or is not bool");
         }
 
-        static cmd Get()
+        static admn Get()
         {
-            return The.Player.RequirePart(new cmd(The.Player.IsVampire()));
+            return The.Player.RequirePart(new admn(The.Player.IsVampire()));
         }
 
         public static void Log<T>(IList<T> obj)
@@ -1062,8 +1083,8 @@ namespace XRL.World.Parts
         {
             foreach (var obj in ActiveWitnesses)
             {
-                if(obj.Value == true)
-                Names(obj.Key, 'W');
+                if (obj.Value == true)
+                    Names(obj.Key, 'W');
             }
         }
 

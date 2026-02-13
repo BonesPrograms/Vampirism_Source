@@ -1,6 +1,7 @@
 
 Fear of Fire (2 Options):
 Player and AI vampires fear fire and take double damage from sources of fire. Going near fire will make vampires freak out. Additional option prevents vampires from using torches.
+You can resist fear of fire with blaze tonics.
 
 Biting Simulation for AI:
 AI vampires now experience full biting simulation effects. Smart players can make themselves completely immune to vampire attacks.
@@ -18,7 +19,7 @@ The Damned:
 Vampires now burn to ash on death and it costs no humanity to kill them.
 
 Diablerie:
-Draining your kindred to death during a feeding has a rare chance of increasing your vampirism level by one point. However, this does not work if they are a fledgling.
+Draining your kindred to death during a feeding will increase your vampirism level by one point. However, this does not work if they are a fledgling. In the future, this may be chance-based, for now, it always happens.
 
 Motes of Humanity:
 A memory of the human soul that drops rarely upon the death of an innocent, non-vampire. Vampires can consume these motes to gain one point of humanity.
@@ -35,7 +36,7 @@ If this option is enabled, vampires will not be able to mutate Beguiling.
 Blood Magic Spells:
 
 Coffins:
-Vampires can place coffins that, rarely, they will return to instead of dying. After being saved from death, there will be a long cooldown before it can save you again.
+Vampires can place coffins that they may return to instead of dying. This chance increases with vampirism level. After being saved from death, there will be a long cooldown before it can save you again.
 There is an option to make it so that you always return to your coffin instead of dying, but the cooldown still remains.
 If you are damaged by fire, you will not return to your coffin. Normality may also prevent you from returning to your coffin.
 If your coffin is broken, you will not return to it. You must fix your coffin or completely destroy it and invoke a new one with the spell.

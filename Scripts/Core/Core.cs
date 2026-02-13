@@ -34,7 +34,7 @@ namespace Nexus.Core
 		/// <summary>
 		/// Returns true/false values from object string properties. Default true.
 		/// </summary>
-		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.FLAGS.TRUE) || theObject.PropertyEquals(flag, Properties.FLAGS.TRUE_LEGACY);
+		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.FLAGS.TRUE);
 
 		public static bool PropertyEquals<T>(this GameObject Object, string key, T value)
 		{
@@ -342,6 +342,7 @@ namespace Nexus.Core
 		{
 			T obj = new();
 			mutations.AddMutation(obj);
+			obj.Mutate(mutations.ParentObject);
 			return obj;
 		}
 
@@ -361,7 +362,7 @@ namespace Nexus.Core
 				for (int x = 0; x < zone.Width; x++)
 				{
 					Cell cell = zone.Map[x][y];
-					cell.SetPeopleWho( set);
+					cell.SetPeopleWho(set);
 				}
 			}
 		}
@@ -431,7 +432,7 @@ namespace Nexus.Core
 
 		#region IDictionary
 
-		public static bool AnyIsnt<TKey, TValue>(this IDictionary<TKey, TValue> objs, TValue value) where TValue : IEquatable<TValue>
+		public static bool AnyIsnt<TKey, TValue>(this IDictionary<TKey, TValue> objs, TValue value) where TValue : IEquatable<TValue> // similar to Linq Any
 		{
 			foreach (var obj in objs)
 			{
@@ -442,21 +443,21 @@ namespace Nexus.Core
 		}
 
 		//you should ensure your dictionary has a count > 0 before using this. it does not check on its own because i expect you to send in something like a Min() which requires you to check before using anyways
-		public static TKey Pick<TKey, TValue>(this IDictionary<TKey, TValue> obj, TValue value) where TValue : IEquatable<TValue> //similar to LINQ First, get first keyvalue == value
+		public static KeyValuePair<TKey, TValue> PickFirst<TKey, TValue>(this IDictionary<TKey, TValue> obj, TValue value) where TValue : IEquatable<TValue> //similar to LINQ First, get first keyvalue == value
 		{
 			if (obj.Count > 1)
 			{
-				return obj.ByValue(value);
+				return obj.FindFirstByValue(value);
 			}
-			return obj.Single().Key;
+			return obj.Single();
 		}
 
-		public static TKey ByValue<TKey, TValue>(this IDictionary<TKey, TValue> objs, TValue value) where TValue : IEquatable<TValue>
+		public static KeyValuePair<TKey, TValue> FindFirstByValue<TKey, TValue>(this IDictionary<TKey, TValue> objs, TValue value) where TValue : IEquatable<TValue>
 		{
 			foreach (var obj in objs)
 			{
 				if (obj.Value.Equals(value))
-					return obj.Key;
+					return obj;
 			}
 			return default;
 		}
@@ -482,6 +483,25 @@ namespace Nexus.Core
 				array[i] = source[i];
 			}
 			return array;
+		}
+
+		public static void Split<T1,T2>(this (T1,T2)[] array, out T1[] t1, out T2[] t2)
+		{
+			t1 = new T1[array.Length];
+			t2 = new T2[array.Length];
+			for(int i = 0; i < array.Length; i++)
+			{
+				t1[i] = array[i].Item1;
+				t2[i] = array[i].Item2;
+			}
+		}
+
+		public static bool ContainsKey<T1, T2>(this (T1, T2)[] array, T1 value) where T1 : IEquatable<T1>
+		{
+			for (int i = 0; i < array.Length; i++)
+				if (array[i].Item1.Equals(value))
+					return true;
+			return false;
 		}
 		public static bool ContainsValue<T1, T2>(this (T1, T2)[] array, T2 value) where T2 : IEquatable<T2>
 		{
@@ -648,44 +668,30 @@ namespace Nexus.Core
 
 
 		/// <summary>
-		/// Evaluates if a target can be fed on by a vampire.
+		/// Evaluates if a target can be fed on by a vampire. Important for any vampiric spell or vampire related feature.
 		/// </summary>
-		public static bool Applicable(GameObject Victim) //our animal kingdom evaluator. checks to see if you have proper blood
-		{
-			if (FailedSimpleChecks(Victim))
-				return false;
-			if (Victim.IsWall())
-				return false;
-			if (HasBadTag(Victim))
-				return false;
-			if (HasWrongAnatomy(Victim))
-				return false;
-			if (Victim.HasPart<PlantProperties>() || Victim.HasPart<FungusProperties>() || Victim.HasPart<Harvestable>())
-				return false;
-			return true;
-		}
-		static bool FailedSimpleChecks(GameObject Victim) => !GameObject.Validate(ref Victim) || !Victim.IsCombatObject() || !Victim.IsOrganic;
-		static bool HasBadTag(GameObject Victim)
-		   =>
-			 Victim.HasTagOrProperty("Plant") //i thought this simple check would be enough but
-			|| Victim.HasTagOrProperty("LivePlant")
-			|| Victim.HasTagOrProperty("Fungus")
-			|| Victim.HasTagOrProperty("LiveFungus")
-			|| Victim.HasTagOrProperty("Plank")
-			|| !Victim.HasTagOrProperty("Bleeds");
+		public static bool Applicable(GameObject Victim) => !FailedSimpleChecks(Victim) && !Victim.IsWall() && !HasWrongAnatomy(Victim.Body?.Anatomy) && !Stealth.StealthCore.Inanimate(Victim);
+		static bool FailedSimpleChecks(GameObject Victim) => !GameObject.Validate(ref Victim) || !Victim.IsCombatObject() || !Victim.IsOrganic || !Victim.IsAlive;
 
 		//static bool CheckBleedLiquid(GameObject Object) => Object.TryGetStringProperty("BleedLiquid", out string result) && result is "blood-1000" or null or "";
-		static bool HasWrongAnatomy(GameObject Victim)
-		=>
-			Victim.Body.Anatomy == "Star"
-			|| Victim.Body.Anatomy == "Echinoid"
-			|| Victim.Body.Anatomy == "Flower"
-			|| Victim.Body.Anatomy == "Vine"
-			|| Victim.Body.Anatomy == "Tree"
-			|| Victim.Body.Anatomy == "Cactus"
-			|| Victim.Body.Anatomy == "Bush"
-			|| Victim.Body.Anatomy == "Ooze"
-			|| Victim.Body.Anatomy == "Jelly";
+		static bool HasWrongAnatomy(string body)
+		=> body switch
+		{
+			null or "Star" or "Echinoid" or "Flower" or "Vine" or "Tree" or "Cactus" or "Bush" or "Ooze" or "Jelly" => true,
+			_ => false
+		};
+
+
+		// {
+		// 	if (FailedSimpleChecks(Victim))
+		// 		return false;
+		// 	if (HasWrongAnatomy(Victim.Body?.Anatomy))
+		// 		return false;
+		// 	if (Stealth.StealthCore.Inanimate(Victim)) //just so happens that my checks against plants for stealth work perfectly here
+		// 		return false;
+		// 	return true;
+		// }
+
 		//who wouldve thought i needed to be so specific
 	}
 }

@@ -18,7 +18,6 @@ namespace XRL.World.Parts
         public override void CollectStats(Templates.StatCollector stats)
         {
         }
-        public override bool ShouldSync() => true;
 
         public override void AddSpell()
         {
@@ -121,6 +120,9 @@ namespace XRL.World.Parts
         public string[] IParts = default;
         //NEW ARRAY IDEA:
         //should we tag relations as well? opinions of the player? yes a list of Opinions to the player at least would be valid
+
+        //OTHER ARRAY IDEA:
+        //SKILLS string
         public (string, IList)[] Arrays => new (string, IList)[]
         {
                  (nameof(MutationsWithLevels), MutationsWithLevels),
@@ -132,6 +134,12 @@ namespace XRL.World.Parts
                  (nameof(StatLevels), StatLevels),
                  (nameof(BodyParts), BodyParts)
         };
+
+        //plan: we will requirepart by string name
+        //we prob wont create an instance from a blueprint, well create an instance of their blueprint to match things like physics and  render and displayname stuff maybe idk. lots of parts to add lowkey.
+
+        // final note: in scan, have it show object level specifically. additionally will need to see mutations w/ levels and skills and cybernetics etc for our copier. 
+        // thank god there is a mutation lsit i can past that to one of my loggers. will need otherstuff like bodyparts too - anything listed in Copy. new wish "CheckCopy"
 
         public (string, object)[] SimpleFields => new (string, object)[]
         {

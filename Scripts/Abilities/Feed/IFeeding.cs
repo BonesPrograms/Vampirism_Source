@@ -5,8 +5,6 @@ using Nexus.Properties;
 using Nexus.Core;
 using XRL.World.Parts.Mutation;
 using Nexus.Rules;
-using Nexus.Spells;
-
 namespace XRL.World.Effects
 {
 
@@ -105,16 +103,15 @@ namespace XRL.World.Effects
 		{
 			if (Object != null && (!other?.Object?.HasPart<Fledgling>() ?? false))
 			{
-				if (AutoLevel || WikiRng.Next(1, 100) == 100)
-				{
+				//if (AutoLevel || WikiRng.Next(1, 100) == 100)
+			//	{
 					if (Object.IsPlayer())
-						UI.Popup.Show($"Diablerie! You consume {other.Object.t()}'s power");
+						UI.Popup.Show($"Diablerie! You consume {other.Object.t()}'s power!");
 					var e = Object.GetPart<Vampirism>();
-					e.Level++;
-				}
-				//rejuvenate
+					e.BaseLevel++;
+					e.ChangeLevel(e.Level);
+			//	}
 			}
-
 		}
 
 		protected bool Security()

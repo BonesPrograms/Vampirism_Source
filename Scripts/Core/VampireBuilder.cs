@@ -27,7 +27,7 @@ namespace Nexus.Core
             (FLAGS.BLOOD_VALUE, VITAE.BLOOD_GLUTTONOUS), (FLAGS.HUMANITY, HUMANITY.MAX), (FLAGS.REGEN, default)
         };
 
-        static readonly (string, string)[] StringProperties =
+        public static readonly (string, string)[] StringProperties =
         {
             (FLAGS.GO, FLAGS.FALSE), (FLAGS.FEED, FLAGS.FALSE), (FLAGS.FRENZY, FLAGS.FALSE),
             (FLAGS.BLOOD_STATUS, FLAGS.BLOOD.GLUT), (FLAGS.STEALTH, FLAGS.FALSE)
@@ -173,7 +173,7 @@ namespace Nexus.Core
                 GO.AddPart<VampireAshes>();
             if (GO.TryGetIntProperty("SuppressCorpseDrops", out int prop) && prop > 0)
                 GO.SetIntProperty("SuppressCorpseDrops", 0);
-            GO.SetStringProperty(FLAGS.CORPSE, FLAGS.TRUE);
+            GO.SetStringProperty(FLAGS.CORPSE, null);
         }
     }
 }

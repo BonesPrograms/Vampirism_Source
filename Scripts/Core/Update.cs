@@ -1,8 +1,6 @@
 using XRL;
 using XRL.World;
-using XRL.World.Parts.Mutation;
 using Nexus.Update;
-using XRL.World.Parts;
 using Nexus.Core;
 using Nexus.Rules;
 using XRL.UI;
@@ -24,26 +22,57 @@ namespace Nexus.Update
     {
         public static void Check(GameObject GO)
         {
-            CheckCorpse(GO);
-            Spells(GO);
+            UpdateOldSave(GO); //update rolls once
+            Spells(GO); //this is for the option that turns spells on/off on load
         }
 
-        static void CheckCorpse(GameObject GO)
+        public static void UpdateOldSave(GameObject GO)
         {
-            if (GO.TryGetStringProperty(FLAGS.CORPSE, out string result))
-            {
-                if (result != FLAGS.TRUE)
-                    VampireBuilder.ChangeCorpse(GO);
-            }
-            else
-                VampireBuilder.ChangeCorpse(GO);
+            if (DoUpdate(GO))
+                MarkAsOldSave(GO);
         }
 
-        static void Spells(GameObject GO)
+        public static bool DoUpdate(GameObject GO)
+        {
+            if (CheckCorpse(GO))
+            {
+                UpdateProperties(GO);
+                return true;
+            }
+            return false;
+        }
+        public static void MarkAsOldSave(GameObject GO)
+        {
+            GO.SetStringProperty(FLAGS.OLD_SAVE, MOD.VERSION);
+        }
+        static bool CheckCorpse(GameObject GO)
+        {
+            if (!GO.HasStringProperty(FLAGS.CORPSE))
+            {
+                VampireBuilder.ChangeCorpse(GO);
+                return true;
+            }
+            return false;
+        }
+
+        static void UpdateProperties(GameObject GO) ///TEST this at some point (though im sure it will work)
+        {
+            foreach (var obj in GO.Property)
+            {
+                if (VampireBuilder.StringProperties.ContainsKey(obj.Key))
+                {
+                    if (obj.Value == FLAGS.TRUE_LEGACY)
+                    {
+                        GO.Property[obj.Key] = FLAGS.TRUE;
+                    }
+                }
+            }
+        }
+        public static void Spells(GameObject GO)
         {
             bool WantsSpells = Options.GetOptionBool(OPTIONS.SPELLS);
             if (GO.TryGetStringProperty(FLAGS.SPELLS, out string prop)) //this is just so we dont run through the builder every time you load in or something
-            {                                                           
+            {
                 if (prop == FLAGS.TRUE)
                 {
                     if (!WantsSpells)

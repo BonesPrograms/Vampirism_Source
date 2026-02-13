@@ -99,7 +99,7 @@ namespace Nexus.Stealth
         GameObject ManyKeys()
         {
             int minimumvalue = SpotterRanges.Values.Min();
-            package = SpotterRanges.First(x => x.Value == minimumvalue);
+            package = SpotterRanges.PickFirst(minimumvalue);
             return package.Key;
         }
         Spot SpotterFound<T>(GameObject Spotter, string message) where T : IOpinionSubject, new()

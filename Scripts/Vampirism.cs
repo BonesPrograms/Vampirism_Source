@@ -6,12 +6,9 @@ using XRL.World.Effects;
 using Nexus.Properties;
 using Nexus.Registry;
 using Nexus.Core;
-using Nexus.Bite;
 using Nexus.Attack;
 using Nexus.Rules;
 using System.Collections.Generic;
-using Nexus.Spells;
-using System.Reflection.Metadata;
 
 
 namespace XRL.World.Parts.Mutation
@@ -33,27 +30,10 @@ namespace XRL.World.Parts.Mutation
 		public bool GameOver;
 		public int bloodycounter;
 
-
 		[NonSerialized]
 		public bool WasTerrifiedByFlames;
 
 		public override string GetDescription() => "You feed on the blood of living creatures.";
-
-		public override bool ChangeLevel(int NewLevel)
-		{
-			AddPlayerMessage("LEvelChangeDetected");
-			if (Options.GetOptionBool(OPTIONS.SPELLS))
-				SyncLevels(NewLevel);
-			return base.ChangeLevel(NewLevel);
-		}
-
-		void SyncLevels(int NewLevel)
-		{
-			VampiricSpell[] abilities = ParentObject.SpellArray();
-			for (int i = 0; i < abilities.Length; i++)
-				abilities[i].SyncLevels(NewLevel);
-
-		}
 		public string GetDamageDice()
 		 =>
 			Level switch
@@ -93,11 +73,6 @@ namespace XRL.World.Parts.Mutation
 		{
 			switch (E.ID)
 			{
-				case Events.UPDATE:
-					cmd.msg("Events.UPDATE heard! " + ParentObject);
-					if (!ParentObject.IsPlayer())
-						Nexus.Update.Update.Check(ParentObject);
-					break;
 				case Events.GAMEOVER:
 					GameOver = true;
 					break;
@@ -143,37 +118,58 @@ namespace XRL.World.Parts.Mutation
 						return true;
 				}
 			}
-			if (Options.GetOptionBool(OPTIONS.SPELLS))
-			{
-				if (ID == EnteringZoneEvent.ID)
-					return true;
-			}
+			if (ParentObject.HasStringProperty(FLAGS.OLD_SAVE) && ID == EnteringZoneEvent.ID)
+				return true;
+			if (ID == AfterPlayerBodyChangeEvent.ID)
+				return true;
 			return base.WantEvent(ID, cascade);
+		}
+
+		public override bool HandleEvent(AfterPlayerBodyChangeEvent E) //potential issue here:
+		{																//players who are NOT a vampire and are playing old saves will not be able to use vampiric spells when dominating if the option is enabled
+			if (E.NewBody.IsVampire())									//because only players with vampire parts can request an update
+			{															//though this can be fixed by saving/loading as the dominatee
+				Nexus.Update.Update.Spells(E.NewBody);
+				if (ParentObject.HasStringProperty(FLAGS.OLD_SAVE))
+					E.NewBody.SetStringProperty(FLAGS.OLD_SAVE, null);
+			}
+			return base.HandleEvent(E);
 		}
 
 		public override bool HandleEvent(EnteringZoneEvent E)
 		{
-			Zone zone = ParentObject.CurrentZone;
-			zone.SetPeopleWho(NeedUpdate);
+			Zone zone = E.Cell.ParentZone;
+			if (zone.TryGetZoneProperty(FLAGS.MOD.VERSION_TAG, out string result)) //to prevent repeated sifting of zones already updated in old saves
+			{
+				if (result != MOD.VERSION)
+					DoUpdate(zone);
+			}
+			else
+				DoUpdate(zone);
 			return base.HandleEvent(E);
+		}
+		void DoUpdate(Zone zone)
+		{
+			zone.SetPeopleWho(NeedUpdate);
+			zone.SetZoneProperty(FLAGS.MOD.VERSION_TAG, MOD.VERSION);
 		}
 
 		void NeedUpdate(GameObject obj)
 		{
-			if (obj.IsVampire())
-				obj.FireEvent(Events.UPDATE);
+			if (obj.IsVampire() && !obj.IsPlayer()) //player is checked on gameload
+				Nexus.Update.Update.DoUpdate(obj);
 		}
 
 		public override bool HandleEvent(EffectRemovedEvent E)
 		{
-			if (E.Effect is Terrified t && t.Object == ParentObject)
+			if (E.Effect is Terrified) //tried to match by effect.Object, but it always shows up null
 				WasTerrifiedByFlames = false;
 			return base.HandleEvent(E);
 		}
 
 		public override bool HandleEvent(EffectAppliedEvent E)
 		{
-			if (E.Effect is Blaze_Tonic tonic && tonic.Object == ParentObject)
+			if (E.Effect is Blaze_Tonic)
 				ParentObject.RemoveEffect<Terrified>();
 			return base.HandleEvent(E);
 		}
@@ -185,38 +181,6 @@ namespace XRL.World.Parts.Mutation
 					Search(cells);
 			}
 			return base.HandleEvent(E);
-		}
-
-		void Search(List<Cell> cells)
-		{
-			for (int i = 0; i < cells.Count; i++)
-			{
-				for (int x = 0; x < cells[i].Objects.Count; x++)
-				{
-					GameObject obj = cells[i].Objects[x];
-					if (obj.IsAflame() || (obj.Blueprint != "Campfire" && obj.HasPart<AnimatedMaterialFire>()))
-					{
-						FirePanic(obj, true);
-						return;
-					}
-					else if (LitTorch(obj))
-						return;
-				}
-			}
-		}
-
-		bool LitTorch(GameObject obj)
-		{
-			if (obj.Blueprint == "Torch" && Options.GetOptionBool(OPTIONS.TORCH))
-			{
-				LightSource source = obj.GetPart<LightSource>(); //private field in TorchProperties, but accessible thru the PartsList, no reflection required
-				if (source.Lit)
-				{     //thanks for parts lists, developers!
-					FirePanic(obj, true);
-					return true;
-				}
-			}
-			return false;
 		}
 		public override bool HandleEvent(EquipperEquippedEvent E)
 		{
@@ -306,6 +270,38 @@ namespace XRL.World.Parts.Mutation
 			}
 			return base.HandleEvent(E);
 		}
+
+		void Search(List<Cell> cells)
+		{
+			for (int i = 0; i < cells.Count; i++)
+			{
+				for (int x = 0; x < cells[i].Objects.Count; x++)
+				{
+					GameObject obj = cells[i].Objects[x];
+					if (obj.IsAflame() || (obj.Blueprint != "Campfire" && obj.HasPart<AnimatedMaterialFire>()))
+					{
+						FirePanic(obj, true);
+						return;
+					}
+					else if (LitTorch(obj))
+						return;
+				}
+			}
+		}
+
+		bool LitTorch(GameObject obj)
+		{
+			if (obj.Blueprint == "Torch" && Options.GetOptionBool(OPTIONS.TORCH))
+			{
+				LightSource source = obj.GetPart<LightSource>(); //private field in TorchProperties, but accessible thru the PartsList, no reflection required
+				if (source.Lit)
+				{     //thanks for parts lists, developers!
+					FirePanic(obj, true);
+					return true;
+				}
+			}
+			return false;
+		}
 		bool Prerequisites()
 		{
 			if (!HasFangs())
@@ -351,13 +347,13 @@ namespace XRL.World.Parts.Mutation
 				{
 					if (external)
 						AlreadyOnFire("You flee from the fire!");
-					ParentObject.ApplyEffect(new Terrified(WikiRng.Next(10, 15), ParentObject.CurrentCell, true));
+					ParentObject.ApplyEffect(new Terrified(WikiRng.Next(5, 10), ParentObject.CurrentCell, true));
 				}
 				else
 				{
 					if (external)
 						AlreadyOnFire("{{R|I HATE FIRE!!!}}");
-					ParentObject.ApplyEffect(new Terrified(WikiRng.Next(10, 15), FireSource, false));
+					ParentObject.ApplyEffect(new Terrified(WikiRng.Next(5, 10), FireSource, false));
 				}
 			}
 		}
@@ -405,7 +401,7 @@ namespace XRL.World.Parts.Mutation
 			return obj;
 		}
 
-		public override bool Mutate(GameObject GO, int Level)
+		public override bool Mutate(GameObject GO, int Level = 1)
 		{
 			VampireBuilder.Make(GO);
 			FangsActivatedAbilityID = AddMyActivatedAbility(ABILITY_NAME, COMMAND_NAME, "Physical Mutations", null, "\u009f");

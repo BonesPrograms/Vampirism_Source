@@ -1,55 +1,29 @@
 
 using System;
-using Nexus.Spells;
 using Nexus.Rules;
 using XRL.World.Effects;
 using Nexus.Core;
-using XRL.World;
 using Nexus.Properties;
-using Newtonsoft.Json;
-
-namespace Nexus.Spells
-{
-    interface IVampiricSpell
-    {
-        public bool ShouldSync();
-        public static int Roll(GameObject Object, int Level) => WikiRng.Next(1, 8) + Math.Max(Object.StatMod("Ego"), Level) + Object.GetStat("Level").Value;
-        public int Roll();
-        public int Level
-        {
-            get;
-            set;
-        }
-        public void SyncLevels(int NewLevel);
-    }
-}
+using XRL.World.Parts.Mutation;
 
 
 namespace XRL.World.Parts
 {
 
     [Serializable]
-    public abstract class VampiricSpell : IScribedPart, IVampiricSpell
+    public abstract class VampiricSpell : IScribedPart
     {
         [NonSerialized]
         public const string CLASS = "Vampiric Spell";
         public Guid SpellID = Guid.Empty;
-        public int _Level = 1; //level will always be synced with vampirism level
-        public int Level
-        {
-            get => _Level;
-            set
-            {
-                _Level = value;
-            }
-        }
-        public abstract int Cooldown();
-        public abstract string SpellType();
-        public abstract bool ShouldSync();
+        public int Level => ParentObject.GetPart<Vampirism>().Level; //mutation level is separate from baselevle so i didnt want to create all this complicated shit to track it
+        public abstract int Cooldown();                              //because if player character's  level is too low, then their mutation levels are limited
+        public abstract string SpellType();                           //instead of some dyanmic system that listens for levelups and does all this calculation, we just map to the current given level
         public abstract void AddSpell();
         public abstract void CollectStats(Templates.StatCollector stats);
         public virtual int Cost() => VITAE.BLOOD_PER_SIP; //default 10k
-        public virtual int Roll() => IVampiricSpell.Roll(ParentObject, Level);
+        public static int Roll(GameObject Object, int Level) => WikiRng.Next(1, 8) + Math.Max(Object.StatMod("Ego"), Level) + Object.GetStat("Level").Value;
+        public virtual int Roll() => Roll(ParentObject, Level);
         public override bool WantEvent(int ID, int Cascade)
         {
             if (ID == PooledEvent<CommandEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
@@ -68,10 +42,9 @@ namespace XRL.World.Parts
             ParentObject.RemovePart(this);
         }
 
-        public virtual void SyncLevels(int NewLevel)
+        public virtual void SyncLevels(int BaseLevel, int ActualLevel)
         {
-            if (ShouldSync())
-                Level = NewLevel;
+                
         }
 
         public bool RealityCheck(Cell cell) //get real
@@ -122,7 +95,7 @@ namespace XRL.World.Parts
 namespace XRL.World.Effects
 {
     [Serializable]
-    public abstract class SpellEffect : IScribedEffect, IVampiricSpell
+    public abstract class SpellEffect : IScribedEffect
     {
         public abstract bool ShouldSync();
         public abstract int Roll();

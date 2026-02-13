@@ -19,7 +19,7 @@ namespace Nexus.Frenzy
         {
             Sift();
             Register();
-            Object = Source.TargetRegistry.AnyIsnt(TheBeast.FLAG_AVOID) ? Source.TargetRegistry.Pick(Source.TargetRegistry.Values.Min()) : null;
+            Object = Source.TargetRegistry.AnyIsnt(TheBeast.FLAG_AVOID) ? Source.TargetRegistry.PickFirst(Source.TargetRegistry.Values.Min()).Key : null;
             return Object != null;
         }
 
@@ -27,7 +27,7 @@ namespace Nexus.Frenzy
         {
             foreach (var obj in Source.TargetRegistry.KeyArray())
             {
-                if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(Source.ParentObject))
+                if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(Source.ParentObject) || obj.CurrentCell?.GetCombatTarget(Source.ParentObject) == null)
                     Source.TargetRegistry.Remove(obj);
             }
         }
@@ -87,7 +87,7 @@ namespace Nexus.Frenzy
             target != Source.ParentObject
             && target != null
             && target.CurrentCell?.GetCombatTarget(Source.ParentObject) != null
-            && target.CurrentZone == Source.ParentObject.CurrentZone //noticed a bug in early testing where you would run off the map to targets in nearbyzones if this wasnt here 
+            && target.InSameZone(Source.ParentObject) //noticed a bug in early testing where you would run off the map to targets in nearbyzones if this wasnt here 
             && !target.IsFlying //though its been so long im not sure if i was just doing an improper Clean()
             && target.HasTagOrProperty("Bleeds")
             && target.HasHitpoints()

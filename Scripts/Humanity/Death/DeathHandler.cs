@@ -32,29 +32,6 @@ namespace XRL.World.Parts
                 return true;
             return base.WantEvent(ID, cascade);
         }
-
-        public override bool HandleEvent(ZoneActivatedEvent E) //incase the player isnt a vampire at this moment, but there are vampires in his save
-        {                                                       //the player will always have DeathHandler so he will always be able to send the event to vampires in his zone
-            TryUpdate(E.Zone);
-            return base.HandleEvent(E);
-        }
-
-        static void TryUpdate(Zone zone) //so that we can avoid firing events on every object in a  zone that does not need updating
-        {
-            if (zone.TryGetZoneProperty(FLAGS.MOD.VERSION_TAG, out var result))
-            {
-                if (result != MOD.VERSION)
-                    UpdateZone(zone);
-            }
-            else
-                UpdateZone(zone);
-        }
-
-        static void UpdateZone(Zone zone)
-        {
-            zone.FireEvent(Events.UPDATE);
-            zone.SetZoneProperty(FLAGS.MOD.VERSION_TAG, MOD.VERSION);
-        }
         public override bool HandleEvent(TookDamageEvent E)
         {
             if (E.Object == ParentObject && (ParentObject.CurrentCell?.HasObjectWithPart(nameof(Fracti)) ?? false))
@@ -77,7 +54,7 @@ namespace XRL.World.Parts
         }
         static void CreateDeathsInstance(GameObject Killer, GameObject Dying)
         {
-            if (Options.GetOptionBool(Nexus.Rules.OPTIONS.HUMANITY) && Security() && !Player.CheckFlag(FLAGS.GO) && !Dying.HasStringProperty(FLAGS.DEAD))
+            if (Options.GetOptionBool(Nexus.Rules.OPTIONS.HUMANITY) && Security() && Player.PropertyEquals(FLAGS.GO, FLAGS.FALSE) && !Dying.HasStringProperty(FLAGS.DEAD))
             {
                 bool friendly = Dying.IsFriendly(The.Player);
                 if (Options.GetOptionBool(Nexus.Rules.OPTIONS.DOUG) && friendly && !Dying.IsGhoulOf(The.Player) && !Dying.IsBeguiledBy(The.Player))

@@ -15,7 +15,6 @@ namespace XRL.World.Parts
         public override string SpellType() => GHOUL.ABILITY_NAME;
         public override int Cooldown() =>  GHOUL.COOLDOWN;
         public Effect Ghoul;
-        public override bool ShouldSync() => true;
         public Dictionary<GameObject, EnthralledGhoul> Ghouls = new();
         int MAX()
             => Level switch
@@ -43,15 +42,15 @@ namespace XRL.World.Parts
         {
             if (E.Means == "Ghoul" && E.Actor == ParentObject && SpellID != Guid.Empty)
             {
-                cmd.msg($"First limt {E.Limit}");
+                admn.msg($"First limt {E.Limit}");
                 E.Limit = E.Limit + MAX();
-                cmd.msg($"Limit {E.Limit} Max {MAX()}");
+                admn.msg($"Limit {E.Limit} Max {MAX()}");
             }
             return base.HandleEvent(E);
         }
         public override bool HandleEvent(CommandEvent E)
         {
-            cmd.msg($"{ParentObject.Level}, {ParentObject.GetStat("Level").Value} level values");
+            admn.msg($"{ParentObject.Level}, {ParentObject.GetStat("Level").Value} level values");
             if (E.Command == GHOUL.COMMAND_NAME && Checks.Prerequisites(ParentObject, GHOUL.ABILITY_NAME, TEXT))
             {
                 if (ParentObject.TryGetTarget(GHOUL.ABILITY_NAME, TEXT, out GameObject pick))
@@ -64,14 +63,6 @@ namespace XRL.World.Parts
                 }
             }
             return base.HandleEvent(E);
-        }
-
-        public override void SyncLevels(int NewLevel)
-        {
-            CheckGhouls();
-            foreach (var e in Ghouls.Values)
-                e.SyncLevels(NewLevel);
-            base.SyncLevels(NewLevel);
         }
         public void MakeAttack(GameObject Target)
         {

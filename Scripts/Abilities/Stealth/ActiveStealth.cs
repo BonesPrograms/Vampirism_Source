@@ -74,7 +74,7 @@ namespace Nexus.Stealth
             count switch
             {
                 NONE => "{{B|No witnesses.}}",
-                SINGLE => "{{O|" + Source.Witnesses.Pick(true) + " is the only witness.}}",
+                SINGLE => "{{O|" + Source.Witnesses.PickFirst(true).Key.t() + " is the only witness.}}",
                 _ => "{{R|Witnesses!}}",
             };
 

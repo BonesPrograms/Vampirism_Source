@@ -98,5 +98,7 @@ namespace Nexus.Properties
         /// Special flag used to prevent DeathEventHandler from duplicating humanity losses if a true innocent or companion dies during feeding, due to the automatic application of VICTIM on feed removal.
         /// </summary>
         public const string DEAD = "VampirismModKilledDuringFeed";
+
+        public const string OLD_SAVE = "OldVampirismSaveNeedsUpdate";
     }
 }

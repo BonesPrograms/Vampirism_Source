@@ -2,7 +2,6 @@ using XRL.World.Parts;
 using XRL.World.AI;
 using System;
 using Nexus.Rules;
-using Nexus.Spells;
 
 namespace XRL.World.Effects
 {
@@ -31,7 +30,7 @@ namespace XRL.World.Effects
             this.Master = Master;
             base.Duration = 9999;
         }
-        public override int Roll() => IVampiricSpell.Roll(Master, Level);
+        public override int Roll() => VampiricSpell.Roll(Master, Level);
         public override string GetDescription()
         {
             return "{{K|ghoul}}";

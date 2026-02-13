@@ -53,8 +53,13 @@ namespace Nexus.Stealth
             && !Inanimate(witness)
             && !witness.IsFriendly(Source.ParentObject)
             && witness.HasHitpoints()
-            && witness.CurrentZone == Source.Zone
+            && witness.InSameZone(Source.ParentObject)
             && CheckEffect(witness.Effects);
+            public static bool Inanimate(GameObject witness)
+         =>
+             witness.Body?.Anatomy == "Echinoid"
+            || CheckTags(witness.GetBlueprint())
+            || CheckParts(witness.PartsList);
 
         /// <summary>
         /// It is recommended to exclude plants from your lists of witnesses (you'll see me do it often in Alert and Spotter), because being spotted by vines, roots and
@@ -62,7 +67,7 @@ namespace Nexus.Stealth
         /// </summary>
         /// 
 
-        public static bool CheckEffect(XRL.Collections.Rack<Effect> effects)
+        static bool CheckEffect(XRL.Collections.Rack<Effect> effects)
         {
             for (int i = 0; i < effects.Count; i++)
             {
@@ -72,11 +77,6 @@ namespace Nexus.Stealth
             }
             return true;
         }
-        public static bool Inanimate(GameObject witness)
-         =>
-             witness.Body?.Anatomy == "Echinoid"
-            || CheckTags(witness.GetBlueprint())
-            || CheckParts(witness.PartsList);
 
         static bool CheckTags(GameObjectBlueprint Blueprint)
         {
@@ -115,7 +115,7 @@ namespace Nexus.Stealth
             for (int i = 0; i < rack.Count; i++)
             {
                 System.Type Type = rack[i].GetType();
-                if (Type == typeof(Harvestable) || Type == typeof(PlantProperties) || Type == typeof(FungusProperties))
+                if (Type == typeof(Harvestable) || Type == typeof(PlantProperties) || Type == typeof(FungusProperties) || Type == typeof(Harvestable)) 
                     return true;
             }
             return false;
