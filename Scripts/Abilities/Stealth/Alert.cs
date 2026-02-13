@@ -92,7 +92,7 @@ namespace Nexus.Stealth
 
         public void GiveDefaultList()
         {
-            Witnesses = Source.Zone.ListPeopleWho(x=> Source.Core.ValidSentient(x));
+            Witnesses = Source.Zone.ListPeopleWho(x=> StealthCore.ValidSentient(x));
         }
 
         /// <summary>

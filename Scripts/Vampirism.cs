@@ -148,13 +148,13 @@ namespace XRL.World.Parts.Mutation
 				DoUpdate(zone);
 			return base.HandleEvent(E);
 		}
-		void DoUpdate(Zone zone)
+		static void DoUpdate(Zone zone)
 		{
 			zone.SetPeopleWho(NeedUpdate);
 			zone.SetZoneProperty(FLAGS.MOD.VERSION_TAG, MOD.VERSION);
 		}
 
-		void NeedUpdate(GameObject obj)
+		static void NeedUpdate(GameObject obj)
 		{
 			if (obj.IsVampire() && !obj.IsPlayer()) //player is checked on gameload
 				Nexus.Update.Update.DoUpdate(obj);

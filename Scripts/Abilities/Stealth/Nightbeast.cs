@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Nexus.Core;
 using Nexus.Properties;
 using Nexus.Stealth;
 using XRL.World.Capabilities;
@@ -51,8 +52,20 @@ namespace XRL.World.Parts
 
 		public override bool HandleEvent(EnteringZoneEvent E)
 		{
-			Witnesses = new();
-			return base.HandleEvent(E);
+			Witnesses = new(E.Cell.ParentZone.ObjectCount(CountRules)); //will give us a dictionary with the exact capacity necessary on zone load
+			return base.HandleEvent(E);									//ValidSentient() is the "sifter", anything that is valid gets added to the dictionary
+		}																//and is sorted by true/false from there, never removed unless necessary
+
+		public static bool CountRules(GameObject Object)
+		{
+			int value = Object.CheckIfPropertyExistsWithValue(FLAGS.VALID, FLAGS.TRUE);
+			if (value == 0) // 0 == doesnt exist
+			{
+				bool valid = StealthCore.ValidSentient(Object);
+				Object.SetStringProperty(FLAGS.VALID, valid ? FLAGS.TRUE : FLAGS.FALSE);
+				return valid;
+			}
+			return value == 1; //1 == string property value == FLAGS.TRUE
 		}
 		public override bool HandleEvent(BeforeTakeActionEvent E)
 		{

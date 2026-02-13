@@ -29,7 +29,7 @@ namespace Nexus.Stealth
         /// <returns></returns>
         public bool ActiveWitness(GameObject obj)
         {
-            return !obj.Unaware(false) && !Shrouded(obj);
+            return !obj.Unaware(false) && !Shrouded(obj) && !obj.IsFriendly(Source.ParentObject) && obj.HasHitpoints() && CheckEffect(obj.Effects);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Nexus.Stealth
         /// <returns></returns>
         public bool NearbySentient(GameObject witness)
         {
-            return witness.HasLOSTo(Source.ParentObject, false) && witness.DistanceTo(Source.ParentObject) <= Nexus.Rules.STEALTH.AI_RADIUS;
+            return witness.HasLOSTo(Source.ParentObject, false) && witness.DistanceTo(Source.ParentObject) <= Nexus.Rules.STEALTH.AI_RADIUS && witness.InSameZone(Source.ParentObject);
         }
 
         /// <summary>
@@ -47,19 +47,16 @@ namespace Nexus.Stealth
         /// </summary>
         /// <param name="witness"></param>
         /// <returns></returns>
-        public bool ValidSentient(GameObject witness)
+        public static bool ValidSentient(GameObject witness)
           =>
             witness?.Brain != null
-            && !Inanimate(witness)
-            && !witness.IsFriendly(Source.ParentObject)
-            && witness.HasHitpoints()
-            && witness.InSameZone(Source.ParentObject)
-            && CheckEffect(witness.Effects);
-            public static bool Inanimate(GameObject witness)
-         =>
-             witness.Body?.Anatomy == "Echinoid"
-            || CheckTags(witness.GetBlueprint())
-            || CheckParts(witness.PartsList);
+            && witness.IsCombatObject()
+            && !Inanimate(witness);
+        public static bool Inanimate(GameObject witness)
+     =>
+         witness.Body?.Anatomy == "Echinoid"
+        || CheckTags(witness.GetBlueprint())
+        || CheckParts(witness.PartsList);
 
         /// <summary>
         /// It is recommended to exclude plants from your lists of witnesses (you'll see me do it often in Alert and Spotter), because being spotted by vines, roots and
@@ -115,7 +112,7 @@ namespace Nexus.Stealth
             for (int i = 0; i < rack.Count; i++)
             {
                 System.Type Type = rack[i].GetType();
-                if (Type == typeof(Harvestable) || Type == typeof(PlantProperties) || Type == typeof(FungusProperties) || Type == typeof(Harvestable)) 
+                if (Type == typeof(Harvestable) || Type == typeof(PlantProperties) || Type == typeof(FungusProperties) || Type == typeof(Harvestable))
                     return true;
             }
             return false;
@@ -158,8 +155,18 @@ namespace Nexus.Stealth
             //   return true; // suspeneded until i can figure out how the actual range for nightvision works
             return false;
         }
+
+        public void Sift()
+        {
+            foreach (var obj in Source.Witnesses.KeyArray())
+            {
+                if (!obj?.HasHitpoints() ?? true)
+                    Source.Witnesses.Remove(obj); //stealth system re-checks the zone every single turn after loading and will change flags of objects based on the two bool methods
+            }                                       //however tests with frenzy showed us that dead objects will remain dormant in the citionary, so we need to sift our dictionary as well
+        }                                           //though we do not need to worry about samezone like we do there because we recreate the dictionary on zoneload
         public void ScanEnvironment()
         {
+            Sift();
             for (int y = 0; y < Source.Zone.Height; y++)
             {
                 for (int x = 0; x < Source.Zone.Width; x++)
@@ -175,10 +182,13 @@ namespace Nexus.Stealth
 
         void CheckValidity(GameObject obj)
         {
-            bool Check = ValidSentient(obj) && NearbySentient(obj) && ActiveWitness(obj);
-            Source.Witnesses[obj] = Check;
-            if (Check)
-                Source.TrueCount++;
+            if (obj.TryGetStringProperty(Properties.FLAGS.VALID, out var result) && result == Properties.FLAGS.TRUE)
+            {
+                bool Check = NearbySentient(obj) && ActiveWitness(obj);
+                Source.Witnesses[obj] = Check;
+                if (Check)
+                    Source.TrueCount++;
+            }
         }
     }
 }

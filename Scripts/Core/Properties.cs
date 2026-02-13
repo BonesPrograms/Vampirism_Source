@@ -100,5 +100,7 @@ namespace Nexus.Properties
         public const string DEAD = "VampirismModKilledDuringFeed";
 
         public const string OLD_SAVE = "OldVampirismSaveNeedsUpdate";
+
+        public const string VALID = "ValidSentientObject";
     }
 }

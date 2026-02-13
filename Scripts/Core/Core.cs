@@ -36,6 +36,16 @@ namespace Nexus.Core
 		/// </summary>
 		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.FLAGS.TRUE);
 
+		public static int CheckIfPropertyExistsWithValue(this GameObject Object, string flag, string value)
+		{
+			foreach (var obj in Object.Property)
+			{
+				if (obj.Key == flag)
+					return obj.Value == value ? 1 : 2; // 1 true 2 false
+			}
+			return 0;
+		}
+
 		public static bool PropertyEquals<T>(this GameObject Object, string key, T value)
 		{
 			if (value is string stringProp)
@@ -402,6 +412,31 @@ namespace Nexus.Core
 			}
 
 		}
+		public static int ObjectCount(this Zone Zone, Predicate<GameObject> method)
+		{
+			int count = 0;
+			for (int y = 0; y < Zone.Height; y++)
+			{
+				for (int x = 0; x < Zone.Width; x++)
+				{
+					Cell cell = Zone.Map[x][y];
+					count += ObjectCount(cell, method);
+				}
+			}
+			return count;
+		}
+
+		public static int ObjectCount(this Cell Cell, Predicate<GameObject> method)
+		{
+			int count = 0;
+			for (int i = 0; i < Cell.Objects.Count; i++)
+			{
+				var obj = Cell.Objects[i];
+				if (method(obj))
+					count++;
+			}
+			return count;
+		}
 	}
 	public static class Extensions
 	{
@@ -485,11 +520,11 @@ namespace Nexus.Core
 			return array;
 		}
 
-		public static void Split<T1,T2>(this (T1,T2)[] array, out T1[] t1, out T2[] t2)
+		public static void Split<T1, T2>(this (T1, T2)[] array, out T1[] t1, out T2[] t2)
 		{
 			t1 = new T1[array.Length];
 			t2 = new T2[array.Length];
-			for(int i = 0; i < array.Length; i++)
+			for (int i = 0; i < array.Length; i++)
 			{
 				t1[i] = array[i].Item1;
 				t2[i] = array[i].Item2;

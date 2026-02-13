@@ -60,7 +60,7 @@ namespace Nexus.Stealth
         static string DefaultMessage(GameObject Spotter) => $"You try to sneak attack, but {Spotter.t()} spots you from a distance!";
         public void GiveDefaultList()
         {
-            PotentialSpotters = Source.Zone.ListPeopleWho(witness => Source.Core.ValidSentient(witness) && !witness.Unaware(false));
+            PotentialSpotters = Source.Zone.ListPeopleWho(witness => StealthCore.ValidSentient(witness) && !witness.Unaware(false));
         }
         public Spot BeginAttackCheckIfSpotted<T>(string message = default) where T : IOpinionSubject, new()
         {
