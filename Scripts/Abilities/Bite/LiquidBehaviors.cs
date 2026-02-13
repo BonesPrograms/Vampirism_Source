@@ -85,7 +85,7 @@ namespace Nexus.Bite
 
         public Ending LiquidEnding((string, bool)[] BadLiquids)
         {
-            Ending[] endings = new Ending[BadLiquids.CountValuesEqualTo(true)];
+            Ending[] endings = new Ending[BadLiquids.CountElementsEqualTo(true)];
             int index = 0;
             for (int i = 0; i < BadLiquids.Length; i++)
             {

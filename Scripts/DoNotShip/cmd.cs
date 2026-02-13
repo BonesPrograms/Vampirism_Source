@@ -419,9 +419,9 @@ namespace XRL.World.Parts
         {
             if (The.Player.CmdTarget("badliquid", out var pick))
             {
-                var BadLiquids = new Nexus.Bite.Bite().BadLiquids.Copy();
+                var BadLiquids = new Nexus.Bite.Bite().BadLiquids.ExtractPrimaryElements();
                 int range = WikiRng.Next(0, BadLiquids.Length - 1);
-                string liquid = BadLiquids[range].Item1;
+                string liquid = BadLiquids[range];
                 pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
                 admn.msg($"badliquified {pick} {liquid} {range}");
             }
@@ -792,21 +792,34 @@ namespace XRL.World.Parts
             Victim.ApplyEffect(new Bleeding("1", 20));
         }
 
+        static string[] stats = new string[]
+        {
+            "Ego", "Intelligence", "Agility", "SP"  
+        };
+
+        static string[] mutations = new string[]
+        {
+            "Domination", "Beguiling", "Phasing", "Sunder Mind"
+        };
+
         [WishCommand(Command = "mod")]
         public static void Developer()
         {
             Popup.Suppress = true;
             Mutations m = The.Player.RequirePart<Mutations>();
-            m.AddMutation("Domination");
-            m.AddMutation("Beguiling");
-            m.AddMutation("Phasing");
-            m.AddMutation("Sunder Mind");
-            The.Player.GetStat("Ego").AddShift(100, null, false);
-            The.Player.GetStat("Intelligence").AddShift(100, null, false);
-            The.Player.GetStat("Agility").AddShift(100, null, false);
-            The.Player.GetStat("SP").AddShift(10000, null, false);
+            //getstat.setvalue?
+            for (int i = 0; i < mutations.Length; i++)
+            {
+                m.AddMutation(mutations[i]);
+            }
+            GameObject g = The.Player;
+            for(int i = 0; i < stats.Length; i++)
+            {
+                g.AddBaseStat(stats[i], 100);
+            }
             The.Player.AddSkill<ShortBlades_Bloodletter>();
-            //ParentObject.GetStat("Level").Value += 10;
+            The.Player.AddSkill<Physic_AmputateLimb>();
+            The.Player.Inventory.AddObject("Battle Axe2");
             IComponent<GameObject>.AddPlayerMessage("Developer");
             Popup.Suppress = false;
         }

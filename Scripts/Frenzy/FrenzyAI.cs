@@ -49,7 +49,7 @@ namespace XRL.World.Effects
                     Duration = 0;
                 else
                     Target = null;
-            //    Source.TargetRegistry.Remove(E.Dying);
+            //    Source.TargetRegistry.Remove(E.Dying); //Sift() will remove the target on its own
             }
             return base.HandleEvent(E);
         }
@@ -64,8 +64,10 @@ namespace XRL.World.Effects
         }
         public override bool HandleEvent(TookDamageEvent E)
         {
-            if (ValidTarget(E.Actor, Object) && !Source.Core.Search.BadKey(E.Actor))
+            if (ValidTarget(E.Actor, E.Object) && !Source.Core.Search.BadKey(E.Actor))
+            {
                 Target = E.Actor;
+            }
             return base.HandleEvent(E);
         }
 
@@ -93,38 +95,6 @@ namespace XRL.World.Effects
             && this.Source.Core.Search.ValidForRegistration(Actor);
 
 
-        /// <summary>
-        /// Prevents already-avoided objects from being assigned to Target to prevent softlocking.
-        /// </summary>
-
-
-        /// <summary>
-        /// Initiates a local timer for feeding duration to avoid desync and ensure Frenzy is removed when feed is over.
-        /// </summary>
-        // void EndingTimer()
-        // {
-        //     if (!gameover)
-        //     {
-        //         if (!activated && base.Object.CheckFlag(FLAGS.FEED))
-        //             StartCountdown();
-        //         if (activated)
-        //             Countdown();
-        //     }
-        // }
-
-        // void Countdown()
-        // {
-        //     feedtime--;
-        //     if (feedtime == 0 || !base.Object.CheckFlag(FLAGS.FEED))
-        //         Duration = 0;
-        // }
-
-        // void StartCountdown()
-        // {
-        //     activated = true;
-        //     feedtime = FEED.DURATION;
-        // }
-
         public override void Remove(GameObject Object)
         {
             AutoAct.Interrupt();
@@ -139,7 +109,6 @@ namespace XRL.World.Effects
             base.Object.RemoveEffect<Running>();
             CheckBloodAndCooldown();
             Source.frenzied = false;
-        //    Source.TargetRegistry = new();
             base.Object.SetStringProperty(FLAGS.FRENZY, FLAGS.FALSE);
         }
 

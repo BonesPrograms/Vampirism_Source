@@ -21,6 +21,8 @@ namespace XRL.World.Effects
             DisplayName = "";
         }
 
+
+
         //furthermore
         //you embrace people at your vampirism level (maybe)
         //doesnt rly make sense

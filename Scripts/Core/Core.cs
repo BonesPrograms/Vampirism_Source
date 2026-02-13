@@ -530,15 +530,34 @@ namespace Nexus.Core
 				t2[i] = array[i].Item2;
 			}
 		}
+		public static T2[] ExtractSecondaryElements<T1, T2>(this (T1, T2)[] array)
+		{
+			T2[] obj = new T2[array.Length];
+			for (int i = 0; i < array.Length; i++)
+			{
+				obj[i] = array[i].Item2;
+			}
+			return obj;
+		}
 
-		public static bool ContainsKey<T1, T2>(this (T1, T2)[] array, T1 value) where T1 : IEquatable<T1>
+		public static T1[] ExtractPrimaryElements<T1, T2>(this (T1, T2)[] array)
+		{
+			T1[] obj = new T1[array.Length];
+			for (int i = 0; i < array.Length; i++)
+			{
+				obj[i] = array[i].Item1;
+			}
+			return obj;
+		}
+
+		public static bool ContainsPrimaryElement<T1, T2>(this (T1, T2)[] array, T1 value) where T1 : IEquatable<T1>
 		{
 			for (int i = 0; i < array.Length; i++)
 				if (array[i].Item1.Equals(value))
 					return true;
 			return false;
 		}
-		public static bool ContainsValue<T1, T2>(this (T1, T2)[] array, T2 value) where T2 : IEquatable<T2>
+		public static bool ContainsSecondaryElement<T1, T2>(this (T1, T2)[] array, T2 value) where T2 : IEquatable<T2>
 		{
 			for (int i = 0; i < array.Length; i++)
 				if (array[i].Item2.Equals(value))
@@ -551,7 +570,7 @@ namespace Nexus.Core
 				array[i].Item2 = value;
 		}
 
-		public static int CountValuesEqualTo<T1, T2>(this (T1, T2)[] array, T2 value) where T2 : IEquatable<T2>
+		public static int CountElementsEqualTo<T1, T2>(this (T1, T2)[] array, T2 value) where T2 : IEquatable<T2>
 		{
 			int capacity = 0;
 			for (int i = 0; i < array.Length; i++)
@@ -562,7 +581,7 @@ namespace Nexus.Core
 			return capacity;
 		}
 
-		public static int CountValuesEqualTo<T>(this T[] array, T value) where T : IEquatable<T>
+		public static int CountElementsEqualTo<T>(this T[] array, T value) where T : IEquatable<T>
 		{
 			int capacity = 0;
 			for (int i = 0; i < array.Length; i++)

@@ -45,6 +45,9 @@ namespace XRL.World.Parts
             }
         }
 
+
+        //Embraced.t() rises from the dead!
+
         //could be buggy but i dont really care if you have to destroy a corpse to access the corpse underneath it
         //else      //reduces a lot of work on my end if i just get the first possible object and return
         //  SimulateParentObject(Object);

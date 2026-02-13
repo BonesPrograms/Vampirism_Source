@@ -19,7 +19,8 @@ namespace Nexus.Frenzy
         {
             Sift();
             Register();
-            Object = Source.TargetRegistry.AnyIsnt(TheBeast.FLAG_AVOID) ? Source.TargetRegistry.PickFirst(Source.TargetRegistry.Values.Min()).Key : null;
+            int min = Source.TargetRegistry.Values.Min();
+            Object = Source.TargetRegistry.AnyIsnt(TheBeast.FLAG_AVOID) ? Source.TargetRegistry.PickFirst(min).Key : null;
             return Object != null;
         }
 
@@ -27,11 +28,11 @@ namespace Nexus.Frenzy
         {
             foreach (var obj in Source.TargetRegistry.KeyArray())
             {
-                if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(Source.ParentObject) || obj.CurrentCell?.GetCombatTarget(Source.ParentObject) == null)
-                    Source.TargetRegistry.Remove(obj);
-            }
-        }
-
+                if (!obj?.HasHitpoints() ?? true) //serious bug here (OR DOWN IN THE BADKEY CHECK IN REGISTER()) (they were doing the same evaluation)
+                    Source.TargetRegistry.Remove(obj); //it was prematurely removing objects due to one of these two checks : !InSameZone or Target.CurrentCell.CombatTarget(ParentObject) == null so if that object was a badtarget you would get softlocked attacking them over and over
+            }                                           // i realized we dont really need either of them so its fine
+        }                                                //if anyone ends up biting a phase spider wrongly, i will fix it then
+                                                         //this caused too much headache for me to worry about right now I FIXED IT
 
         bool LightCheck(GameObject tgt, int distance)
         {
@@ -66,13 +67,15 @@ namespace Nexus.Frenzy
                 GameObject obj = cell.Objects[i];
                 if (BadKey(obj))
                 {
-                    if (obj?.InSameZone(Source.ParentObject) ?? true|| !obj.HasHitpoints())
+                    if (!obj?.HasHitpoints() ?? true)
                         Source.TargetRegistry.Remove(obj);
                     continue;
                 }
 
                 if (ValidForRegistration(obj))
+                {
                     Source.TargetRegistry[obj] = obj.DistanceTo(Source.ParentObject);
+                }
                 else
                     Source.TargetRegistry.Remove(obj);
             }

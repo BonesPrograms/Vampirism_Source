@@ -50,11 +50,14 @@ namespace Nexus.Blood
             if (Object.TryGetEffect<LiquidCovered>(out var e))
             {
                 e.Liquid.ComponentLiquids.Remove("putrid");
-                e.Liquid.ComponentLiquids.Add("blood", 2);
+                e.Liquid.ComponentLiquids["blood"] = 2; //was getting a terrible error if the key already existed, dont use .Add!
             }
-            LiquidCovered E = new("blood", 2);
-            Object.ApplyEffect(E);
-            E.Liquid.ComponentLiquids.Remove("putrid");
+            else
+            {
+                LiquidCovered E = new("blood", 2);
+                Object.ApplyEffect(E);
+                E.Liquid.ComponentLiquids.Remove("putrid");
+            }
         }
 
         static void FindVomitPool(Cell CurrentCell)

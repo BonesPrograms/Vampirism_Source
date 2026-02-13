@@ -1,7 +1,7 @@
 
-Fear of Fire (2 Options):
+Rotschrek (2 Options):
 Player and AI vampires fear fire and take double damage from sources of fire. Going near fire will make vampires freak out. Additional option prevents vampires from using torches.
-You can resist fear of fire with blaze tonics.
+You can resist Rotschrek with blaze tonics.
 
 Biting Simulation for AI:
 AI vampires now experience full biting simulation effects. Smart players can make themselves completely immune to vampire attacks.

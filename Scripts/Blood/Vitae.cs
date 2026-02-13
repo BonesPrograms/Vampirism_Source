@@ -101,7 +101,6 @@ namespace XRL.World.Parts
                 if (E.Object.IsPlayer())
                     Blood -= WikiRng.Next(15000, 25000);
                 E.InterfaceExit = true;
-                return false;
             }
             return base.HandleEvent(E);
         }

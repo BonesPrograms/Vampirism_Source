@@ -51,7 +51,7 @@ namespace Nexus.Stealth
           =>
             witness?.Brain != null
             && witness.IsCombatObject()
-            && !Inanimate(witness);
+            && !Inanimate(witness); //insamezone check cannot go here because we use this to check nextzone in EZ event and i dont feel like adding a zone parameter
         public static bool Inanimate(GameObject witness)
      =>
          witness.Body?.Anatomy == "Echinoid"
@@ -112,7 +112,7 @@ namespace Nexus.Stealth
             for (int i = 0; i < rack.Count; i++)
             {
                 System.Type Type = rack[i].GetType();
-                if (Type == typeof(Harvestable) || Type == typeof(PlantProperties) || Type == typeof(FungusProperties) || Type == typeof(Harvestable))
+                if (Type == typeof(Harvestable) || Type == typeof(PlantProperties) || Type == typeof(FungusProperties))
                     return true;
             }
             return false;

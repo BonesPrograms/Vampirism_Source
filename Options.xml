@@ -66,7 +66,7 @@
   </option>
   <option
   ID="FearOfFire"
-  DisplayText="Fear of Fire - Vampires take double damage from sources of fire and it makes them panic."
+  DisplayText="Rotschrek - Vampires take double damage from sources of fire and it makes them panic."
   Category="Vampirism"
   Type="Checkbox"
   Default="Yes">

@@ -59,7 +59,7 @@ namespace Nexus.Update
         {
             foreach (var obj in GO.Property)
             {
-                if (VampireBuilder.StringProperties.ContainsKey(obj.Key))
+                if (VampireBuilder.StringProperties.ContainsPrimaryElement(obj.Key))
                 {
                     if (obj.Value == FLAGS.TRUE_LEGACY)
                     {

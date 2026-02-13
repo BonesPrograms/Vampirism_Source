@@ -40,7 +40,9 @@ namespace Nexus.Frenzy
         void FindNewTarget()
         {
             if (Search.TryScan(out GameObject newTarget))
+            {
                 AI.Target = newTarget;
+            }
             else
                 AI.Duration = 0;
         }
@@ -49,10 +51,11 @@ namespace Nexus.Frenzy
         {
             if (!AI.InRange)
                 Path(new FindPath(AI.Object.CurrentCell, AI.Target.CurrentCell, PathGlobal: false, PathUnlimited: true, AI.Object, 500, ExploredOnly: false, Juggernaut: false, IgnoreCreatures: false, IgnoreGases: true, FlexPhase: false));
-            else if (!BadBite(AI.Target))
-                new VampireAttack(AI.Target, AI.Source.Base).Attack(true);
-            else
+            else if (BadBite(AI.Target))
                 BiteFailed();
+            else
+                new VampireAttack(AI.Target, AI.Source.Base).Attack(true);
+
         }
         void BiteFailed()
         {

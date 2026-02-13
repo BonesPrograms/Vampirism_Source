@@ -126,11 +126,11 @@ namespace XRL.World.Parts.Mutation
 		}
 
 		public override bool HandleEvent(AfterPlayerBodyChangeEvent E) //potential issue here:
-		{																//players who are NOT a vampire and are playing old saves will not be able to use vampiric spells when dominating if the option is enabled
-			if (E.NewBody.IsVampire())									//because only players with vampire parts can request an update
-			{															//though this can be fixed by saving/loading as the dominatee
+		{                                                               //players who are NOT a vampire and are playing old saves will not be able to use vampiric spells when dominating if the option is enabled
+			if (E.NewBody.IsVampire())                                  //because only players with vampire parts can request an update
+			{                                                           //though this can be fixed by saving/loading as the dominatee
 				Nexus.Update.Update.Spells(E.NewBody);
-				if (ParentObject.HasStringProperty(FLAGS.OLD_SAVE))
+				if (E.OldBody.HasStringProperty(FLAGS.OLD_SAVE))
 					E.NewBody.SetStringProperty(FLAGS.OLD_SAVE, null);
 			}
 			return base.HandleEvent(E);
@@ -343,18 +343,12 @@ namespace XRL.World.Parts.Mutation
 			{
 				WasTerrifiedByFlames = true;
 				Capabilities.AutoAct.Interrupt();
+				if (external)
+					AlreadyOnFire();
 				if (FireSource == null)
-				{
-					if (external)
-						AlreadyOnFire("You flee from the fire!");
 					ParentObject.ApplyEffect(new Terrified(WikiRng.Next(5, 10), ParentObject.CurrentCell, true));
-				}
 				else
-				{
-					if (external)
-						AlreadyOnFire("{{R|I HATE FIRE!!!}}");
 					ParentObject.ApplyEffect(new Terrified(WikiRng.Next(5, 10), FireSource, false));
-				}
 			}
 		}
 
@@ -363,7 +357,7 @@ namespace XRL.World.Parts.Mutation
 			if (ParentObject.CurrentCell != null)
 			{
 				if (ParentObject.IsPlayer())
-					Popup.Show("{{R|I HATE FIRE!!!}}");
+					Popup.Show("{{R|ROTSCHREK!!!}}");
 				Torch.Obliterate();
 				ReplaceTorch();
 			}
@@ -386,12 +380,11 @@ namespace XRL.World.Parts.Mutation
 			else
 				Part.Extinguish();
 		}
-		void AlreadyOnFire(string text)
+		void AlreadyOnFire()
 		{
 			if (ParentObject.IsPlayer())
 			{
-				text = ParentObject.IsAflame() ? "{{R|I'M ON FIRE!!!}}" : text;
-				AddPlayerMessage(text);
+				AddPlayerMessage("ROTSCHREK!!!");
 			}
 		}
 		public override IPart DeepCopy(GameObject Parent, Func<GameObject, GameObject> MapInv)
