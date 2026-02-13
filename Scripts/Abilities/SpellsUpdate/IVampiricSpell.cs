@@ -13,15 +13,20 @@ namespace XRL.World.Parts
     [Serializable]
     public abstract class VampiricSpell : IScribedPart
     {
-        [NonSerialized]
-        public const string CLASS = "Vampiric Spell";
+        public static readonly Type CLASS = typeof(VampiricSpell);
         public Guid SpellID = Guid.Empty;
-        public int Level => ParentObject.GetPart<Vampirism>().Level; //mutation level is separate from baselevle so i didnt want to create all this complicated shit to track it
-        public abstract int Cooldown();                              //because if player character's  level is too low, then their mutation levels are limited
-        public abstract string SpellType();                           //instead of some dyanmic system that listens for levelups and does all this calculation, we just map to the current given level
+        public int Level => ParentObject.GetPart<Vampirism>().Level; 
+        public virtual int Cost => VITAE.BLOOD_PER_SIP; //default 10k  
+        public abstract Type SpellType
+        {
+            get;
+        }
+        public abstract int Cooldown
+        {
+            get;
+        }                                                                         
         public abstract void AddSpell();
         public abstract void CollectStats(Templates.StatCollector stats);
-        public virtual int Cost() => VITAE.BLOOD_PER_SIP; //default 10k
         public static int Roll(GameObject Object, int Level) => WikiRng.Next(1, 8) + Math.Max(Object.StatMod("Ego"), Level) + Object.GetStat("Level").Value;
         public virtual int Roll() => Roll(ParentObject, Level);
         public override bool WantEvent(int ID, int Cascade)
@@ -41,15 +46,10 @@ namespace XRL.World.Parts
             RemoveMyActivatedAbility(ref SpellID);
             ParentObject.RemovePart(this);
         }
-
-        public virtual void SyncLevels(int BaseLevel, int ActualLevel)
-        {
-                
-        }
-
+        
         public bool RealityCheck(Cell cell) //get real
         {
-            Event E = Event.New("InitiateRealityDistortionTransit", "Object", ParentObject, CLASS, this, "Cell", cell);
+            Event E = Event.New("InitiateRealityDistortionTransit", "Object", ParentObject, $"{CLASS}", this, "Cell", cell);
             if (!ParentObject.FireEvent(E) || !ParentObject.CurrentCell.FireEvent(E))
             {
                 RealityStabilized.ShowGenericInterdictMessage(ParentObject);
@@ -60,7 +60,7 @@ namespace XRL.World.Parts
 
         public bool EnoughBlood(string text)
         {
-            if (ParentObject.GetIntProperty(FLAGS.BLOOD_VALUE) > Cost())
+            if (ParentObject.GetIntProperty(FLAGS.BLOOD_VALUE) > Cost)
                 return true;
             else
                 return ParentObject.ShowFailure("You don't have enough {{R|blood}} " + text + "!");
@@ -70,8 +70,8 @@ namespace XRL.World.Parts
         {
             if (EnoughBlood(ToDo))
             {
-                ParentObject.UseEnergy(1000, $"{CLASS} {SpellType()}");
-                CooldownMyActivatedAbility(SpellID, Cooldown());
+                ParentObject.UseEnergy(1000, $"{CLASS} {SpellType}");
+                CooldownMyActivatedAbility(SpellID, Cooldown);
                 return true;
             }
             return false;
@@ -87,7 +87,7 @@ namespace XRL.World.Parts
         //ExpendBlood should be invoked after Cast() returns true
         public void ExpendBlood()
         {
-            ParentObject.GetPart<Vitae>().SubtractBlood(Cost());
+            ParentObject.GetPart<Vitae>().SubtractBlood(Cost);
         }
     }
 }

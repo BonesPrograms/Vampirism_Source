@@ -12,8 +12,8 @@ namespace XRL.World.Parts
     [Serializable]
     public class GhoulSpell : VampiricSpell
     {
-        public override string SpellType() => GHOUL.ABILITY_NAME;
-        public override int Cooldown() =>  GHOUL.COOLDOWN;
+        public override Type SpellType => typeof(GhoulSpell);
+        public override int Cooldown =>  GHOUL.COOLDOWN;
         public Effect Ghoul;
         public Dictionary<GameObject, EnthralledGhoul> Ghouls = new();
         int MAX()
@@ -180,7 +180,7 @@ namespace XRL.World.Parts
 
         public override void AddSpell()
         {
-            SpellID = AddMyActivatedAbility(GHOUL.ABILITY_NAME, GHOUL.COMMAND_NAME, CLASS, null, "\u009f");
+            SpellID = AddMyActivatedAbility(GHOUL.ABILITY_NAME, GHOUL.COMMAND_NAME, $"{CLASS}", null, "\u009f");
         }
 
         public override void RemoveSpell()

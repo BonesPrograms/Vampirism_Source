@@ -13,15 +13,15 @@ namespace XRL.World.Parts
     [Serializable]
     public class EmbraceSpell : VampiricSpell
     {
-        public override string SpellType() => EMBRACE.ABILITY_NAME;
-        public override int Cooldown() => EMBRACE.COOLDOWN;
+        public override Type SpellType => typeof(EmbraceSpell);
+        public override int Cooldown => EMBRACE.COOLDOWN;
         public override void CollectStats(Templates.StatCollector stats)
         {
         }
 
         public override void AddSpell()
         {
-            SpellID = AddMyActivatedAbility(EMBRACE.ABILITY_NAME, EMBRACE.COMMAND_NAME, CLASS, null, "\u009f");
+            SpellID = AddMyActivatedAbility(EMBRACE.ABILITY_NAME, EMBRACE.COMMAND_NAME, $"{CLASS}", null, "\u009f");
         }
         //Budding
         //one important thing: make sure the corpse is not blueprint ashes, lol. and organic and other stuff too i suppose

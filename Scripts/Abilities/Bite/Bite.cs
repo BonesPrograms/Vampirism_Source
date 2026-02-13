@@ -21,7 +21,7 @@ namespace Nexus.Bite
         public bool HasPlasma { get; private set; }
         public bool HasBadLiquid => BadLiquids.ContainsSecondaryElement(true);
         public bool HasDisease => Diseases.ContainsSecondaryElement(true);
-        public bool IsPoisoned => Poisons.ContainsSecondaryElement(true);  
+        public bool IsPoisoned => Poisons.ContainsSecondaryElement(true);
         readonly Vampirism Vampirism;
         readonly BiteSimulator Sim;
 
@@ -77,7 +77,7 @@ namespace Nexus.Bite
         bool Fail(GameObject Target)
         {
             Vampirism.BiteActivate(Target);
-            if (Biter != null && Target != null)
+            if (Target != null)
             {
                 if (Biter.IsPlayer())
                     Popup.ShowFail("You reel away from " + Target.t() + "!");
@@ -87,6 +87,10 @@ namespace Nexus.Bite
                     IComponent<GameObject>.AddPlayerMessage($"{Biter.t()} reels away from {Target.t()}!");
                 Target.AddOpinion<OpinionDominate>(Biter);
             }
+            else if (Biter.IsPlayer())
+                Popup.ShowFail("You reel away!");
+            else
+                IComponent<GameObject>.AddPlayerMessage($"{Biter.t()} reels away!");
             return true;
         }
 
@@ -128,7 +132,7 @@ namespace Nexus.Bite
         /// </summary>
         public bool BadTarget(GameObject Target)
         {
-            CheckDictionaries(Target);
+            CheckArrays(Target);
             IsOnFire = Target.IsAflame();
             FlameProof();
             HasPlasma = Target.HasEffect<CoatedInPlasma>();
@@ -161,11 +165,11 @@ namespace Nexus.Bite
             }
             else
                 BadLiquids.Reset(); // only one that needs manual resetting
-                //other arrays are always scanned every bite
+                                    //other arrays are always scanned every bite
 
         }
 
-        void CheckDictionaries(GameObject Target)
+        void CheckArrays(GameObject Target)
         {
             DiseaseCheck(Target);
             PoisonCheck(Target);

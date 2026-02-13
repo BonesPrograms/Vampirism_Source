@@ -10,9 +10,9 @@ namespace XRL.World.Parts
     public class CoffinSpell : VampiricSpell
     {
         public GameObjectReference Coffin;
+        public override Type SpellType => typeof(CoffinSpell);
+        public override int Cooldown => COFFIN.MATERIALIZE_COOLDOWN;
         bool JustJaunted;
-        public override int Cooldown() => COFFIN.MATERIALIZE_COOLDOWN;
-        public override string SpellType() => COFFIN.ABILITY_NAME;
         public int JauntCooldown;
         public int Timer;
         public bool CoolingOff;
@@ -21,7 +21,7 @@ namespace XRL.World.Parts
         //uses vampirism level like all spells
         public override void AddSpell()
         {
-            SpellID = AddMyActivatedAbility(COFFIN.ABILITY_NAME, COFFIN.COMMAND_NAME, CLASS, null, "\u009f");
+            SpellID = AddMyActivatedAbility(COFFIN.ABILITY_NAME, COFFIN.COMMAND_NAME, $"{CLASS}", null, "\u009f");
         }
 
         public override bool WantEvent(int ID, int Cascade)
