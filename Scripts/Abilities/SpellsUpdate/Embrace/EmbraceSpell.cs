@@ -38,9 +38,10 @@ namespace XRL.World.Parts
                 {
                     var Object = cell.Objects[i];
                     if (Object.TryGetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, out string result))
-                        if (FinalizeEmbrace(Object, result))
-                            return;
-                    UI.Popup.Show($"You cannot embrace {Object.t()}");
+                    {
+                        FinalizeEmbrace(Object, result);
+                        return; //bug here would list EVERY object in the cell. we just take the first object with the flag. i dont really care if corpses are stacked, the player can deal with that
+                    }   //(because the game already has issues with trying to easily/quickly target two objets occupying the same cell)
                 }
             }
         }
@@ -52,12 +53,11 @@ namespace XRL.World.Parts
         //else      //reduces a lot of work on my end if i just get the first possible object and return
         //  SimulateParentObject(Object);
         //gets the first corpse with the embraceable property in a cell
-        bool FinalizeEmbrace(GameObject Object, string result)
+        void FinalizeEmbrace(GameObject Object, string result)
         {
             if (Object.HasEffect<Embraced>())
             {
                 UI.Popup.Show($"{Object.t()} is already being Embraced.");
-                return true;
             }
             else if (result == FLAGS.TRUE)
             {
@@ -67,14 +67,12 @@ namespace XRL.World.Parts
                         RealityStabilized.ShowGenericInterdictMessage(ParentObject);
                     else
                         Cast(Object);
-                    return true;
                 }
                 else
                 {
                     UI.Popup.Show($"{Object.t()}'s soul is too powerful for you to embrace.");
                 }
             }
-            return false;
 
         }
 

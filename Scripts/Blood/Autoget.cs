@@ -13,7 +13,7 @@ namespace Nexus.Blood
     {               ///this probably isnt as good/efficient of code as the dev's autoget but it works more consistently
         readonly GameObject Player;
         HashSet<LiquidVolume> PureBlood;
-        HashSet<GameObject> ContainerCache = new();
+        GameObject[] ContainerCache = new GameObject[0];
         const int MAX = 64;
         const string Container = "WaterContainer";
         const string Blood = "blood";
@@ -21,7 +21,7 @@ namespace Nexus.Blood
         public void Autogetter()
         {
             ValidateCache();
-            if (ContainerCache.Count > 0)
+            if (ContainerCache.Length > 0)
             {
                 FindBlood();
                 if (PureBlood != null)
@@ -41,14 +41,20 @@ namespace Nexus.Blood
                 if (CheckTag(obj.GetBlueprint()))
                     value++;
             }
-            if (value != ContainerCache.Count) //reduces our need to reset or re-instance the containers list over and over, which i expect to not change often
+            if (value != ContainerCache.Length) //reduces our need to reset or re-instance the containers list over and over, which i expect to not change often
             {
-                ContainerCache = new(value);
+                ContainerCache = new GameObject[value];
+                int index = 0;
                 for (int i = 0; i < Player.Inventory.Objects.Count; i++)
                 {
                     GameObject obj = Player.Inventory.Objects[i];
                     if (CheckTag(obj.GetBlueprint()))
-                        ContainerCache.Add(obj);
+                    {
+                        ContainerCache[index] = obj;
+                        index++;
+                    }
+                    if (index > ContainerCache.Length)
+                        break;
                 }
             }
         }
@@ -108,14 +114,18 @@ namespace Nexus.Blood
         // }
         void AddBlood()
         {
-            foreach (var container in ContainerCache)
+
+            for (int i = 0; i < ContainerCache.Length; i++)
             {
                 if (PureBlood.Count > 0)
                 {
+                    GameObject container = ContainerCache[i];
                     LiquidVolume Part = container.GetPart<LiquidVolume>();
                     if (!Part.Sealed && Part.Volume < MAX)
                         CheckForStoredLiquids(Part, container);
                 }
+                else
+                    break;
             }
         }
 

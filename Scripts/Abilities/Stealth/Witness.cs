@@ -16,7 +16,7 @@ namespace XRL.World.Parts
             return base.WantEvent(ID, Cascade);
         }
         public override bool HandleEvent(AfterObjectCreatedEvent E)
-        {
+        {   //this runs before the game even begins so you need a null check
             if (The.Player?.IsVampire() ?? false && StealthCore.ValidSentient(ParentObject))
             {
                 Check();

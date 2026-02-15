@@ -36,7 +36,7 @@ namespace XRL.World.Parts
 		public static Dictionary<GameObject, bool> Witnesses;
 
 		[GameBasedStaticCache(false, true)]
-		public static GameObject[] KeyArray = new GameObject[0]; //this was throwing during gamestart if i didnt create an instance of it prematurely. will need to do some more research as to why later
+		public static GameObject[] KeyArray = new GameObject[0]; //this was throwing nullref errors in Stealth() during gamestart if i didnt create an instance of it prematurely. will need to do some more research as to why later
 
 		[GameBasedStaticCache]
 		public static int TrueCount = 0;
