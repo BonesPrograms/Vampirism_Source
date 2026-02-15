@@ -61,11 +61,18 @@ namespace XRL.World.Parts
             }
             else if (result == FLAGS.TRUE)
             {
-                if (!ParentObject.IsRealityDistortionUsable())
-                    RealityStabilized.ShowGenericInterdictMessage(ParentObject);
+                if (Object.GetIntProperty(FLAGS.EMBRACE.LEVEL_ON_DEATH) > Level + ParentObject.Level)
+                {
+                    if (!ParentObject.IsRealityDistortionUsable())
+                        RealityStabilized.ShowGenericInterdictMessage(ParentObject);
+                    else
+                        Cast(Object);
+                    return true;
+                }
                 else
-                    Cast(Object);
-                return true;
+                {
+                    UI.Popup.Show($"{Object.t()}'s soul is too powerful for you to embrace.");
+                }
             }
             return false;
 

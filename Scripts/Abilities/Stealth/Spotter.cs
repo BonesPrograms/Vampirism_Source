@@ -31,19 +31,19 @@ namespace Nexus.Stealth
 
     class SpotterGenerator
     {
-        readonly Nightbeast Source;
+        readonly GameObject Source;
         readonly Dictionary<GameObject, int> SpotterRanges = new();
         KeyValuePair<GameObject, int> package;
         List<GameObject> PotentialSpotters;
-        public SpotterGenerator(Nightbeast Source, List<GameObject> PotentialSpotters)
+        public SpotterGenerator(GameObject Source, List<GameObject> PotentialSpotters)
         {
             this.Source = Source;
             this.PotentialSpotters = PotentialSpotters;
         }
 
-        SpotterGenerator(Nightbeast Source) => this.Source = Source;
+        SpotterGenerator(GameObject Source) => this.Source = Source;
 
-        public static SpotterGenerator GeneratorWithDefaultList(Nightbeast Source)
+        public static SpotterGenerator GeneratorWithDefaultList(GameObject Source)
         {
             SpotterGenerator gen = new(Source);
             gen.GiveDefaultList();
@@ -56,11 +56,11 @@ namespace Nexus.Stealth
         /// technically, your stealth state was valid, but some attacks pass the turn the moment they are completed, which gives the aforementioned
         /// APPEARANCE of stealth being broken instantly, as the ai travels one tile into your detection radius.
         /// 
-        bool Spotted(int distance, GameObject Spotter) => distance == Nexus.Rules.STEALTH.AI_RADIUS + 1 && Spotter.HasLOSTo(Source.ParentObject, false);
+        bool Spotted(int distance, GameObject Spotter) => distance == Nexus.Rules.STEALTH.AI_RADIUS + 1 && Spotter.HasLOSTo(Source, false);
         static string DefaultMessage(GameObject Spotter) => $"You try to sneak attack, but {Spotter.t()} spots you from a distance!";
         public void GiveDefaultList()
         {
-            PotentialSpotters = Source.Zone.ListPeopleWho(witness => StealthCore.ValidSentient(witness) && !witness.Unaware(false));
+            PotentialSpotters = Source.CurrentZone.ListPeopleWho(witness => StealthCore.ValidSentient(witness) && !witness.Unaware(false));
         }
         public Spot BeginAttackCheckIfSpotted<T>(string message = default) where T : IOpinionSubject, new()
         {
@@ -85,8 +85,8 @@ namespace Nexus.Stealth
             for (int i = 0; i < PotentialSpotters.Count; i++)
             {
                 GameObject witness = PotentialSpotters[i];
-                if (witness.canPathTo(Source.ParentObject.CurrentCell))
-                    SpotterRanges.Add(witness, witness.DistanceTo(Source.ParentObject));
+                if (witness.canPathTo(Source.CurrentCell))
+                    SpotterRanges.Add(witness, witness.DistanceTo(Source));
             }
             return SpotterRanges.Count == 0 ? null : SpotterRanges.Count == 1 ? OneKey() : ManyKeys();
         }
@@ -109,11 +109,11 @@ namespace Nexus.Stealth
             {
                 message = message == default ? DefaultMessage(Spotter) : message;
                 XRL.UI.Popup.Show(message);
-                Spotter.AddOpinion<T>(Source.ParentObject);
-                Spotter.ApplyEffect(new Spotter(Source.ParentObject, Nexus.Rules.FEED.DURATION, true));
+                Spotter.AddOpinion<T>(Source);
+                Spotter.ApplyEffect(new Spotter(Source, Nexus.Rules.FEED.DURATION, true));
             }
             else
-                Spotter.ApplyEffect(new Spotter(Source.ParentObject, Nexus.Rules.FEED.DURATION, false));
+                Spotter.ApplyEffect(new Spotter(Source, Nexus.Rules.FEED.DURATION, false));
             return spot;
         }
 

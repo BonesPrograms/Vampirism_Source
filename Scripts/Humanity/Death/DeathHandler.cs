@@ -6,7 +6,7 @@ using Nexus.Death;
 using Nexus.Core;
 using Nexus.Rules;
 using XRL.UI;
-using Nexus.Registry;
+using Nexus.Stealth;
 
 namespace XRL.World.Parts
 {
@@ -25,7 +25,7 @@ namespace XRL.World.Parts
         public override bool WantEvent(int ID, int cascade)     //so you could dominate a snapjaw, and load a zone with snapjaws, and then come back as the original player
         {                                                       //start feeding on them and then lose humanity because they have the innocent flag
             if (!finished && ID == SingletonEvent<BeforeTakeActionEvent>.ID) //(for various reasons, checking hostility on death doesnt work)
-                return true;                                                           
+                return true;
             if (Options.GetOptionBool(OPTIONS.FRACTUS_NERF) && ID == TookDamageEvent.ID)
                 return true;
             if (ID == DeathEvent.ID)
@@ -60,9 +60,9 @@ namespace XRL.World.Parts
                 if (Options.GetOptionBool(Nexus.Rules.OPTIONS.DOUG) && friendly && !Dying.IsGhoulOf(The.Player) && !Dying.IsBeguiledBy(The.Player))
                     return;                             //The.Player != this.Player if the player is dominating. Targets beguiled by a gameobject will not be loyal to gameobjects that they dominate, only the source object
                 else                                    //so for us this means morality and friendship is relative to how AI feel about the player's current body rather than original body
-                    new Deaths(Player, Dying, Killer, friendly, Dying.IsHostileTowards(The.Player)).Possibilities(); 
-            }                                                                                               
-        }                                                                                                   
+                    new Deaths(Player, Dying, Killer, friendly, Dying.IsHostileTowards(The.Player)).Possibilities();
+            }
+        }
 
         static void MarkForEmbrace(GameObject Dying, bool isvampire) //only "feedable" targets can become vampires, but deathhandler only exists as a part on feedable objects, so the check is already done
         {                                   //corpse objects whose source object didnt have this part wont have the property at all and thus will not be embraceable
@@ -101,7 +101,7 @@ namespace XRL.World.Parts
         /// Ensures that the Player field is assigned to the player's source, original GameObject and that the player is a vampire before beginning.
         /// </summary>
         /// <returns></returns>
-        static bool Security() => Player?.HasEffect<Dominated>() ?? true ? FindTruePlayer() : Player.HasPart<Vampirism>();
+        public static bool Security() => Player?.HasEffect<Dominated>() ?? true ? FindTruePlayer() : Player.HasPart<Vampirism>();
         static bool FindTruePlayer()
         {
             if (The.Player.TryGetEffect(out Dominated e))

@@ -11,6 +11,7 @@ using XRL.World;
 using XRL.World.Parts;
 using System.Reflection;
 using HarmonyLib;
+using Nexus.Stealth;
 using XRL;
 
 namespace Nexus.Core
@@ -80,6 +81,11 @@ namespace XRL.World.Parts
 
         public bool IsVampire = default;
 
+        public admn()
+        {
+            
+        }
+
         public admn(bool IsVampire)
         {
             this.IsVampire = IsVampire;
@@ -105,11 +111,11 @@ namespace XRL.World.Parts
         #region Message Timers
 
         public bool SkipABeat = false;
-        public int BeatSkipValue;
+        public int BeatSkipValue = default;
         public bool Skip = false;
-        public int SkipValue;
+        public int SkipValue = default;
         public bool BigSkip = false;
-        public int BigSkipValue;
+        public int BigSkipValue = default;
         #endregion
 
         #region Stealth
@@ -131,18 +137,16 @@ namespace XRL.World.Parts
                 return ID == SingletonEvent<BeforeTakeActionEvent>.ID;
             return true;
         }
-        Nightbeast _n = null;
-        Nightbeast n => _n ??= ParentObject.GetPart<Nightbeast>();
         public override bool HandleEvent(BeforeTakeActionEvent E)
         {
             if (IsVampire)
             {
                 if (showStealthed || showStealthy || ShowActiveStealthed)
-                    Properties(ParentObject, n.StealthStage1, n.StealthStage2);
+                    Properties(ParentObject, Nightbeast.StealthStage1, Nightbeast.StealthStage2);
                 else
                     Properties();
                 if (names == true)
-                    ShowStealthList(n.Witnesses);
+                    ShowStealthList(Nightbeast.Witnesses);
             }
             else if (wantsVampirism)
             {
@@ -345,6 +349,15 @@ namespace XRL.World.Parts
 
         #region Vampirism Wishes
 
+        [WishCommand("staticstealth")]
+        
+        public static void Staticstealth()
+        {
+            AddPlayerMessage($"{StealthCore.Player.DisplayName}");
+            AddPlayerMessage($"{StealthCore.Zone}");
+
+        }
+
         [WishCommand("comparelevels")]
 
         public static void CompareLevels() //for the diablerie update
@@ -387,7 +400,7 @@ namespace XRL.World.Parts
             GameObject GO = The.Player;
             if (GO.CmdTarget("vampirize", out var pick))
             {
-                var v = GO.RequireMutation<Vampirism>();
+                pick.RequireMutation<Vampirism>();
                 //    v.Mutate(GO, 1);
                 IComponent<GameObject>.AddPlayerMessage("Vampirized");
             }

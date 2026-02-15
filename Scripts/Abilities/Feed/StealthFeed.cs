@@ -17,8 +17,6 @@ namespace XRL.World.Effects
 	public class StealthFeed : IFeeding
 	{
 		public bool ActiveStealth;
-		public Nightbeast Stealthpart => _Stealthpart ??= Object.GetPart<Nightbeast>();
-		Nightbeast _Stealthpart;
 		public StealthFeed() : base()
 		{
 		}
@@ -62,7 +60,7 @@ namespace XRL.World.Effects
 
 		public override bool HandleEvent(BeforeTakeActionEvent E) //synced with nightbeast
 		{
-				ActiveStealth = Stealthpart.StealthStage2;
+				ActiveStealth = Nightbeast.StealthStage2;
 				if (!ActiveStealth)
 					CaughtInTheAct();
 			return base.HandleEvent(E);
@@ -82,7 +80,7 @@ namespace XRL.World.Effects
 		}
 		void CaughtInTheAct()
 		{
-			DoAlert(Alert.AlertWithDefaultList(Stealthpart));
+			DoAlert(Alert.AlertWithDefaultList(Object));
 			if (other?.Object?.MakeSave("Toughness", 13, null, null, "Woke During Feeding") is false)
 				other.Object.ApplyEffect(new Terrified(WikiRng.Next(16, 20), base.Object, false, false));
 			Duration = 0;

@@ -43,9 +43,10 @@ namespace Nexus.Update
         }
         public static void MarkAsOldSave(GameObject GO)
         {
-            GO.SetStringProperty(FLAGS.OLD_SAVE, MOD.VERSION);
-        }
-        static bool CheckCorpse(GameObject GO)
+            GO.SetStringProperty(FLAGS.OLD_SAVE, MOD.VERSION); //this may serve as a mod version identifier in the future
+        }                                                       //anyone who doesnt have it will get it, anyone who has it and doesnt sync with the version will be updated
+                                                                //furthermore, our WantEvent that checks for OLD_SAVE will compare it against the version, rather than check for it in general
+        static bool CheckCorpse(GameObject GO)                  
         {
             if (!GO.HasStringProperty(FLAGS.CORPSE))
             {

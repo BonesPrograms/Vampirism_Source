@@ -23,6 +23,7 @@
 	
 	<object Name="Creature" Inherits="PhysicalObject" Load="Merge">
 		<part Name="DeathHandler"/> 
+		<part Name="WitnessCreatedListener"/>
 	</object> 
 
 	<object Name="BloodVomitPool" Inherits="Water">

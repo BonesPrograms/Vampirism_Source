@@ -99,7 +99,9 @@ namespace Nexus.Properties
         /// </summary>
         public const string DEAD = "VampirismModKilledDuringFeed";
 
-        public const string OLD_SAVE = "OldVampirismSaveNeedsUpdate";
+        public const string OLD_SAVE = "OldVampirismSaveNeedsUpdate"; //note: this may become a mod version identifier for all vampires on gameload/
+        //                                                              /anyone who doesnt have it will get it, anyone who has it and doesnt sync with the version will be updated
+                                                                //furthermore, our WantEvent that checks for OLD_SAVE will compare it against the version, rather than check for it in general
 
         public const string VALID = "ValidSentientObject";
     }

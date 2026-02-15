@@ -5,21 +5,74 @@ using Nexus.Core;
 using XRL.World.Effects;
 using System.Linq;
 using XRL.World.Parts;
+using Nexus.Wish;
+using XRL;
 
 namespace Nexus.Stealth
 {
     /// <summary>
     /// Scans the environment and constantly updates the lists used in Nightbeast.
     /// </summary>
-    public class StealthCore
+    [HasGameBasedStaticCache]
+    public static class StealthCore
     {
-        readonly Nightbeast Source;
-        public LightLevel? LightLevel;
-        public StealthCore(Nightbeast Source) => this.Source = Source;
-        public StealthCore(Nightbeast Source, LightLevel? LightLevel)
+
+        static bool needNewArray = false;
+        public static GameObject Player => The.Player;
+
+        [GameBasedStaticCache]
+        public static Zone Zone;
+
+        [GameBasedStaticCache]
+        public static LightLevel? LightLevel;
+
+        static GameObject[] KeyArray => Nightbeast.KeyArray;
+        public static void ScanEnvironment() //this method runs on zone/gameload, it puts every valid sentient into a dictionary and then the dictionary takes over
+        {                                           //objects created after this point will add themselves to the dictionary in the WitnessCreatedListener part, if they are valid
+            for (int y = 0; y < Zone.Height; y++)
+            {
+                for (int x = 0; x < Zone.Width; x++)
+                {
+                    Cell cell = Zone.Map[x][y];
+                    for (int i = 0; i < cell.Objects.Count; i++)
+                    {
+                        CheckValidity(cell.Objects[i]);
+                    }
+                }
+            }
+        }
+        public static void Stealth()
         {
-            this.Source = Source;
-            this.LightLevel = LightLevel;
+            for (int i = 0; i < KeyArray.Length; i++)
+            {
+                GameObject obj = KeyArray[i];
+                if (obj == null)
+                    needNewArray = true;
+                else if (!obj.HasHitpoints())
+                    Nightbeast.Witnesses.Remove(KeyArray[i]);
+                else
+                {
+                    bool check = NearbySentient(obj) && ActiveWitness(obj); //but this can change actively!
+                    Nightbeast.Witnesses[obj] = check;
+                    if (check)
+                        Nightbeast.TrueCount++; //the count is re-iterated every single turn
+                }
+            }
+            if (Nightbeast.Witnesses.Count != KeyArray.Length)
+                needNewArray = true;
+            if (needNewArray)
+            {
+                Nightbeast.KeyArray = Nightbeast.Witnesses.KeyArray();
+                needNewArray = false;
+            }
+        }
+
+        static void CheckValidity(GameObject obj) //zoneload
+        {
+            if (ValidSentient(obj))
+            {
+                Nightbeast.Witnesses[obj] = NearbySentient(obj) && ActiveWitness(obj);
+            }
         }
 
         /// <summary>
@@ -27,19 +80,32 @@ namespace Nexus.Stealth
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public bool ActiveWitness(GameObject obj)
+        /// 
+        /// 
+        public static bool ActiveWitness(GameObject obj)
         {
-            return !obj.Unaware(false) && !Shrouded(obj) && !obj.IsFriendly(Source.ParentObject) && obj.HasHitpoints() && CheckEffect(obj.Effects);
+            return !obj.Unaware(false) && !Shrouded(obj) && !IsFriendly(obj) && obj.HasHitpoints() && CheckEffect(obj.Effects);
         }
+
+        public static bool IsFriendly(GameObject who)
+        {
+            return who.IsInLoveWith(Player) || who.InSamePartyAs(Player) || who.IsPlayerControlled() || who.IsPlayerLed();
+        }
+
+        //Custom version of IsFriendly - the extension method in Core was causing a major bug. People who were allied to you were not considered witnesses, which was very noticeable when dominating
+        //a vampiric farmer in Joppa.
+        //this caused a serious bug that took me HOURS to figure out (i never tested stealth as an NPC vampire) becasue i was in the middle of a rework of the system and didnt know where the issue was
+        //really this issue has existed since day one and im surprised no one reported it yet
+        //the bug in question - no one would be able to return true as a witness because everyone in joppa was allied to the farmer you were dominating
 
         /// <summary>
         /// The evaluation that separates a NearbySentient from a ValidSentient. It restricts by AI RADIUS and LOS.
         /// </summary>
         /// <param name="witness"></param>
         /// <returns></returns>
-        public bool NearbySentient(GameObject witness)
+        public static bool NearbySentient(GameObject witness)
         {
-            return witness.HasLOSTo(Source.ParentObject, false) && witness.DistanceTo(Source.ParentObject) <= Nexus.Rules.STEALTH.AI_RADIUS && witness.InSameZone(Source.ParentObject);
+            return witness.HasLOSTo(Player, false) && witness.DistanceTo(Player) <= Nexus.Rules.STEALTH.AI_RADIUS && witness.InSameZone(Player);
         }
 
         /// <summary>
@@ -50,11 +116,12 @@ namespace Nexus.Stealth
         public static bool ValidSentient(GameObject witness)
           =>
             witness?.Brain != null
+            && witness != Player
             && witness.IsCombatObject()
             && !Inanimate(witness); //insamezone check cannot go here because we use this to check nextzone in EZ event and i dont feel like adding a zone parameter
         public static bool Inanimate(GameObject witness)
      =>
-         witness.Body?.Anatomy == "Echinoid"
+        witness.Body?.Anatomy == "Echinoid"
         || CheckTags(witness.GetBlueprint())
         || CheckParts(witness.PartsList);
 
@@ -125,25 +192,25 @@ namespace Nexus.Stealth
         /// <param name="witness"></param>
         /// <returns></returns>
 
-        public bool Shrouded(GameObject witness)
+        static bool Shrouded(GameObject witness)
          =>
             LightLevel switch
             {
                 XRL.World.LightLevel.None or XRL.World.LightLevel.Darkvision or XRL.World.LightLevel.Dimvision
-                => !SpottedByDarkvision(witness, Source.ParentObject.DistanceTo(witness)), //shrouded must return true, but if SpottedByDarkvision is true, then we have to return false
+                => !SpottedByDarkvision(witness, Player.DistanceTo(witness)), //shrouded must return true, but if SpottedByDarkvision is true, then we have to return false
                 null => BadLight(),
                 _ => false
             };
 
-        bool BadLight()
+        static bool BadLight()
         {
             string err = "Err @ StealthCore.Shrouded()";
-            string message = Source.ParentObject?.CurrentCell is null ? $"{err} : current cell is null, lightlevel null" : $"{err} : attempting to access Shrouded() without assigning light level!";
+            string message = Player?.CurrentCell is null ? $"{err} : current cell is null, lightlevel null" : $"{err} : attempting to access Shrouded() without assigning light level!";
             MetricsManager.LogModError(XRL.ModManager.GetMod("vampirism"), message);
             return false;
         }
 
-        bool SpottedByDarkvision(GameObject witness, int DistanceTo)
+        static bool SpottedByDarkvision(GameObject witness, int DistanceTo)
         {
             // if (witness.TryGetPart(out DarkVision D) && DistanceTo <= D.Radius)
             //     return true;
@@ -156,40 +223,7 @@ namespace Nexus.Stealth
             return false;
         }
 
-        public void Sift()
-        {
-            foreach (var obj in Source.Witnesses.KeyArray())
-            {
-                if (!obj?.HasHitpoints() ?? true)
-                    Source.Witnesses.Remove(obj); //stealth system re-checks the zone every single turn after loading and will change flags of objects based on the two bool methods
-            }                                       //however tests with frenzy showed us that dead objects will remain dormant in the citionary, so we need to sift our dictionary as well
-        }                                           //though we do not need to worry about samezone like we do there because we recreate the dictionary on zoneload
-        public void ScanEnvironment()
-        {
-            Sift();
-            for (int y = 0; y < Source.Zone.Height; y++)
-            {
-                for (int x = 0; x < Source.Zone.Width; x++)
-                {
-                    Cell cell = Source.Zone.Map[x][y];
-                    for (int i = 0; i < cell.Objects.Count; i++)
-                    {
-                        CheckValidity(cell.Objects[i]);
-                    }
-                }
-            }
-        }
 
-        void CheckValidity(GameObject obj)
-        {
-            if (obj.TryGetStringProperty(Properties.FLAGS.VALID, out var result) && result == Properties.FLAGS.TRUE)
-            {
-                bool Check = NearbySentient(obj) && ActiveWitness(obj);
-                Source.Witnesses[obj] = Check;
-                if (Check)
-                    Source.TrueCount++;
-            }
-        }
     }
 }
 

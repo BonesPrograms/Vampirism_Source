@@ -27,11 +27,11 @@ namespace XRL.World.Parts.Mutation
 		public string ManagerID => ParentObject.ID + "::Vampiric Fangs";
 		public override bool CanSelectVariant => false;
 		public override bool UseVariantName => false;
-		public bool GameOver;
-		public int bloodycounter;
+		public bool GameOver = default;
+		public int bloodycounter = default;
 
 		[NonSerialized]
-		public bool WasTerrifiedByFlames;
+		public bool WasTerrifiedByFlames = default;
 
 		public override string GetDescription() => "You feed on the blood of living creatures.";
 		public string GetDamageDice()
@@ -130,7 +130,7 @@ namespace XRL.World.Parts.Mutation
 			if (E.NewBody.IsVampire())                                  //because only players with vampire parts can request an update
 			{                                                           //though this can be fixed by saving/loading as the dominatee
 				Nexus.Update.Update.Spells(E.NewBody);
-				if (E.OldBody.HasStringProperty(FLAGS.OLD_SAVE))
+				if (E.OldBody?.HasStringProperty(FLAGS.OLD_SAVE) ?? false)
 					E.NewBody.SetStringProperty(FLAGS.OLD_SAVE, null);
 			}
 			return base.HandleEvent(E);
@@ -384,7 +384,7 @@ namespace XRL.World.Parts.Mutation
 		{
 			if (ParentObject.IsPlayer())
 			{
-				AddPlayerMessage("ROTSCHREK!!!");
+				AddPlayerMessage("{{R|ROTSCHREK!!!}}");
 			}
 		}
 		public override IPart DeepCopy(GameObject Parent, Func<GameObject, GameObject> MapInv)

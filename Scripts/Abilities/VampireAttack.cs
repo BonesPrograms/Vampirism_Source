@@ -32,19 +32,18 @@ namespace Nexus.Attack
         }
         public void Attack(bool frenzy)
         {
-            Nightbeast n = Source.ParentObject.IsPlayer() ? Source.ParentObject.GetPart<Nightbeast>() : null;
             Target.ApplyEffect(new Vampires_Kiss(FEED.DURATION));
-            if (!frenzy && !friendly && (n?.ValidateStealthATK(Target) ?? false) && SpotterCheck(n))
+            if (Source.ParentObject.IsPlayer() && Nightbeast.Stealthed && !frenzy && !friendly && SpotterCheck())
                 StealthATK();
             else
                 CombatFeed(frenzy);
         }
 
-        bool SpotterCheck(Nightbeast n)
+        bool SpotterCheck()
         {
-            if (SpotterGenerator.GeneratorWithDefaultList(n).BeginAttackCheckIfSpotted<OpinionDominate>(out GameObject spotter) == Spot.SPOTTER_IN_DETECTION)
+            if (SpotterGenerator.GeneratorWithDefaultList(Source.ParentObject).BeginAttackCheckIfSpotted<OpinionDominate>(out GameObject spotter) == Spot.SPOTTER_IN_DETECTION)
             {
-                Alert alert = Alert.AlertWithDefaultList(n, spotter);
+                Alert alert = Alert.AlertWithDefaultList(Source.ParentObject, spotter);
                 alert.Add(Target);
                 alert.RemoveSleepFromWitnesses();
                 alert.AddOpinionToWitnessesAndExposer<OpinionDominate>();

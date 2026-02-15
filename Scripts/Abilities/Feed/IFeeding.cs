@@ -103,14 +103,18 @@ namespace XRL.World.Effects
 		{
 			if (Object != null && (!other?.Object?.HasPart<Fledgling>() ?? false))
 			{
-				//if (AutoLevel || WikiRng.Next(1, 100) == 100)
-			//	{
+				if (AutoLevel || WikiRng.Next(1, 100) == 100)
+				{
+					
 					if (Object.IsPlayer())
-						UI.Popup.Show($"Diablerie! You consume {other.Object.t()}'s power!");
+					{
+						string msg = WikiRng.Next(1, 2) == 2 ? "Diablerie!" : "Amaranth!";
+						UI.Popup.Show($"{msg} You consume {other.Object.t()}'s soul!");
+					}
 					var e = Object.GetPart<Vampirism>();
 					e.BaseLevel++;
 					e.ChangeLevel(e.Level);
-			//	}
+				}
 			}
 		}
 
@@ -157,7 +161,7 @@ namespace XRL.World.Effects
 
 		protected void CheckIfRecognized()
 		{
-			if(!Ghoul && Object.TryGetLongProperty(FLAGS.VICTIM, FLAGS.VICTIM_HOSTILE, out var value) && value > 1000)
+			if (!Ghoul && Object.TryGetLongProperty(FLAGS.VICTIM, FLAGS.VICTIM_HOSTILE, out var value) && value > 1000)
 				AddPlayerMessage("You recognize the flavor of this one.");
 		}
 		protected bool Feed()
@@ -293,13 +297,13 @@ namespace XRL.World.Effects
 		{
 			if (!base.Object.HasEffect<Dominated>()) //if the player ever encounters an AI vampire they can go crazy without fear of losing any humanity themselves during feeding
 			{                                       //but only feeding, anything else tracks back to the original player's humanity score
-				if (other?.Object?.CheckFlag(FLAGS.INNOCENT) ?? false) 
+				if (other?.Object?.CheckFlag(FLAGS.INNOCENT) ?? false)
 					other.Object.SetLongProperty(FLAGS.VICTIM, The.Game.Turns);
 				else if (other?.Object?.IsFriendly(base.Object) ?? false)
 					other.Object.SetLongProperty(FLAGS.VICTIM_HOSTILE, The.Game.Turns);
 			} //this also serves as a huge security measure: if you are dominating, humanity loss by feeding is local as previously stated
-				//however, the death penalty system does not check for the Innocence flag, because Hostile Victims are not considered innocent
-		}		//so if dominated targets were able to apply victim, then you would come back and kill them as the original  player and lose humanity
+			  //however, the death penalty system does not check for the Innocence flag, because Hostile Victims are not considered innocent
+		}       //so if dominated targets were able to apply victim, then you would come back and kill them as the original  player and lose humanity
 				//I COULD compare feeders by ID as a string property, but humanity is mostly only relative to the player, and i dont care if the Victims part of the Deaths system is inactive when dominating
 		public sealed override bool UseStandardDurationCountdown()
 		{

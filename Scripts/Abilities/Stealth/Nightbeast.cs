@@ -5,70 +5,94 @@ using Nexus.Properties;
 using Nexus.Stealth;
 using XRL.World.Capabilities;
 
+
+//to avoid enumeration issues, witnesses are converted to a key array after the zone is scanned
+//our WitnessCreatedListener adds witnesses to the dictionary if they are valid, which will create an enumeration error in StealthCore.Stealth
+//important to note: stealth only runs if parentobject.isplayer() (see WantEvent) so you dont need to worry about NPC vampires modifying the list, they are not even receiving the beforetakeaction event
+
+//recently the system has been changed to be 99% static
+//only the player experiences stealth so it doesnt really need to be instance data based at all
+//player can dominate any vampire object and the system will shift to the new object
+//because the system only ever looks for The.Player
+//but the Nightbeast part will not run stealth if it's parentobject isnt the player
+//having this part, at this point, little more than a tag saying "I am a vampire, run stealth if I am the player" (because thats all this is for)
+
 namespace XRL.World.Parts
 {
 
 	/// <summary>
-	/// The stealth system for vampirism that enables stealth feeding and introduces witnesses.
+	/// The stealth system for vampirism that enables stealth feeding and introduces witnesses.	
 	/// </summary>
 	[Serializable]
 
+	[HasGameBasedStaticCache]
 	public class Nightbeast : IPart
 	{
 
-		[NonSerialized]
-		public Dictionary<GameObject, bool> Witnesses = new();
+		[GameBasedStaticCache]
+		public static bool NeedsReactivate = false; //for gamestart
 
-		[NonSerialized]
-		public int TrueCount;
-		public StealthCore Core => _Core ??= new StealthCore(this);
-		public ActiveStealth ActiveStealth => _ActiveStealth ??= new ActiveStealth(this);
-		public Zone Zone => ParentObject.CurrentZone;
-		StealthCore _Core;
-		ActiveStealth _ActiveStealth;
+		[GameBasedStaticCache(false)]
+		public static Dictionary<GameObject, bool> Witnesses;
+
+		[GameBasedStaticCache(false, true)]
+		public static GameObject[] KeyArray = new GameObject[0]; //this was throwing during gamestart if i didnt create an instance of it prematurely. will need to do some more research as to why later
+
+		[GameBasedStaticCache]
+		public static int TrueCount = 0;
 
 		/// <summary>
 		/// Stage one means that there is only one witness.
 		/// </summary>
-
-		public bool StealthStage1;
+		/// 
+		[GameBasedStaticCache]
+		public static bool StealthStage1 = default;
 
 		/// <summary>
 		/// Stage two means there are no witnesses.
 		/// </summary>
-		public bool StealthStage2;
+		/// 
+		[GameBasedStaticCache]
+		public static bool StealthStage2 = default;
+
+		//either/or means stealth ATK is valid
+		public static bool Stealthed => StealthStage1 || StealthStage2;
+
 		public override bool WantEvent(int ID, int cascade)
 		{
-			if (!AutoAct.IsActive() && ParentObject.IsPlayer() && ID == SingletonEvent<BeforeTakeActionEvent>.ID)
+			if (ID == AfterPlayerBodyChangeEvent.ID)
 				return true;
-			if (ID == EnteringZoneEvent.ID)
-				return true;
+			if (ParentObject.IsPlayer())
+			{
+				if (!AutoAct.IsActive() && ID == SingletonEvent<BeforeTakeActionEvent>.ID)
+					return true;
+				if (ID == EnteringZoneEvent.ID)
+					return true;
+				if (ID == AfterGameLoadedEvent.ID)
+					return true;
+			}
 			return base.WantEvent(ID, cascade);
 		}
-		/// maybe?:
-		/// For those who want to evaluate or modify stealth externally, especially on a turn-by-turn basis, it is paramount to do so within the BeforeTakeActionEvent handler, so that they are perfectly synced.
-		/// Any "reactions" (such as Run, stealth being broken, setting an effect duration to 0) should also be handled in the same method to avoid a noticeable waiting period. The EndTurnEvent is not recommended.
-		/// 
 
+		public override bool HandleEvent(AfterPlayerBodyChangeEvent E)
+		{
+			NeedsReactivate = true;
+			return base.HandleEvent(E);
+		}
+		public override bool HandleEvent(AfterGameLoadedEvent E)
+		{
+			Reactivate();
+			return base.HandleEvent(E);
+		}
 		public override bool HandleEvent(EnteringZoneEvent E)
 		{
-			Witnesses = new(E.Cell.ParentZone.ObjectCount(CountRules)); //will give us a dictionary with the exact capacity necessary on zone load
-			return base.HandleEvent(E);									//ValidSentient() is the "sifter", anything that is valid gets added to the dictionary
-		}																//and is sorted by true/false from there, never removed unless necessary
-
-		public static bool CountRules(GameObject Object)
-		{
-			int value = Object.CheckIfPropertyExistsWithValue(FLAGS.VALID, FLAGS.TRUE);
-			if (value == 0) // 0 == doesnt exist
-			{
-				bool valid = StealthCore.ValidSentient(Object);
-				Object.SetStringProperty(FLAGS.VALID, valid ? FLAGS.TRUE : FLAGS.FALSE);
-				return valid;
-			}
-			return value == 1; //1 == string property value == FLAGS.TRUE
+			Reactivate(E.Cell.ParentZone);
+			return base.HandleEvent(E);
 		}
 		public override bool HandleEvent(BeforeTakeActionEvent E)
 		{
+			if (NeedsReactivate)
+				Reactivate();
 			if (!ParentObject.IsInCombat())
 				RunStealthSystem();
 			else if (StealthStage1 || StealthStage2)
@@ -76,29 +100,35 @@ namespace XRL.World.Parts
 			return base.HandleEvent(E);
 		}
 
-		void HaltStealthSystem(string text)
+		static void Reactivate()
 		{
-			if (ParentObject.Target != null)
+			Reactivate(The.Player.CurrentZone);
+			NeedsReactivate = false;
+		}
+
+		static void Reactivate(Zone zone) //system relies on pinging the zone on load (or receiving new objects when one is created) and then strictly sifts through its own dictionary from then on for evaluation
+		{
+			Witnesses = new();
+			StealthCore.Zone = zone;
+			StealthCore.LightLevel = The.Player.CurrentCell?.GetLight();
+			StealthCore.ScanEnvironment();
+			KeyArray = Witnesses.KeyArray();
+		}
+
+		static void HaltStealthSystem(string text)
+		{
+			if (The.Player.Target != null)
 				AddPlayerMessage(text);
-			ParentObject.SetStringProperty(FLAGS.STEALTH, FLAGS.FALSE);
+			The.Player.SetStringProperty(FLAGS.STEALTH, FLAGS.FALSE);
 			StealthStage1 = false;
 			StealthStage2 = false;
 		}
-		void RunStealthSystem()
+		static void RunStealthSystem()
 		{
 			TrueCount = default;
-			Core.LightLevel = ParentObject.CurrentCell?.GetLight();
-			Core.ScanEnvironment();
-			ActiveStealth.SetStealth(TrueCount);
+			StealthCore.LightLevel = The.Player.CurrentCell?.GetLight();
+			StealthCore.Stealth();
+			ActiveStealth.SetStealth();
 		}
-
-		/// <summary>
-		/// This supports the one witness feature: it ensures that there are either no witnesses in sight, or if there is one witness, that you are attacking the one
-		/// witness themself.
-		/// </summary>
-		/// <param name="Target"></param>
-		/// <returns></returns>
-		public bool ValidateStealthATK(GameObject Target) => (StealthStage1 || StealthStage2) && (Witnesses.Count == 0 || Witnesses.ContainsKey(Target));
-
 	}
 }

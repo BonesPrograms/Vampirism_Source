@@ -3,6 +3,7 @@ using XRL.World;
 using XRL.World.Parts;
 using System.Linq;
 using Nexus.Core;
+using XRL;
 
 namespace Nexus.Stealth
 {
@@ -10,16 +11,13 @@ namespace Nexus.Stealth
     /// <summary>
     /// Handles UI and sets global stealth flags.
     /// </summary>
-    public class ActiveStealth //i plan to one day, maybe, turn this into an "Actual" UI, so i made it a separate class to avoid serialization issues down the line post-release
+    public static class ActiveStealth //i plan to one day, maybe, turn this into an "Actual" UI, so i made it a separate class to avoid serialization issues down the line post-release
     {
-        readonly Nightbeast Source;
+        public static GameObject Player => The.Player;
         const int SINGLE = 1;
         const int NONE = 0;
-        public ActiveStealth(Nightbeast Source)
-        {
-            this.Source = Source;
-        }
-        public void SetStealth(int ActiveWitnessCount)
+        static int ActiveWitnessCount => Nightbeast.TrueCount;
+        public static void SetStealth()
         {
             switch (ActiveWitnessCount)
             {
@@ -35,46 +33,45 @@ namespace Nexus.Stealth
             }
         }
 
-        void Single(int count)
+        static void Single(int count)
         {
-            if (!Source.StealthStage1)
-            {
-
-                    IComponent<GameObject>.AddPlayerMessage(Display(count));
-                Source.StealthStage1 = true;
-                Source.StealthStage2 = false;
-                Source.ParentObject.SetStringProperty(FLAGS.STEALTH, FLAGS.TRUE);
-            }
-        }
-
-        void None(int count)
-        {
-            if (!Source.StealthStage2)
-            {
-
-                    IComponent<GameObject>.AddPlayerMessage(Display(count));
-                Source.StealthStage2 = true;
-                Source.StealthStage1 = false;
-                Source.ParentObject.SetStringProperty(FLAGS.STEALTH, FLAGS.TRUE);
-            }
-        }
-
-        void Broken(int count)
-        {
-            if (Source.StealthStage1 || Source.StealthStage2)
+            if (!Nightbeast.StealthStage1)
             {
                 IComponent<GameObject>.AddPlayerMessage(Display(count));
-                Source.StealthStage2 = false;
-                Source.StealthStage1 = false;
-                Source.ParentObject.SetStringProperty(FLAGS.STEALTH, FLAGS.FALSE);
+                Nightbeast.StealthStage1 = true;
+                Nightbeast.StealthStage2 = false;
+                Player.SetStringProperty(FLAGS.STEALTH, FLAGS.TRUE);
             }
         }
-        string Display(int count)
+
+        static void None(int count)
+        {
+            if (!Nightbeast.StealthStage2)
+            {
+
+                    IComponent<GameObject>.AddPlayerMessage(Display(count));
+                Nightbeast.StealthStage2 = true;
+                Nightbeast.StealthStage1 = false;
+               Player.SetStringProperty(FLAGS.STEALTH, FLAGS.TRUE);
+            }
+        }
+
+        static void Broken(int count)
+        {
+            if (Nightbeast.StealthStage1 || Nightbeast.StealthStage2)
+            {
+                IComponent<GameObject>.AddPlayerMessage(Display(count));
+                Nightbeast.StealthStage2 = false;
+                Nightbeast.StealthStage1 = false;
+                Player.SetStringProperty(FLAGS.STEALTH, FLAGS.FALSE);
+            }
+        }
+        static string Display(int count)
          =>
             count switch
             {
                 NONE => "{{B|No witnesses.}}",
-                SINGLE => "{{O|" + Source.Witnesses.PickFirst(true).Key.t() + " is the only witness.}}",
+                SINGLE => "{{O|" + Nightbeast.Witnesses.PickFirst(true).Key.t() + " is the only witness.}}",
                 _ => "{{R|Witnesses!}}",
             };
 

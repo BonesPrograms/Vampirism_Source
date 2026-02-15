@@ -15,7 +15,7 @@ namespace Nexus.Stealth
 
     class Alert
     {
-        readonly Nightbeast Source;
+        readonly GameObject Source;
 
         /// <summary>
         /// For popups.
@@ -38,27 +38,27 @@ namespace Nexus.Stealth
         /// <param name="Exposer">If using spotters and the return value is SPOTTER_IN_DETECTION, it is recommended to assign the spotter to the exposer for consistency.
         /// </param>
         /// <param name="Target"></param>
-        public Alert(Nightbeast Source, List<GameObject> Witnesses, GameObject Exposer = null)
+        public Alert(GameObject Source, List<GameObject> Witnesses, GameObject Exposer = null)
         {
             this.Source = Source;
             this.Witnesses = Witnesses;
             this.Exposer = Exposer;
         }
 
-        Alert(Nightbeast Source, GameObject Exposer = null)
+        Alert(GameObject Source, GameObject Exposer = null)
         {
             this.Source = Source;
             this.Exposer = Exposer;
         }
 
-        public static Alert AlertWithDefaultList(Nightbeast Source, GameObject Exposer = null)
+        public static Alert AlertWithDefaultList(GameObject Source, GameObject Exposer = null)
         {
             Alert alert = new(Source, Exposer);
             alert.GiveDefaultList();
             return alert;
         }
 
-        bool Validated(GameObject obj, uint AoE) => obj != null && obj.DistanceTo(Source.ParentObject) <= AoE;
+        bool Validated(GameObject obj, uint AoE) => obj != null && obj.DistanceTo(Source) <= AoE;
 
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace Nexus.Stealth
 
         public void GiveDefaultList()
         {
-            Witnesses = Source.Zone.ListPeopleWho(x=> StealthCore.ValidSentient(x));
+            Witnesses = Source.CurrentZone.ListPeopleWho(x=> StealthCore.ValidSentient(x));
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace Nexus.Stealth
                 GameObject obj = Witnesses[i];
                 if (Validated(obj, AoE))
                 {
-                    obj.AddOpinion<T>(Source.ParentObject);
+                    obj.AddOpinion<T>(Source);
                 }
             }
         }
@@ -164,7 +164,7 @@ namespace Nexus.Stealth
 
         public void AddOpinionToWitnessesAndExposer<T>(uint AoE = default) where T : IOpinionSubject, new()
         {
-            Exposer?.AddOpinion<T>(Source.ParentObject);
+            Exposer?.AddOpinion<T>(Source);
             AddOpinionToWitnesses<T>(AoE);
         }
 
@@ -202,7 +202,7 @@ namespace Nexus.Stealth
         {
             if (Witnesses.Count == 1)
             {
-                if (Source.ParentObject.HasLOSTo(Witnesses[0], false) && Witnesses[0] != Target)
+                if (Source.HasLOSTo(Witnesses[0], false) && Witnesses[0] != Target)
                     Exposer = Witnesses[0];
             }
             Exposer ??= CreateDictionaryOfRanges(Target);
@@ -214,8 +214,8 @@ namespace Nexus.Stealth
             for (int i = 0; i < Witnesses.Count; i++)
             {
                 GameObject obj = Witnesses[i];
-                if (Source.ParentObject.HasLOSTo(obj, false) && obj != Target)
-                    distances.Add(obj, Source.ParentObject.DistanceTo(obj));
+                if (Source.HasLOSTo(obj, false) && obj != Target)
+                    distances.Add(obj, Source.DistanceTo(obj));
             }
             return ReturnKey(distances);
 

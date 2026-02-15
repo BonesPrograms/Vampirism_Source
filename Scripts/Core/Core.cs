@@ -35,17 +35,6 @@ namespace Nexus.Core
 		/// Returns true/false values from object string properties. Default true.
 		/// </summary>
 		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.FLAGS.TRUE);
-
-		public static int CheckIfPropertyExistsWithValue(this GameObject Object, string flag, string value)
-		{
-			foreach (var obj in Object.Property)
-			{
-				if (obj.Key == flag)
-					return obj.Value == value ? 1 : 2; // 1 true 2 false
-			}
-			return 0;
-		}
-
 		public static bool PropertyEquals<T>(this GameObject Object, string key, T value)
 		{
 			if (value is string stringProp)
@@ -352,8 +341,9 @@ namespace Nexus.Core
 		{
 			T obj = new();
 			mutations.AddMutation(obj);
-			obj.Mutate(mutations.ParentObject);
+		//	obj.Mutate(mutations.ParentObject);
 			return obj;
+
 		}
 
 		public static void RemoveMutation<T>(this GameObject Object) where T : BaseMutation
