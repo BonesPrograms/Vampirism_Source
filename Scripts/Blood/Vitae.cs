@@ -29,8 +29,6 @@ namespace XRL.World.Parts
         public static bool AntiPuke;
         BloodMetabolism _Metab;
         public BloodMetabolism Metab => _Metab ??= new BloodMetabolism(this);
-        Autoget _Autoget;
-        public Autoget Autoget => _Autoget ??= new Autoget(ParentObject);
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
@@ -76,7 +74,20 @@ namespace XRL.World.Parts
                 if (ID == SingletonEvent<BeginTakeActionEvent>.ID)
                     return true;
             }
+            if (ID == AfterPlayerBodyChangeEvent.ID)
+                return true;
             return base.WantEvent(ID, cascade);
+        }
+
+        public override bool HandleEvent(AfterPlayerBodyChangeEvent E)
+        {
+            if (E.NewBody?.IsVampire() ?? false)
+            {
+                Autoget.Player = E.NewBody;
+                Autoget.PureBlood = null;
+                Autoget.ContainerCache = new GameObject[0];
+            }
+            return base.HandleEvent(E);
         }
         public override bool HandleEvent(BeforeTakeActionEvent E)
         {

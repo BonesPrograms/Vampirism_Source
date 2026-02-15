@@ -2,6 +2,7 @@ using XRL.World.Parts;
 using XRL.World;
 using System.Collections.Generic;
 using Nexus.Core;
+using XRL;
 
 namespace Nexus.Blood
 {
@@ -9,16 +10,22 @@ namespace Nexus.Blood
     /// <summary>
     /// I found base-game autoget to be inconsistent. This ensures that blood autoget always works.
     /// </summary>
-    public class Autoget //honestly i just didnt want people to complain that blood autoget doesnt work for my mod when its not my fault... lol...
+    [HasGameBasedStaticCache]
+    public static class Autoget //honestly i just didnt want people to complain that blood autoget doesnt work for my mod when its not my fault... lol...
     {               ///this probably isnt as good/efficient of code as the dev's autoget but it works more consistently
-        readonly GameObject Player;
-        HashSet<LiquidVolume> PureBlood;
-        GameObject[] ContainerCache = new GameObject[0];
+
+        [GameBasedStaticCache(false)]
+        public static GameObject Player;
+
+        [GameBasedStaticCache(false)]
+        public static HashSet<LiquidVolume> PureBlood;
+
+        [GameBasedStaticCache(false, true)]
+        public static GameObject[] ContainerCache = new GameObject[0];
         const int MAX = 64;
         const string Container = "WaterContainer";
         const string Blood = "blood";
-        public Autoget(GameObject Player) => this.Player = Player;
-        public void Autogetter()
+        public static void Autogetter()
         {
             ValidateCache();
             if (ContainerCache.Length > 0)
@@ -32,7 +39,7 @@ namespace Nexus.Blood
                 }
             }
         }
-        void ValidateCache()
+        static void ValidateCache()
         {
             int value = 0;
             for (int i = 0; i < Player.Inventory.Objects.Count; i++)
@@ -53,13 +60,13 @@ namespace Nexus.Blood
                         ContainerCache[index] = obj;
                         index++;
                     }
-                    if (index > ContainerCache.Length)
+                    if (index >= ContainerCache.Length)
                         break;
                 }
             }
         }
 
-        bool CheckTag(GameObjectBlueprint blueprint)
+        static bool CheckTag(GameObjectBlueprint blueprint)
         {
             bool hidden = false;
             bool container = false;
@@ -112,7 +119,7 @@ namespace Nexus.Blood
         //         }
         //     }
         // }
-        void AddBlood()
+        static void AddBlood()
         {
 
             for (int i = 0; i < ContainerCache.Length; i++)
@@ -129,7 +136,7 @@ namespace Nexus.Blood
             }
         }
 
-        void CheckForStoredLiquids(LiquidVolume Part, GameObject Waterskin)
+        static void CheckForStoredLiquids(LiquidVolume Part, GameObject Waterskin)
         {
             if ((Part.ContainsLiquid(Blood) && Part.IsPureLiquid()) || Part.Volume == 0)
             {
@@ -194,7 +201,7 @@ namespace Nexus.Blood
             //if (Pool?.Volume is null || Pool.Volume <= 0 || Pool.IsEmpty())
             //      PureBlood.Remove(Pool);
         }
-        void FindBlood()
+        static void FindBlood()
         {
 
             if (Player.LocalCells(out var cells))
@@ -205,7 +212,7 @@ namespace Nexus.Blood
             }
         }
 
-        void DealWithLiquid(Cell cell)
+        static void DealWithLiquid(Cell cell)
         {
             for (int i = 0; i < cell.Objects.Count; i++)
             {
