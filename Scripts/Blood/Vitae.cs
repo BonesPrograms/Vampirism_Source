@@ -67,6 +67,8 @@ namespace XRL.World.Parts
         {
             if (ID == PooledEvent<InduceVomitingEvent>.ID)
                 return true;
+            if (ID == AfterPlayerBodyChangeEvent.ID)
+                return true;
             if (ParentObject.IsPlayer())
             {
                 if (ID == SingletonEvent<BeforeTakeActionEvent>.ID && !AutoAct.IsResting() && !ParentObject.Incap(false) && !ParentObject.IsInCombat() && Options.GetOptionBool(OPTIONS.AUTOGET) && !Options.GetOptionBool(OPTIONS.HUNTER) && !ParentObject.CheckFlag(FLAGS.FRENZY, FLAGS.FEED))
@@ -74,8 +76,6 @@ namespace XRL.World.Parts
                 if (ID == SingletonEvent<BeginTakeActionEvent>.ID)
                     return true;
             }
-            if (ID == AfterPlayerBodyChangeEvent.ID)
-                return true;
             return base.WantEvent(ID, cascade);
         }
 
@@ -83,7 +83,6 @@ namespace XRL.World.Parts
         {
             if (E.NewBody?.IsVampire() ?? false)
             {
-                Autoget.Player = E.NewBody;
                 Autoget.PureBlood = null;
                 Autoget.ContainerCache = new GameObject[0];
             }

@@ -13,9 +13,7 @@ namespace Nexus.Blood
     [HasGameBasedStaticCache]
     public static class Autoget //honestly i just didnt want people to complain that blood autoget doesnt work for my mod when its not my fault... lol...
     {               ///this probably isnt as good/efficient of code as the dev's autoget but it works more consistently
-
-        [GameBasedStaticCache(false)]
-        public static GameObject Player;
+        static GameObject Player => The.Player;
 
         [GameBasedStaticCache(false)]
         public static HashSet<LiquidVolume> PureBlood;
