@@ -34,10 +34,12 @@ namespace Nexus.Stealth
                 for (int x = 0; x < Zone.Width; x++)
                 {
                     Cell cell = Zone.Map[x][y];
-                    for (int i = 0; i < cell.Objects.Count; i++)
-                    {
-                        CheckValidity(cell.Objects[i]);
-                    }
+                    if (cell.HasObjectWithPart(nameof(Brain)))
+                        for (int i = 0; i < cell.Objects.Count; i++)
+                        {
+
+                            CheckValidity(cell.Objects[i]);
+                        }
                 }
             }
         }

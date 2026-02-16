@@ -17,8 +17,8 @@ namespace XRL.World.Parts
     /// </summary>
     [Serializable]
 
-    public class Vitae : IPart //vitae is stricter than humanity - i did not intend for, or test, AI metabolism
-    {                           //even if dominating a vampire, their blood value will never change. might change this one day
+    public class Vitae : IPart 
+    {                          
 
         [NonSerialized]
         public static List<GameObject> containers = new();
@@ -27,7 +27,7 @@ namespace XRL.World.Parts
         public bool GameOver;
         public bool Bloodlusted;
         public static bool AntiPuke;
-        BloodMetabolism _Metab;
+        BloodMetabolism _Metab; //cant really add new fields (vitae has already been serialized in many peoples saves) so i have not bothered to make this into a serializable object
         public BloodMetabolism Metab => _Metab ??= new BloodMetabolism(this);
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)

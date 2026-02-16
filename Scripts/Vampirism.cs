@@ -21,10 +21,10 @@ namespace XRL.World.Parts.Mutation
 		public const string ABILITY_NAME = "Feed";
 		public const string BodyPartType = "Face";
 		public Guid FangsActivatedAbilityID = Guid.Empty;
-		public GameObject FangsObject;
+		public GameObject FangsObject; //your actual fangs
 		FeedCommand _FeedCommand;
 		public FeedCommand FeedCommand => _FeedCommand ??= new FeedCommand(this);
-		public string ManagerID => ParentObject.ID + "::Vampiric Fangs";
+		public string ManagerID => ParentObject.ID + "::Vampiric Fangs"; //i never really researched managerid yet. i assume that the fangs object counts as a bodypart and this is its manager
 		public override bool CanSelectVariant => false;
 		public override bool UseVariantName => false;
 		public bool GameOver = default;
@@ -32,7 +32,6 @@ namespace XRL.World.Parts.Mutation
 
 		[NonSerialized]
 		public bool WasTerrifiedByFlames = default;
-
 		public override string GetDescription() => "You feed on the blood of living creatures.";
 		public string GetDamageDice()
 		 =>
@@ -126,10 +125,10 @@ namespace XRL.World.Parts.Mutation
 		}
 
 		public override bool HandleEvent(AfterPlayerBodyChangeEvent E) //potential issue here:
-		{                                                               //players who are NOT a vampire and are playing old saves will not be able to use vampiric spells when dominating if the option is enabled
+		{                                                               //players who are NOT a vampire and are playing old saves will not be able to use vampiric spells when dominating if the option is enabled.
 			if (E.NewBody.IsVampire())                                  //because only players with vampire parts can request an update
 			{                                                           //though this can be fixed by saving/loading as the dominatee
-				Nexus.Update.Update.Spells(E.NewBody);
+				Nexus.Update.Update.Spells(E.NewBody);					//ALSO vampires wont get access to the new corpse type unless the player is a vampire that can update them
 				if (E.OldBody?.HasStringProperty(FLAGS.OLD_SAVE) ?? false)
 					E.NewBody.SetStringProperty(FLAGS.OLD_SAVE, null);
 			}
@@ -148,18 +147,6 @@ namespace XRL.World.Parts.Mutation
 				DoUpdate(zone);
 			return base.HandleEvent(E);
 		}
-		static void DoUpdate(Zone zone)
-		{
-			zone.SetPeopleWho(NeedUpdate);
-			zone.SetZoneProperty(FLAGS.MOD.VERSION_TAG, MOD.VERSION);
-		}
-
-		static void NeedUpdate(GameObject obj)
-		{
-			if (obj.IsVampire() && !obj.IsPlayer()) //player is checked on gameload
-				Nexus.Update.Update.DoUpdate(obj);
-		}
-
 		public override bool HandleEvent(EffectRemovedEvent E)
 		{
 			if (E.Effect is Terrified) //tried to match by effect.Object, but it always shows up null
@@ -175,11 +162,8 @@ namespace XRL.World.Parts.Mutation
 		}
 		public override bool HandleEvent(BeforeTakeActionEvent E)
 		{
-			if (!ParentObject.HasEffect<Terrified>()) //to avoid the effect stacking itself in flame intense environments
-			{
-				if (ParentObject.LocalCells(out var cells))
-					Search(cells);
-			}
+			if (ParentObject.LocalCells(out var cells))
+				SearchForFire(cells);
 			return base.HandleEvent(E);
 		}
 		public override bool HandleEvent(EquipperEquippedEvent E)
@@ -197,7 +181,7 @@ namespace XRL.World.Parts.Mutation
 		{
 			if (E.Object == ParentObject && E.Damage.Attributes.Contains("Fire"))
 			{
-				FirePanic(E?.Actor, true);
+				Rotschrek(E?.Actor, true);
 				E.Damage.Amount *= 2;
 			}
 			return base.HandleEvent(E);
@@ -271,7 +255,19 @@ namespace XRL.World.Parts.Mutation
 			return base.HandleEvent(E);
 		}
 
-		void Search(List<Cell> cells)
+		static void DoUpdate(Zone zone)
+		{
+			zone.SetPeopleWho(NeedUpdate);
+			zone.SetZoneProperty(FLAGS.MOD.VERSION_TAG, MOD.VERSION);
+		}
+
+		static void NeedUpdate(GameObject obj)
+		{
+			if (obj.IsVampire() && !obj.IsPlayer()) //player is checked on gameload
+				Nexus.Update.Update.DoUpdate(obj);
+		}
+
+		void SearchForFire(List<Cell> cells)
 		{
 			for (int i = 0; i < cells.Count; i++)
 			{
@@ -280,7 +276,7 @@ namespace XRL.World.Parts.Mutation
 					GameObject obj = cells[i].Objects[x];
 					if (obj.IsAflame() || (obj.Blueprint != "Campfire" && obj.HasPart<AnimatedMaterialFire>()))
 					{
-						FirePanic(obj, true);
+						Rotschrek(obj, true);
 						return;
 					}
 					else if (LitTorch(obj))
@@ -296,11 +292,59 @@ namespace XRL.World.Parts.Mutation
 				LightSource source = obj.GetPart<LightSource>(); //private field in TorchProperties, but accessible thru the PartsList, no reflection required
 				if (source.Lit)
 				{     //thanks for parts lists, developers!
-					FirePanic(obj, true);
+					Rotschrek(obj, true);
 					return true;
 				}
 			}
 			return false;
+		}
+
+		void Rotschrek(GameObject FireSource, bool external)
+		{
+			WasTerrifiedByFlames = true;
+			Capabilities.AutoAct.Interrupt();
+			if (external)
+				AlreadyOnFire();
+			if (FireSource == null)
+				ParentObject.ApplyEffect(new Terrified(WikiRng.Next(5, 10), ParentObject.CurrentCell, true));
+			else
+				ParentObject.ApplyEffect(new Terrified(WikiRng.Next(5, 10), FireSource, false));
+		}
+
+		public void FakeDropTorch(GameObject Torch)
+		{
+			if (ParentObject.CurrentCell != null)
+			{
+				if (ParentObject.IsPlayer())
+					Popup.Show("{{R|ROTSCHREK!!!}}");
+				Torch.Obliterate();
+				ReplaceTorch();
+			}
+		}
+
+		void ReplaceTorch()
+		{
+			GameObject replacement = GameObject.Create("Torch");
+			ParentObject.CurrentCell.AddObject(replacement);
+			DidXToY("drop", replacement, null, null, null, null, null, null, UseFullNames: false, IndefiniteSubject: false, IndefiniteObject: true);
+			TryLight(replacement);
+		}
+
+		void TryLight(GameObject replacement)
+		{
+			var Part = replacement.GetPart<TorchProperties>();
+			Part.Light();
+			if (!Part.IsUnlightableBecauseOfLiquidCovering() && !Part.IsUnlightableBecauseOfSubmersion())
+				Rotschrek(replacement, false);
+			else
+				Part.Extinguish();
+		}
+		void AlreadyOnFire()
+		{
+			if (ParentObject.IsPlayer())
+			{
+				AddPlayerMessage("{{R|ROTSCHREK!!!}}");
+			}
 		}
 		bool Prerequisites()
 		{
@@ -337,56 +381,6 @@ namespace XRL.World.Parts.Mutation
 			&& !E.Target.IsInStasis()
 			&& Checks.Applicable(E.Target);
 
-		void FirePanic(GameObject FireSource, bool external)
-		{
-			if (!ParentObject.HasEffect<Terrified>())
-			{
-				WasTerrifiedByFlames = true;
-				Capabilities.AutoAct.Interrupt();
-				if (external)
-					AlreadyOnFire();
-				if (FireSource == null)
-					ParentObject.ApplyEffect(new Terrified(WikiRng.Next(5, 10), ParentObject.CurrentCell, true));
-				else
-					ParentObject.ApplyEffect(new Terrified(WikiRng.Next(5, 10), FireSource, false));
-			}
-		}
-
-		public void FakeDropTorch(GameObject Torch)
-		{
-			if (ParentObject.CurrentCell != null)
-			{
-				if (ParentObject.IsPlayer())
-					Popup.Show("{{R|ROTSCHREK!!!}}");
-				Torch.Obliterate();
-				ReplaceTorch();
-			}
-		}
-
-		void ReplaceTorch()
-		{
-			GameObject replacement = GameObject.Create("Torch");
-			ParentObject.CurrentCell.AddObject(replacement);
-			DidXToY("drop", replacement, null, null, null, null, null, null, UseFullNames: false, IndefiniteSubject: false, IndefiniteObject: true);
-			TryLight(replacement);
-		}
-
-		void TryLight(GameObject replacement)
-		{
-			var Part = replacement.GetPart<TorchProperties>();
-			Part.Light();
-			if (!Part.IsUnlightableBecauseOfLiquidCovering() && !Part.IsUnlightableBecauseOfSubmersion())
-				FirePanic(replacement, false);
-			else
-				Part.Extinguish();
-		}
-		void AlreadyOnFire()
-		{
-			if (ParentObject.IsPlayer())
-			{
-				AddPlayerMessage("{{R|ROTSCHREK!!!}}");
-			}
-		}
 		public override IPart DeepCopy(GameObject Parent, Func<GameObject, GameObject> MapInv)
 		{
 			Vampirism obj = base.DeepCopy(Parent, MapInv) as Vampirism;

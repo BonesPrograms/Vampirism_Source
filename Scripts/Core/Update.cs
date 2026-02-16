@@ -46,7 +46,7 @@ namespace Nexus.Update
             GO.SetStringProperty(FLAGS.OLD_SAVE, MOD.VERSION); //this may serve as a mod version identifier in the future
         }                                                       //anyone who doesnt have it will get it, anyone who has it and doesnt sync with the version will be updated
                                                                 //furthermore, our WantEvent that checks for OLD_SAVE will compare it against the version, rather than check for it in general
-        static bool CheckCorpse(GameObject GO)                  
+        static bool CheckCorpse(GameObject GO)
         {
             if (!GO.HasStringProperty(FLAGS.CORPSE))
             {
@@ -56,17 +56,13 @@ namespace Nexus.Update
             return false;
         }
 
-        static void UpdateProperties(GameObject GO) ///TEST this at some point (though im sure it will work)
+        static void UpdateProperties(GameObject GO)
         {
-            foreach (var obj in GO.Property)
+            for (int i = 0; i < VampireBuilder.StringProperties.Length; i++)
             {
-                if (VampireBuilder.StringProperties.ContainsPrimaryElement(obj.Key))
-                {
-                    if (obj.Value == FLAGS.TRUE_LEGACY)
-                    {
-                        GO.Property[obj.Key] = FLAGS.TRUE;
-                    }
-                }
+                string key = VampireBuilder.StringProperties[i].Item1;
+                if (GO.Property[key] == FLAGS.TRUE_LEGACY)
+                    GO.Property[key] = FLAGS.TRUE;
             }
         }
         public static void Spells(GameObject GO)
