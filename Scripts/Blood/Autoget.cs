@@ -16,13 +16,19 @@ namespace Nexus.Blood
         static GameObject Player => The.Player;
 
         [GameBasedStaticCache(false)]
-        public static HashSet<LiquidVolume> PureBlood;
+        static HashSet<LiquidVolume> PureBlood;
 
         [GameBasedStaticCache(false, true)]
-        public static GameObject[] ContainerCache = new GameObject[0];
+        static GameObject[] ContainerCache = new GameObject[0];
         const int MAX = 64;
         const string Container = "WaterContainer";
         const string Blood = "blood";
+
+        public static void Empty()
+        {
+            PureBlood = null;
+            ContainerCache = new GameObject[0];
+        }
         public static void Autogetter()
         {
             ValidateCache();

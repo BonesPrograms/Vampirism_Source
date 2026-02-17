@@ -28,36 +28,28 @@ namespace XRL.World.Parts
 	[HasGameBasedStaticCache]
 	public class Nightbeast : IPart
 	{
-		public static Dictionary<GameObject, bool> Witnesses => _Witnesses ??= new();
+		public static Dictionary<GameObject, bool> Witnesses => _Witnesses;
+		public static GameObject[] KeyArray => _KeyArray; 
 
 		[GameBasedStaticCache]
 		public static bool NeedsReactivate = false; //for gamestart
 
 		[GameBasedStaticCache(false)]
-		public static Dictionary<GameObject, bool> _Witnesses;
+		static Dictionary<GameObject, bool> _Witnesses;
 
 		[GameBasedStaticCache(false, true)]
-		public static GameObject[] KeyArray = new GameObject[0]; //this was throwing nullref errors in Stealth() during gamestart if i didnt create an instance of it prematurely. will need to do some more research as to why later
-
-		[GameBasedStaticCache]
-		public static int TrueCount = 0;
-
-		/// <summary>
-		/// Stage one means that there is only one witness.
-		/// </summary>
-		/// 
-		[GameBasedStaticCache]
-		public static bool StealthStage1 = default;
-
-		/// <summary>
-		/// Stage two means there are no witnesses.
-		/// </summary>
-		/// 
-		[GameBasedStaticCache]
-		public static bool StealthStage2 = default;
+		static GameObject[] _KeyArray = new GameObject[0];
+		//this was throwing nullref errors in Stealth() during gamestart if i didnt create an instance of it prematurely. will need to do some more research as to why late
+		public static bool StealthStage1 => ActiveStealth.StealthStage1;
+		public static bool StealthStage2 => ActiveStealth.StealthStage2;
 
 		//either/or means stealth ATK is valid
 		public static bool Stealthed => StealthStage1 || StealthStage2;
+
+		public static void UpdateKeys()
+		{
+			_KeyArray = Witnesses.KeyArray();
+		}
 
 		public override bool WantEvent(int ID, int cascade)
 		{
@@ -106,7 +98,7 @@ namespace XRL.World.Parts
 			StealthCore.Zone = zone;
 			StealthCore.LightLevel = The.Player.CurrentCell?.GetLight();
 			StealthCore.ScanEnvironment();
-			KeyArray = Witnesses.KeyArray();
+			UpdateKeys();
 			NeedsReactivate = false;
 		}
 
@@ -115,12 +107,10 @@ namespace XRL.World.Parts
 			if (The.Player.Target != null)
 				AddPlayerMessage(text);
 			The.Player.SetStringProperty(FLAGS.STEALTH, FLAGS.FALSE);
-			StealthStage1 = false;
-			StealthStage2 = false;
+			ActiveStealth.Halt();
 		}
 		static void RunStealthSystem()
 		{
-			TrueCount = default;
 			StealthCore.LightLevel = The.Player.CurrentCell?.GetLight();
 			StealthCore.Stealth();
 			ActiveStealth.SetStealth();

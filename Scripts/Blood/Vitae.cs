@@ -77,11 +77,7 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(AfterPlayerBodyChangeEvent E)
         {
-            if (E.NewBody?.IsVampire() ?? false)
-            {
-                Autoget.PureBlood = null;
-                Autoget.ContainerCache = new GameObject[0];
-            }
+            Autoget.Empty();
             return base.HandleEvent(E);
         }
         public override bool HandleEvent(BeforeTakeActionEvent E)

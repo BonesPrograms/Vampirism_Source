@@ -24,6 +24,9 @@ namespace Nexus.Stealth
         [GameBasedStaticCache]
         public static LightLevel? LightLevel;
 
+        [GameBasedStaticCache]
+        static int _TrueCount = 0;
+        public static int TrueCount => _TrueCount;
         static GameObject[] KeyArray => Nightbeast.KeyArray;
         public static void ScanEnvironment() //this method runs on zone/gameload, it puts every valid sentient into a dictionary and then the dictionary takes over
         {                                           //objects created after this point will add themselves to the dictionary in the WitnessCreatedListener part, if they are valid
@@ -43,6 +46,7 @@ namespace Nexus.Stealth
         }
         public static void Stealth()
         {
+            _TrueCount = default;
             for (int i = 0; i < KeyArray.Length; i++)
             {
                 GameObject obj = KeyArray[i];
@@ -55,12 +59,12 @@ namespace Nexus.Stealth
                     bool check = NearbySentient(obj) && ActiveWitness(obj); //but this can change actively!
                     Nightbeast.Witnesses[obj] = check;
                     if (check)
-                        Nightbeast.TrueCount++; //the count is re-iterated every single turn
+                        _TrueCount++; //the count is re-iterated every single turn
                 }
             }
             if (Nightbeast.Witnesses.Count != KeyArray.Length)
             {
-                Nightbeast.KeyArray = Nightbeast.Witnesses.KeyArray();
+                Nightbeast.UpdateKeys();
             }
         }
 

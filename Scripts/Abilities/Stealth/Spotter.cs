@@ -51,7 +51,7 @@ namespace Nexus.Stealth
         /// despite UI display saying that stealth is valid.
         /// technically, your stealth state was valid, but some attacks pass the turn the moment they are completed, which gives the aforementioned
         /// APPEARANCE of stealth being broken instantly, as the ai travels one tile into your detection radius.
-        /// 
+        /// so the ai isnt really in your detection radius as the enum says, they were actually outside of it, theyre moreso in your "extended" radius
         bool Spotted(int distance, GameObject Spotter) => distance == Nexus.Rules.STEALTH.AI_RADIUS + 1 && Spotter.HasLOSTo(Source, false);
         static string DefaultMessage(GameObject Spotter) => $"You try to sneak attack, but {Spotter.t()} spots you from a distance!";
         public static List<GameObject> GiveDefaultList(GameObject Source)
@@ -100,12 +100,12 @@ namespace Nexus.Stealth
         }
         Spot SpotterFound<T>(GameObject Spotter, string message) where T : IOpinionSubject, new()
         {
-            Spot spot = Spotted(package.Value, package.Key) ? Spot.SPOTTER_IN_DETECTION : Spot.SPOTTER_OUTSIDE_DETECTION;
-            if (spot == Spot.SPOTTER_IN_DETECTION)
-            {
-                message = message == default ? DefaultMessage(Spotter) : message;
-                XRL.UI.Popup.Show(message);
-                Spotter.AddOpinion<T>(Source);
+            Spot spot = Spotted(package.Value, package.Key) ? Spot.SPOTTER_IN_DETECTION : Spot.SPOTTER_OUTSIDE_DETECTION; 
+            if (spot == Spot.SPOTTER_IN_DETECTION)                                                                        
+            {                                                                                                     
+                message = message == default ? DefaultMessage(Spotter) : message;                                        
+                XRL.UI.Popup.Show(message);                                                                               
+                Spotter.AddOpinion<T>(Source);                                                                              
                 Spotter.ApplyEffect(new Spotter(Source, Nexus.Rules.FEED.DURATION));
             }
             else

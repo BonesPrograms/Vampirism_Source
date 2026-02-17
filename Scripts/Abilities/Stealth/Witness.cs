@@ -28,7 +28,7 @@ namespace XRL.World.Parts
         void Check()
         {
             Nightbeast.Witnesses[ParentObject] = StealthCore.NearbySentient(ParentObject) && StealthCore.ActiveWitness(ParentObject);
-            Nightbeast.KeyArray = Nightbeast.Witnesses.KeyArray(); //refresh key array. this event actually may interrupt enumeration and is the original reason we had to implement a key array in the first place
+            Nightbeast.UpdateKeys(); //refresh key array. this event actually may interrupt enumeration and is the original reason we had to implement a key array in the first place
         }
     }
 }
