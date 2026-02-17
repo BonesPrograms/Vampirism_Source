@@ -29,27 +29,23 @@ namespace Nexus.Stealth
         SPOTTER_OUTSIDE_DETECTION
     }
 
-    class SpotterGenerator
+    class SpotterCore
     {
         readonly GameObject Source;
         readonly Dictionary<GameObject, int> SpotterRanges = new();
         KeyValuePair<GameObject, int> package;
-        List<GameObject> PotentialSpotters;
-        public SpotterGenerator(GameObject Source, List<GameObject> PotentialSpotters)
+        readonly List<GameObject> PotentialSpotters;
+        public SpotterCore(GameObject Source, List<GameObject> PotentialSpotters)
         {
             this.Source = Source;
             this.PotentialSpotters = PotentialSpotters;
         }
 
-        SpotterGenerator(GameObject Source) => this.Source = Source;
-
-        public static SpotterGenerator GeneratorWithDefaultList(GameObject Source)
+        public SpotterCore(GameObject Source)
         {
-            SpotterGenerator gen = new(Source);
-            gen.GiveDefaultList();
-            return gen;
+            this.Source = Source;
+            this.PotentialSpotters = SpotterCore.GiveDefaultList(Source);
         }
-
         ///AI_RADIUS+1 to prevent a bug: if AI is 1 tile outside radius and Spotter effect is applied, 
         /// they will move and appear to instantly break stealth the same moment you make an attack
         /// despite UI display saying that stealth is valid.
@@ -58,11 +54,11 @@ namespace Nexus.Stealth
         /// 
         bool Spotted(int distance, GameObject Spotter) => distance == Nexus.Rules.STEALTH.AI_RADIUS + 1 && Spotter.HasLOSTo(Source, false);
         static string DefaultMessage(GameObject Spotter) => $"You try to sneak attack, but {Spotter.t()} spots you from a distance!";
-        public void GiveDefaultList()
+        public static List<GameObject> GiveDefaultList(GameObject Source)
         {
-            PotentialSpotters = Source.CurrentZone.ListPeopleWho(witness => StealthCore.ValidSentient(witness) && !witness.Unaware(false));
+            return Source.CurrentZone.ListPeopleWho(witness => StealthCore.ValidSentient(witness) && !witness.Unaware(false));
         }
-        public Spot BeginAttackCheckIfSpotted<T>(string message = default) where T : IOpinionSubject, new()
+        public Spot Check<T>(string message = default) where T : IOpinionSubject, new()
         {
             GameObject Spotter = ReturnSpotter();
             return Spotter is null ? Spot.SPOTTER_IS_NULL : SpotterFound<T>(Spotter, message);
@@ -75,7 +71,7 @@ namespace Nexus.Stealth
         /// <param name="Spotter"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public Spot BeginAttackCheckIfSpotted<T>(out GameObject Spotter, string message = default) where T : IOpinionSubject, new()
+        public Spot Check<T>(out GameObject Spotter, string message = default) where T : IOpinionSubject, new()
         {
             Spotter = ReturnSpotter();
             return Spotter is null ? Spot.SPOTTER_IS_NULL : SpotterFound<T>(Spotter, message);
@@ -110,10 +106,10 @@ namespace Nexus.Stealth
                 message = message == default ? DefaultMessage(Spotter) : message;
                 XRL.UI.Popup.Show(message);
                 Spotter.AddOpinion<T>(Source);
-                Spotter.ApplyEffect(new Spotter(Source, Nexus.Rules.FEED.DURATION, true));
+                Spotter.ApplyEffect(new Spotter(Source, Nexus.Rules.FEED.DURATION));
             }
             else
-                Spotter.ApplyEffect(new Spotter(Source, Nexus.Rules.FEED.DURATION, false));
+                Spotter.ApplyEffect(new Spotter(Source, Nexus.Rules.FEED.DURATION));
             return spot;
         }
 
@@ -131,25 +127,21 @@ namespace XRL.World.Effects
     {
         public GameObjectReference Player;
         public Spotter() => DisplayName = "";
-        bool pathonly;
-        public Spotter(GameObject player, int Duration, bool pathonly) : this()
+        public Spotter(GameObject player, int Duration) : this()
         {
             this.Player = player.Reference();
             base.Duration = Duration;
-            this.pathonly = pathonly;
-
         }
         public override bool WantEvent(int ID, int Cascade)
         {
             if (ID == SingletonEvent<EndTurnEvent>.ID)
                 return true;
-            return base.WantEvent(ID, Cascade);
+            return base.WantEvent(ID, Cascade); 
         }
         public override bool HandleEvent(EndTurnEvent E)
         {
-            if (!Player.Object?.CheckFlag(FLAGS.FEED) ?? true)
-                Duration = 0;
-            else if (pathonly && Duration > 0)
+            Duration--;
+            if (Duration > 0)
             {
                 FindPath findPath = new FindPath(currentCell, Player.Object.CurrentCell, PathGlobal: false, PathUnlimited: true, base.Object, 500, ExploredOnly: false, Juggernaut: false, IgnoreCreatures: false, IgnoreGases: false, FlexPhase: false);
                 if (!findPath.Usable)
@@ -160,6 +152,6 @@ namespace XRL.World.Effects
             return base.HandleEvent(E);
         }
 
-        public override bool UseStandardDurationCountdown() => true;
+        public override bool UseStandardDurationCountdown() => false;
     }
 }

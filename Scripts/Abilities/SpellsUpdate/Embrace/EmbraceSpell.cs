@@ -101,7 +101,7 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(CommandEvent E)
         {
-            if (E.Command == Nexus.Rules.EMBRACE.COMMAND_NAME)
+            if (E.Command == Nexus.Rules.EMBRACE.COMMAND_NAME && Nexus.Core.Checks.Prerequisites(ParentObject, EMBRACE.ABILITY_NAME, "embrace"))
             {
                 Embrace();
             }
@@ -124,7 +124,7 @@ namespace XRL.World.Parts
         public (string, int)[] IntProperties = default;
         public (string, int)[] StatLevels = default;
         public (string, int)[] MutationsWithLevels = default; //cap = mutations.count
-        public (string, bool)[] BodyParts = default; //bool false = dismembered
+        public (string, bool)[] BodyParts = default;
         public string[] IParts = default;
         //NEW ARRAY IDEA:
         //should we tag relations as well? opinions of the player? yes a list of Opinions to the player at least would be valid

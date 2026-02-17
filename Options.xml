@@ -59,7 +59,7 @@
   </option>
   <option
   ID="NightbeastMode"
-  DisplayText="Night Beast mode - you fear the sun and acquire darkvision. Player only."
+  DisplayText="Night Beast mode - you fear the sun and acquire darkvision. Player only. (Experimental - may exit the overworld map into a sunny day and quickly die)."
   Category="Vampirism"
   Type="Checkbox"
   Default="No">

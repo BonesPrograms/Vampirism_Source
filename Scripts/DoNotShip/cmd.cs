@@ -349,6 +349,15 @@ namespace XRL.World.Parts
 
         #region Vampirism Wishes
 
+        [WishCommand("findspotter")]
+
+        public static void FindSpotter()
+        {
+            List<GameObject> spotters = The.Player.CurrentZone.ListPeopleWho(x=>x.HasEffect<Spotter>());
+            for(int i = 0; i < spotters.Count; i++)
+            msg($"{spotters[i]}");
+        }
+
         [WishCommand("staticstealth")]
         
         public static void Staticstealth()
@@ -420,13 +429,6 @@ namespace XRL.World.Parts
             }
         }
 
-        [WishCommand("autowin")]
-
-        public static void autowin() //for diablerie
-        {
-            Switch<Nexus.Attack.FeedCommand>(nameof(Nexus.Attack.FeedCommand.AutoWin), null);
-        }
-
         [WishCommand("badliquid")]
         public static void badliquid()
         {
@@ -438,6 +440,13 @@ namespace XRL.World.Parts
                 pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
                 admn.msg($"badliquified {pick} {liquid} {range}");
             }
+        }
+
+        [WishCommand("autowin")]
+
+        public static void autowin() //for diablerie
+        {
+            Switch<Nexus.Attack.FeedCommand>(nameof(Nexus.Attack.FeedCommand.AutoWin), null);
         }
 
 

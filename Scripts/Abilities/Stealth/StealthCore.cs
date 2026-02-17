@@ -16,8 +16,6 @@ namespace Nexus.Stealth
     [HasGameBasedStaticCache]
     public static class StealthCore
     {
-
-        static bool needNewArray = false;
         public static GameObject Player => The.Player;
 
         [GameBasedStaticCache]
@@ -48,10 +46,10 @@ namespace Nexus.Stealth
             for (int i = 0; i < KeyArray.Length; i++)
             {
                 GameObject obj = KeyArray[i];
-                if (obj == null)
-                    needNewArray = true;
-                else if (!obj.HasHitpoints())
-                    Nightbeast.Witnesses.Remove(KeyArray[i]);
+                if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(The.Player))
+                {
+                    Nightbeast.Witnesses.Remove(obj);
+                }
                 else
                 {
                     bool check = NearbySentient(obj) && ActiveWitness(obj); //but this can change actively!
@@ -61,11 +59,8 @@ namespace Nexus.Stealth
                 }
             }
             if (Nightbeast.Witnesses.Count != KeyArray.Length)
-                needNewArray = true;
-            if (needNewArray)
             {
                 Nightbeast.KeyArray = Nightbeast.Witnesses.KeyArray();
-                needNewArray = false;
             }
         }
 
@@ -98,7 +93,9 @@ namespace Nexus.Stealth
         //a vampiric farmer in Joppa.
         //this caused a serious bug that took me HOURS to figure out (i never tested stealth as an NPC vampire) becasue i was in the middle of a rework of the system and didnt know where the issue was
         //really this issue has existed since day one and im surprised no one reported it yet
-        //the bug in question - no one would be able to return true as a witness because everyone in joppa was allied to the farmer you were dominating
+        //the bug in question - everyone in joppa is allied to local farmers. player dominates a farmer, thus they are their allies.
+        //  allies do not fight back if you kill them. therefore, you are allowed a free feed on anyone who is considered an ally
+        // however, because allies were showing up as witnesses, they would expose the farmer and become hostile
 
         /// <summary>
         /// The evaluation that separates a NearbySentient from a ValidSentient. It restricts by AI RADIUS and LOS.

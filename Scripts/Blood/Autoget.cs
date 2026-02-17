@@ -43,7 +43,7 @@ namespace Nexus.Blood
             for (int i = 0; i < Player.Inventory.Objects.Count; i++)
             {
                 GameObject obj = Player.Inventory.Objects[i];
-                if (CheckTag(obj.GetBlueprint()))
+                if (obj != null && CheckTag(obj.GetBlueprint()))
                     value++;
             }
             if (value != ContainerCache.Length) //reduces our need to reset or re-instance the containers list over and over, which i expect to not change often
@@ -53,7 +53,7 @@ namespace Nexus.Blood
                 for (int i = 0; i < Player.Inventory.Objects.Count; i++)
                 {
                     GameObject obj = Player.Inventory.Objects[i];
-                    if (CheckTag(obj.GetBlueprint()))
+                    if (obj != null && CheckTag(obj.GetBlueprint()))
                     {
                         ContainerCache[index] = obj;
                         index++;
@@ -125,8 +125,8 @@ namespace Nexus.Blood
                 if (PureBlood.Count > 0)
                 {
                     GameObject container = ContainerCache[i];
-                    LiquidVolume Part = container.GetPart<LiquidVolume>();
-                    if (!Part.Sealed && Part.Volume < MAX)
+                    LiquidVolume Part = container?.GetPart<LiquidVolume>();
+                    if (Part != null && !Part.Sealed && Part.Volume < MAX)
                         CheckForStoredLiquids(Part, container);
                 }
                 else
@@ -139,7 +139,7 @@ namespace Nexus.Blood
             if ((Part.ContainsLiquid(Blood) && Part.IsPureLiquid()) || Part.Volume == 0)
             {
                 LiquidVolume Pool = PureBlood.GetRandomElement();
-                if (Pool.Volume > 0)
+                if (Pool.Volume > 0)    
                 {
                     bool math = Math(Pool, Part, out int deduction);
                     if (math && deduction > 0)
@@ -215,7 +215,7 @@ namespace Nexus.Blood
             for (int i = 0; i < cell.Objects.Count; i++)
             {
                 GameObject liquidSource = cell.Objects[i];
-                if (!liquidSource.HasTag(Container) && $"{liquidSource}" != "FangBloodDrop" && liquidSource.TryGetPart<LiquidVolume>(out var part) && part != null && part.ContainsLiquid(Blood) && part.IsPureLiquid())
+                if (liquidSource.TryGetPart<LiquidVolume>(out var part) && !liquidSource.HasTag(Container) && part.ContainsLiquid(Blood) && part.IsPureLiquid() && $"{liquidSource}" != "FangBloodDrop")
                 {
                     PureBlood ??= new();
                     PureBlood.Add(part);

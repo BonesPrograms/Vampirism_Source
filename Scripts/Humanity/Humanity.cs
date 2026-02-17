@@ -46,7 +46,7 @@ namespace XRL.World.Parts
 		}
 		public override bool WantEvent(int ID, int cascade)
 		{
-			if (!GameOver && ParentObject.IsPlayer() && Options.GetOptionBool(OPTIONS.HUMANITY) && !ParentObject.CheckFlag(FLAGS.FEED, FLAGS.FRENZY) && ID == SingletonEvent<BeginTakeActionEvent>.ID)
+			if (ID == SingletonEvent<BeginTakeActionEvent>.ID && !GameOver && ParentObject.IsPlayer() && Options.GetOptionBool(OPTIONS.HUMANITY) && !ParentObject.CheckFlag(FLAGS.FEED, FLAGS.FRENZY))
 				return true;
 			return base.WantEvent(ID, cascade);
 		}

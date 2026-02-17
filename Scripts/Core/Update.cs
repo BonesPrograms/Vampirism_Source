@@ -4,6 +4,7 @@ using Nexus.Update;
 using Nexus.Core;
 using Nexus.Rules;
 using XRL.UI;
+using XRL.World.Parts;
 using Nexus.Properties;
 
 [HasCallAfterGameLoaded]
@@ -48,7 +49,7 @@ namespace Nexus.Update
                                                                 //furthermore, our WantEvent that checks for OLD_SAVE will compare it against the version, rather than check for it in general
         static bool CheckCorpse(GameObject GO)
         {
-            if (!GO.HasStringProperty(FLAGS.CORPSE))
+            if (!GO.HasPart<VampireAshes>())
             {
                 VampireBuilder.ChangeCorpse(GO);
                 return true;

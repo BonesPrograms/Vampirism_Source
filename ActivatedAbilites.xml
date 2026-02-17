@@ -12,6 +12,16 @@
     <UITile Tile="vampirism/vampfangs.png" Foreground="w" Detail="R" />
   </ability>
 
+  <ability Command="invokeBatform">
+  <description>
+  <p>Transform into a bat.</p>
+  <br/>
+  <statline Name="Cooldown" />
+  </description>
+   <UITile Tile="vampirism/vampfangs.png" Foreground="w" Detail="R" />
+  </ability>
+
+
   <ability Command="invokeCoffinCMD">
     <description>
       <p>Invoke your coffin.</p>

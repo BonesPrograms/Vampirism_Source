@@ -15,7 +15,7 @@ namespace XRL.World.Effects
     public class FrenzyAI : Effect
     {
         public GameObject Target;
-        
+
         [System.NonSerialized]
         public readonly TheBeast Source;
         readonly Action Action;
@@ -49,7 +49,7 @@ namespace XRL.World.Effects
                     Duration = 0;
                 else
                     Target = null;
-            //    Source.TargetRegistry.Remove(E.Dying); //Sift() will remove the target on its own
+                //    Source.TargetRegistry.Remove(E.Dying); //Sift() will remove the target on its own
             }
             return base.HandleEvent(E);
         }
@@ -123,6 +123,7 @@ namespace XRL.World.Effects
         public override bool Apply(GameObject Object)
         {
 
+            Source.ParentObject.SetStringProperty(FLAGS.FRENZY, FLAGS.TRUE);
             AutoAct.Interrupt(); //prevents graphics bugs that occur if frenzy activates while waiting
             XRLCore.Core.RenderDelay(100);
             base.Object.PassTurn(); // need to pass turn on apply or else you get a turn to act

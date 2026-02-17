@@ -66,7 +66,10 @@ namespace Nexus.Blood
             {
                 GameObject obj = CurrentCell.Objects[i];
                 if ($"{obj}" == "VomitPool")
+                {
                     CurrentCell.RemoveObject(obj);
+                    return;
+                }
             }
 
         }

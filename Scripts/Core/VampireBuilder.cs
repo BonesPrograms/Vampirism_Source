@@ -39,7 +39,7 @@ namespace Nexus.Core
         };
         public static readonly Type[] VampiricSpells =
         {
-            typeof(GhoulSpell), typeof(CoffinSpell), typeof(EmbraceSpell)
+            typeof(GhoulSpell), typeof(CoffinSpell), typeof(EmbraceSpell), typeof(BatformSpell)
         };
 
         public static void Make(GameObject GO)
@@ -158,7 +158,7 @@ namespace Nexus.Core
         {
             var ashes = GO.GetPart<VampireAshes>();
             if (ashes.HasCopyData)
-                GO.AddPart(ashes.Revert());
+                GO.RequirePart(ashes.Revert());
             GO.RemovePart(ashes);
         }
         public static void ChangeCorpse(GameObject GO)
@@ -166,14 +166,13 @@ namespace Nexus.Core
             if (GO.TryGetPart<Corpse>(out var Corpse))
             {
                 VampireAshes ashes = new(Corpse.BurntCorpseBlueprint, Corpse.VaporizedCorpseBlueprint, Corpse.CorpseBlueprint, Corpse.BurntCorpseChance, Corpse.CorpseChance, Corpse.VaporizedCorpseChance);
-                GO.AddPart(ashes);
+                GO.RequirePart(ashes);
                 GO.RemovePart(Corpse);
             }
             else
-                GO.AddPart<VampireAshes>();
+                GO.RequirePart<VampireAshes>();
             if (GO.TryGetIntProperty("SuppressCorpseDrops", out int prop) && prop > 0)
                 GO.SetIntProperty("SuppressCorpseDrops", 0);
-            GO.SetStringProperty(FLAGS.CORPSE, null);
         }
     }
 }

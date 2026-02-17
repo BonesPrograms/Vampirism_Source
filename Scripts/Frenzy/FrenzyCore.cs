@@ -116,7 +116,6 @@ namespace Nexus.Frenzy
         {
             Source.ParentObject.ApplyEffect(new FrenzyAI(9999, Source, Target, Source.GameOver));
             Source.frenzied = true;
-            Source.ParentObject.SetStringProperty(FLAGS.FRENZY, FLAGS.TRUE);
             Source.ParentObject.ApplyEffect(new Running(WikiRng.Next(10,20)));
         }
 

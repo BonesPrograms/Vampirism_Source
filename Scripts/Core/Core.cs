@@ -297,6 +297,50 @@ namespace Nexus.Core
 			return false;
 		}
 
+		public static T SamePart<T>(this GameObject Object, T obj) where T : IPart
+		{
+			for (int i = Object.PartsList.Count - 1; i >= 0; i--)
+			{
+				IPart part = Object.PartsList[i];
+				if (part == obj)
+					return obj;
+				else if (part.GetType() == typeof(T))
+					Object.RemovePart(part);
+			}
+			return Object.AddPart(obj);
+		}
+
+		public static BaseMutation SameMutation(this GameObject Object, BaseMutation Mutation)
+		{
+			var mutations = Object.GetPart<Mutations>();
+			return mutations.SameMutation(Mutation);
+		}
+
+		public static BaseMutation SameMutation(this Mutations mutations, BaseMutation Mutation)
+		{
+			var mutation = mutations.GetMutation(Mutation);
+			if (mutation != null)
+				return mutation;
+			return mutations.AddMutationInstance(Mutation);
+
+		}
+
+		public static BaseMutation AddMutationInstance(this Mutations Mutations, BaseMutation Mutation)
+		{
+			Mutations.AddMutation(Mutation, Mutation.Level, true);
+			return Mutation;
+		}
+
+		public static BaseMutation GetMutation(this Mutations mutations, BaseMutation Mutation)
+		{
+			for (int i = 0; i < mutations.MutationList.Count; i++)
+			{
+				if (mutations.MutationList[i] == Mutation)
+					return mutations.MutationList[i];
+			}
+			return null;
+		}
+
 		public static T RequireMutation<T>(this GameObject Object) where T : BaseMutation, new()
 		{
 			var mutations = Object.RequirePart<Mutations>();
@@ -341,7 +385,7 @@ namespace Nexus.Core
 		{
 			T obj = new();
 			mutations.AddMutation(obj);
-		//	obj.Mutate(mutations.ParentObject);
+			//	obj.Mutate(mutations.ParentObject);
 			return obj;
 
 		}
@@ -362,7 +406,8 @@ namespace Nexus.Core
 				for (int x = 0; x < zone.Width; x++)
 				{
 					Cell cell = zone.Map[x][y];
-					cell.SetPeopleWho(set);
+					if (cell.HasObjectWithPart(nameof(Combat)))
+						cell.SetPeopleWho(set);
 				}
 			}
 		}
@@ -386,7 +431,8 @@ namespace Nexus.Core
 				for (int x = 0; x < zone.Width; x++)
 				{
 					Cell cell = zone.Map[x][y];
-					cell.AddPeopleWho(method, list);
+					if (cell.HasObjectWithPart(nameof(Combat)))
+						cell.AddPeopleWho(method, list);
 				}
 			}
 			return list;
@@ -410,7 +456,8 @@ namespace Nexus.Core
 				for (int x = 0; x < Zone.Width; x++)
 				{
 					Cell cell = Zone.Map[x][y];
-					count += ObjectCount(cell, method);
+					if (cell.HasObjectWithPart(nameof(Combat)))
+						count += ObjectCount(cell, method);
 				}
 			}
 			return count;
@@ -472,19 +519,13 @@ namespace Nexus.Core
 		{
 			if (obj.Count > 1)
 			{
-				return obj.FindFirstByValue(value);
+				foreach (var pair in obj)
+				{
+					if (pair.Value.Equals(value))
+						return pair;
+				}
 			}
-			return obj.Single();
-		}
-
-		public static KeyValuePair<TKey, TValue> FindFirstByValue<TKey, TValue>(this IDictionary<TKey, TValue> objs, TValue value) where TValue : IEquatable<TValue>
-		{
-			foreach (var obj in objs)
-			{
-				if (obj.Value.Equals(value))
-					return obj;
-			}
-			return default;
+			return obj.Single(); //also expect at least one object to have the value youre looking for
 		}
 		public static TKey[] KeyArray<TKey, TValue>(this IDictionary<TKey, TValue> source)
 		{

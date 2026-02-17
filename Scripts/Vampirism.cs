@@ -31,6 +31,9 @@ namespace XRL.World.Parts.Mutation
 		public int bloodycounter = default;
 
 		[NonSerialized]
+		public bool Immune = default;
+
+		[NonSerialized]
 		public bool WasTerrifiedByFlames = default;
 		public override string GetDescription() => "You feed on the blood of living creatures.";
 		public string GetDamageDice()
@@ -87,52 +90,59 @@ namespace XRL.World.Parts.Mutation
 		}
 		public override bool WantEvent(int ID, int cascade)
 		{
-			if (bloodycounter > 0 && HasFangs() && ID == SingletonEvent<EndTurnEvent>.ID)
+			if (ID == SingletonEvent<EndTurnEvent>.ID && bloodycounter > 0 && HasFangs())
 				return true;
 			if (ID == PooledEvent<CommandEvent>.ID || ID == AIGetOffensiveAbilityListEvent.ID || ID == PooledEvent<AfterDismemberEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
 				return true;
-			if (ParentObject.IsPlayer() && Options.GetOptionBool(OPTIONS.NIGHTBEAST) && !ParentObject.OnWorldMap()) //this is very very restrcited to player only
+			if (ID == SingletonEvent<BeginTakeActionEvent>.ID && IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false)) //Albino
+				return CheckNightbeast();
+			if (ID == BeforeRenderEvent.ID)
+				return CheckNightbeast();
+			//force passing turn does not play well with the Terrified effect and//likely wont work at all with frenzy
+
+			//if (WasTerrifiedByFlames && (ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == EffectRemovedEvent.ID))
+			//	return true; i was using these to forcepassturn and end forcepassturn with a bool WasScaredByFire
+			if (!Immune)
 			{
-				if (ID == SingletonEvent<BeginTakeActionEvent>.ID && IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false)) //Albino
-					return true;
-				if (ID == BeforeRenderEvent.ID)
+				if (ID == TookDamageEvent.ID)
+					return CheckFireOption();
+				if (ID == EquipperEquippedEvent.ID && Options.GetOptionBool(OPTIONS.TORCH))
+					return CheckFireOption();
+				if (ID == SingletonEvent<BeforeTakeActionEvent>.ID)
+					return CheckFireOption();
+			}
+			if (WasTerrifiedByFlames || Immune)
+			{
+				if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID)
 					return true;
 			}
-			if (Options.GetOptionBool(OPTIONS.FIRE) && !ParentObject.CheckFlag(FLAGS.FRENZY))//force passing turn does not play well with the Terrified effect and//likely wont work at all with frenzy
-			{
-				//if (WasTerrifiedByFlames && (ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == EffectRemovedEvent.ID))
-				//	return true; i was using these to forcepassturn and end forcepassturn with a bool WasScaredByFire
-				if (!ParentObject.HasEffect<Blaze_Tonic>())
-				{
-					if (ID == TookDamageEvent.ID)
-						return true;
-					if (Options.GetOptionBool(OPTIONS.TORCH) && ID == EquipperEquippedEvent.ID)
-						return true;
-					if (ID == SingletonEvent<BeforeTakeActionEvent>.ID)
-						return true;
-				}
-				if (WasTerrifiedByFlames)
-				{
-					if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID)
-						return true;
-				}
-			}
-			if (ParentObject.HasStringProperty(FLAGS.OLD_SAVE) && ID == EnteringZoneEvent.ID)
+
+			if (ID == EnteringZoneEvent.ID && ParentObject.HasStringProperty(FLAGS.OLD_SAVE) && ParentObject.IsPlayer())
 				return true;
 			if (ID == AfterPlayerBodyChangeEvent.ID)
 				return true;
 			return base.WantEvent(ID, cascade);
 		}
-
 		public override bool HandleEvent(AfterPlayerBodyChangeEvent E) //potential issue here:
 		{                                                               //players who are NOT a vampire and are playing old saves will not be able to use vampiric spells when dominating if the option is enabled.
 			if (E.NewBody.IsVampire())                                  //because only players with vampire parts can request an update
-			{                                                           //though this can be fixed by saving/loading as the dominatee
-				Nexus.Update.Update.Spells(E.NewBody);					//ALSO vampires wont get access to the new corpse type unless the player is a vampire that can update them
+			{
+				//though this can be fixed by saving/loading as the dominatee
+				Nexus.Update.Update.Spells(E.NewBody);                  //ALSO vampires wont get access to the new corpse type unless the player is a vampire that can update them
 				if (E.OldBody?.HasStringProperty(FLAGS.OLD_SAVE) ?? false)
 					E.NewBody.SetStringProperty(FLAGS.OLD_SAVE, null);
 			}
 			return base.HandleEvent(E);
+		}
+
+		bool CheckNightbeast()
+		{
+			return ParentObject.IsPlayer() && Options.GetOptionBool(OPTIONS.NIGHTBEAST) && !ParentObject.OnWorldMap();
+		}
+
+		bool CheckFireOption()
+		{
+			return Options.GetOptionBool(OPTIONS.FIRE) && !ParentObject.CheckFlag(FLAGS.FRENZY);
 		}
 
 		public override bool HandleEvent(EnteringZoneEvent E)
@@ -151,13 +161,18 @@ namespace XRL.World.Parts.Mutation
 		{
 			if (E.Effect is Terrified) //tried to match by effect.Object, but it always shows up null
 				WasTerrifiedByFlames = false;
+			else if (E.Effect is Blaze_Tonic)
+				Immune = false;
 			return base.HandleEvent(E);
 		}
 
 		public override bool HandleEvent(EffectAppliedEvent E)
 		{
 			if (E.Effect is Blaze_Tonic)
+			{
+				Immune = true;
 				ParentObject.RemoveEffect<Terrified>();
+			}
 			return base.HandleEvent(E);
 		}
 		public override bool HandleEvent(BeforeTakeActionEvent E)
@@ -269,23 +284,31 @@ namespace XRL.World.Parts.Mutation
 
 		void SearchForFire(List<Cell> cells)
 		{
-			for (int i = 0; i < cells.Count; i++)
-			{
-				for (int x = 0; x < cells[i].Objects.Count; x++)
+			if (ParentObject.IsPlayer() || !ParentObject.HasEffect<Terrified>()) //if you place a vampire inbetween the two torches infront of elder irudads house, he is locked in a permanent state of terror if he already has terrified
+				for (int i = 0; i < cells.Count; i++)   //because terrified removes the old one if you try to apply a new one and it just cycles between the two
 				{
-					GameObject obj = cells[i].Objects[x];
-					if (obj.IsAflame() || (obj.Blueprint != "Campfire" && obj.HasPart<AnimatedMaterialFire>()))
+					for (int x = 0; x < cells[i].Objects.Count; x++)
 					{
-						Rotschrek(obj, true);
-						return;
+						GameObject obj = cells[i].Objects[x];
+						if (obj.IsAflame() || Flamelike($"{obj}") || (obj.Blueprint != "Campfire" && obj.HasPart<AnimatedMaterialFire>()))
+						{
+							Rotschrek(obj, true);
+							return;
+						}
+						else if (LitTorch(obj))
+							return;
 					}
-					else if (LitTorch(obj))
-						return;
 				}
-			}
 		}
 
-		bool LitTorch(GameObject obj)
+		bool Flamelike(string obj) =>
+		 obj switch
+		 {
+			 "LavaPuddle" or "SmallLavaPuddle" or "LavaPool" or "Shimmering Heat" => true,
+			 _ => false
+		 };
+
+		bool LitTorch(GameObject obj) //im pretty sure this cannot actually happen (cannot drop lit torches) but ive included it anyways
 		{
 			if (obj.Blueprint == "Torch" && Options.GetOptionBool(OPTIONS.TORCH))
 			{

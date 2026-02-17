@@ -20,7 +20,7 @@ namespace Nexus.Attack
         readonly Vampirism Source;
         readonly string dice;
         readonly bool friendly;
-        bool vampire;
+        readonly bool vampire;
 
         public VampireAttack(GameObject Target, Vampirism Source)
         {
@@ -41,9 +41,9 @@ namespace Nexus.Attack
 
         bool SpotterCheck()
         {
-            if (SpotterGenerator.GeneratorWithDefaultList(Source.ParentObject).BeginAttackCheckIfSpotted<OpinionDominate>(out GameObject spotter) == Spot.SPOTTER_IN_DETECTION)
+            if (new SpotterCore(Source.ParentObject).Check<OpinionDominate>(out GameObject spotter) == Spot.SPOTTER_IN_DETECTION)
             {
-                Alert alert = Alert.AlertWithDefaultList(Source.ParentObject, spotter);
+                Alert alert = new (Source.ParentObject, spotter);
                 alert.Add(Target);
                 alert.RemoveSleepFromWitnesses();
                 alert.AddOpinionToWitnessesAndExposer<OpinionDominate>();

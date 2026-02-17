@@ -18,9 +18,8 @@ namespace Nexus.Frenzy
         public bool TryScan(out GameObject Object)
         {
             Sift();
-            Register();
-            int min = Source.TargetRegistry.Values.Min();
-            Object = Source.TargetRegistry.AnyIsnt(TheBeast.FLAG_AVOID) ? Source.TargetRegistry.PickFirst(min).Key : null;
+            Register();                                                                     //make sure not to invoke min early or else you will get enumerator errors when everyoens dead with wassail
+            Object = Source.TargetRegistry.AnyIsnt(TheBeast.FLAG_AVOID) ? Source.TargetRegistry.PickFirst(Source.TargetRegistry.Values.Min()).Key : null;
             return Object != null;
         }
 
@@ -28,7 +27,7 @@ namespace Nexus.Frenzy
         {
             foreach (var obj in Source.TargetRegistry.KeyArray())
             {
-                if (!obj?.HasHitpoints() ?? true) //serious bug here (OR DOWN IN THE BADKEY CHECK IN REGISTER()) (they were doing the same evaluation)
+                if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(Source.ParentObject)) //serious bug here (OR DOWN IN THE BADKEY CHECK IN REGISTER()) (they were doing the same evaluation)
                     Source.TargetRegistry.Remove(obj); //it was prematurely removing objects due to one of these two checks : !InSameZone or Target.CurrentCell.CombatTarget(ParentObject) == null so if that object was a badtarget you would get softlocked attacking them over and over
             }                                           // i realized we dont really need either of them so its fine
         }                                                //if anyone ends up biting a phase spider wrongly, i will fix it then
@@ -36,7 +35,7 @@ namespace Nexus.Frenzy
 
         bool LightCheck(GameObject tgt, int distance)
         {
-            if (tgt.CurrentCell.GetLight() == LightLevel.None)
+            if (tgt.CurrentCell.GetLight() == LightLevel.None || !tgt.IsVisible())
             {
                 if (Source.ParentObject.TryGetPart(out HeightenedHearing HH) && distance <= HH.GetRadius())
                     return true;
@@ -55,7 +54,8 @@ namespace Nexus.Frenzy
                 for (int x = 0; x < zone.Width; x++)
                 {
                     Cell cell = zone.Map[x][y];
-                    Register(cell);
+                    if (cell.HasObjectWithPart(nameof(Combat)))
+                        Register(cell);
                 }
             }
         }
@@ -92,11 +92,9 @@ namespace Nexus.Frenzy
             && target.CurrentCell?.GetCombatTarget(Source.ParentObject) != null
             && target.InSameZone(Source.ParentObject) //noticed a bug in early testing where you would run off the map to targets in nearbyzones if this wasnt here 
             && !target.IsFlying //though its been so long im not sure if i was just doing an improper Clean()
-            && target.HasTagOrProperty("Bleeds")
             && target.HasHitpoints()
             && Source.ParentObject.HasLOSTo(target, IncludeSolid: false)
             && Source.ParentObject.canPathTo(target.CurrentCell)
-            && target.IsVisible()
             && Core.Checks.Applicable(target)
             && LightCheck(target, Source.ParentObject.DistanceTo(target));
     }

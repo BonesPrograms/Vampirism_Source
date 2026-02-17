@@ -45,17 +45,11 @@ namespace Nexus.Stealth
             this.Exposer = Exposer;
         }
 
-        Alert(GameObject Source, GameObject Exposer = null)
+        public Alert(GameObject Source, GameObject Exposer = null)
         {
             this.Source = Source;
             this.Exposer = Exposer;
-        }
-
-        public static Alert AlertWithDefaultList(GameObject Source, GameObject Exposer = null)
-        {
-            Alert alert = new(Source, Exposer);
-            alert.GiveDefaultList();
-            return alert;
+            Witnesses = Alert.GiveDefaultList(Source);
         }
 
         bool Validated(GameObject obj, uint AoE) => obj != null && obj.DistanceTo(Source) <= AoE;
@@ -90,9 +84,9 @@ namespace Nexus.Stealth
         /// <param name="Source"></param>
         /// <returns></returns>
 
-        public void GiveDefaultList()
+        public static List<GameObject> GiveDefaultList(GameObject Source)
         {
-            Witnesses = Source.CurrentZone.ListPeopleWho(x=> StealthCore.ValidSentient(x));
+            return Source.CurrentZone.ListPeopleWho(x=> StealthCore.ValidSentient(x));
         }
 
         /// <summary>
@@ -108,7 +102,7 @@ namespace Nexus.Stealth
 
         public GameObject Add(GameObjectReference Target, out bool IsNull)
         {
-            return SafeAdd(Target?.Object, out IsNull);
+            return Add(Target?.Object, out IsNull);
         }
 
         public GameObject Add(GameObject Target)
@@ -127,7 +121,7 @@ namespace Nexus.Stealth
         /// </summary>
         /// <param name="Target"></param>
         /// <returns></returns>
-        public GameObject SafeAdd(GameObject Target, out bool IsNull)
+        public GameObject Add(GameObject Target, out bool IsNull)
         {
             Add(Target);
             IsNull = Target is null;

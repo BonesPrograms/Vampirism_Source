@@ -28,12 +28,13 @@ namespace XRL.World.Parts
 	[HasGameBasedStaticCache]
 	public class Nightbeast : IPart
 	{
+		public static Dictionary<GameObject, bool> Witnesses => _Witnesses ??= new();
 
 		[GameBasedStaticCache]
 		public static bool NeedsReactivate = false; //for gamestart
 
 		[GameBasedStaticCache(false)]
-		public static Dictionary<GameObject, bool> Witnesses;
+		public static Dictionary<GameObject, bool> _Witnesses;
 
 		[GameBasedStaticCache(false, true)]
 		public static GameObject[] KeyArray = new GameObject[0]; //this was throwing nullref errors in Stealth() during gamestart if i didnt create an instance of it prematurely. will need to do some more research as to why later
@@ -62,21 +63,15 @@ namespace XRL.World.Parts
 		{
 			if (ID == AfterPlayerBodyChangeEvent.ID)
 				return true;
-			if (ParentObject.IsPlayer())
-			{
-				if (!AutoAct.IsActive() && ID == SingletonEvent<BeforeTakeActionEvent>.ID)
+			if ((!AutoAct.IsActive() && ID == SingletonEvent<BeforeTakeActionEvent>.ID) || ID == EnteringZoneEvent.ID || ID == AfterGameLoadedEvent.ID)
+				if (ParentObject.IsPlayer())
 					return true;
-				if (ID == EnteringZoneEvent.ID)
-					return true;
-				if (ID == AfterGameLoadedEvent.ID)
-					return true;
-			}
 			return base.WantEvent(ID, cascade);
 		}
 
 		public override bool HandleEvent(AfterPlayerBodyChangeEvent E)
 		{
-			NeedsReactivate = true;
+			Reactivate();
 			return base.HandleEvent(E);
 		}
 		public override bool HandleEvent(AfterGameLoadedEvent E)
@@ -103,16 +98,16 @@ namespace XRL.World.Parts
 		static void Reactivate()
 		{
 			Reactivate(The.Player.CurrentZone);
-			NeedsReactivate = false;
 		}
 
 		static void Reactivate(Zone zone) //system relies on pinging the zone on load (or receiving new objects when one is created) and then strictly sifts through its own dictionary from then on for evaluation
 		{
-			Witnesses = new();
+			_Witnesses = new();
 			StealthCore.Zone = zone;
 			StealthCore.LightLevel = The.Player.CurrentCell?.GetLight();
 			StealthCore.ScanEnvironment();
 			KeyArray = Witnesses.KeyArray();
+			NeedsReactivate = false;
 		}
 
 		static void HaltStealthSystem(string text)

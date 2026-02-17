@@ -17,8 +17,8 @@ namespace XRL.World.Parts
     /// </summary>
     [Serializable]
 
-    public class Vitae : IPart 
-    {                          
+    public class Vitae : IPart
+    {
 
         [NonSerialized]
         public static List<GameObject> containers = new();
@@ -69,16 +69,12 @@ namespace XRL.World.Parts
                 return true;
             if (ID == AfterPlayerBodyChangeEvent.ID)
                 return true;
-            if (ParentObject.IsPlayer())
-            {
-                if (ID == SingletonEvent<BeforeTakeActionEvent>.ID && !AutoAct.IsResting() && !ParentObject.Incap(false) && !ParentObject.IsInCombat() && Options.GetOptionBool(OPTIONS.AUTOGET) && !Options.GetOptionBool(OPTIONS.HUNTER) && !ParentObject.CheckFlag(FLAGS.FRENZY, FLAGS.FEED))
-                    return true;
-                if (ID == SingletonEvent<BeginTakeActionEvent>.ID)
-                    return true;
-            }
+            if (ID == SingletonEvent<BeforeTakeActionEvent>.ID && ParentObject.IsPlayer() && !AutoAct.IsResting() && !ParentObject.Incap(false) && !ParentObject.IsInCombat() && Options.GetOptionBool(OPTIONS.AUTOGET) && !Options.GetOptionBool(OPTIONS.HUNTER) && !ParentObject.CheckFlag(FLAGS.FRENZY, FLAGS.FEED))
+                return true;
+            if (ID == SingletonEvent<BeginTakeActionEvent>.ID && ParentObject.IsPlayer())
+                return true;
             return base.WantEvent(ID, cascade);
         }
-
         public override bool HandleEvent(AfterPlayerBodyChangeEvent E)
         {
             if (E.NewBody?.IsVampire() ?? false)
