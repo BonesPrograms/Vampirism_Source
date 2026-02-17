@@ -116,7 +116,6 @@ namespace XRL.World.Parts.Mutation
 				if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID)
 					return true;
 			}
-
 			if (ID == EnteringZoneEvent.ID && ParentObject.HasStringProperty(FLAGS.OLD_SAVE) && ParentObject.IsPlayer())
 				return true;
 			if (ID == AfterPlayerBodyChangeEvent.ID)

@@ -11,6 +11,7 @@ namespace Nexus.Stealth
     /// <summary>
     /// Handles UI and sets global stealth flags.
     /// </summary>
+    [HasGameBasedStaticCache]
     public static class ActiveStealth //i plan to one day, maybe, turn this into an "Actual" UI, so i made it a separate class to avoid serialization issues down the line post-release
     {
         static GameObject Player => The.Player;

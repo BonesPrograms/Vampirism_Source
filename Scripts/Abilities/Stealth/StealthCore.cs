@@ -38,7 +38,6 @@ namespace Nexus.Stealth
                     if (cell.HasObjectWithPart(nameof(Brain)))
                         for (int i = 0; i < cell.Objects.Count; i++)
                         {
-
                             CheckValidity(cell.Objects[i]);
                         }
                 }
