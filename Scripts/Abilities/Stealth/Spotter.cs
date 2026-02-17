@@ -56,7 +56,7 @@ namespace Nexus.Stealth
         static string DefaultMessage(GameObject Spotter) => $"You try to sneak attack, but {Spotter.t()} spots you from a distance!";
         public static List<GameObject> GiveDefaultList(GameObject Source)
         {
-            return Source.CurrentZone.ListPeopleWho(witness => StealthCore.ValidSentient(witness) && !witness.Unaware(false));
+            return Source.CurrentZone.ListPeopleWho(x => StealthCore.ValidSentient(x) && !x.Unaware(false));
         }
         public Spot Check<T>(string message = default) where T : IOpinionSubject, new()
         {
@@ -136,7 +136,7 @@ namespace XRL.World.Effects
         {
             if (ID == SingletonEvent<EndTurnEvent>.ID)
                 return true;
-            return base.WantEvent(ID, Cascade); 
+            return base.WantEvent(ID, Cascade);
         }
         public override bool HandleEvent(EndTurnEvent E)
         {

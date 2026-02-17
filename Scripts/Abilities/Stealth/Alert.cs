@@ -86,7 +86,7 @@ namespace Nexus.Stealth
 
         public static List<GameObject> GiveDefaultList(GameObject Source)
         {
-            return Source.CurrentZone.ListPeopleWho(x=> StealthCore.ValidSentient(x));
+            return Source.CurrentZone.ListPeopleWho(x => StealthCore.ValidSentient(x)); //this does not check for unawareness because it will wake up anyone who is unaware
         }
 
         /// <summary>

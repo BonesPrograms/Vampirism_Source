@@ -17,7 +17,7 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(AfterObjectCreatedEvent E)
         {   //this runs before the game even begins so you need a null check
-            if (The.Player?.IsVampire() ?? false && Nightbeast.Witnesses != null && ParentObject != null && ParentObject.InSameZone(The.Player) && StealthCore.ValidSentient(ParentObject))
+            if (The.Player?.IsVampire() ?? false && ParentObject.InSameZone(The.Player) && StealthCore.ValidSentient(ParentObject))
             {
                 Check();
             }
