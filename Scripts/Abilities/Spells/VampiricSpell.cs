@@ -15,20 +15,21 @@ namespace XRL.World.Parts
     {
         public static readonly Type CLASS = typeof(VampiricSpell);
         public Guid SpellID = Guid.Empty;
-        public int Level => ParentObject.GetPart<Vampirism>().Level; 
-        public virtual int Cost => VITAE.BLOOD_PER_SIP; //default 10k  
         public abstract Type SpellType
         {
             get;
         }
+        public int Level => ParentObject.GetPart<Vampirism>().Level;
+        public virtual int Cost => VITAE.BLOOD_PER_SIP; //default 10k  
         public abstract int Cooldown
         {
             get;
-        }                                                                         
-        public abstract void AddSpell();
-        public abstract void CollectStats(Templates.StatCollector stats);
+
+        }
         public static int Roll(GameObject Object, int Level) => WikiRng.Next(1, 8) + Math.Max(Object.StatMod("Ego"), Level) + Object.GetStat("Level").Value;
         public virtual int Roll() => Roll(ParentObject, Level);
+        public abstract void AddSpell();
+        public abstract void CollectStats(Templates.StatCollector stats);
         public override bool WantEvent(int ID, int Cascade)
         {
             if (ID == PooledEvent<CommandEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
@@ -46,7 +47,7 @@ namespace XRL.World.Parts
             RemoveMyActivatedAbility(ref SpellID);
             ParentObject.RemovePart(this);
         }
-        
+
         public bool RealityCheck(Cell cell) //get real
         {
             Event E = Event.New("InitiateRealityDistortionTransit", "Object", ParentObject, $"{CLASS}", this, "Cell", cell);
@@ -66,9 +67,23 @@ namespace XRL.World.Parts
                 return ParentObject.ShowFailure("You don't have enough {{R|blood}} " + text + "!");
         }
 
+        public bool SunlightInterference()
+        {
+            if (UI.Options.GetOptionBool(OPTIONS.NIGHTBEAST))
+            {
+                if (IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false))
+                    return true;
+            }
+            return false;
+        }
+
         public bool Cast(string ToDo)
         {
-            if (EnoughBlood(ToDo))
+            if (SunlightInterference())
+            {
+                UI.Popup.Show("You are powerless before the gross incandescence of the Sun!");
+            }
+            else if (EnoughBlood(ToDo))
             {
                 ParentObject.UseEnergy(1000, $"{CLASS} {SpellType}");
                 CooldownMyActivatedAbility(SpellID, Cooldown);

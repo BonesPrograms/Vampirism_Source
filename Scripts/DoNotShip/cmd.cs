@@ -83,7 +83,7 @@ namespace XRL.World.Parts
 
         public admn()
         {
-            
+
         }
 
         public admn(bool IsVampire)
@@ -353,13 +353,13 @@ namespace XRL.World.Parts
 
         public static void FindSpotter()
         {
-            List<GameObject> spotters = The.Player.CurrentZone.ListPeopleWho(x=>x.HasEffect<Spotter>());
-            for(int i = 0; i < spotters.Count; i++)
-            msg($"{spotters[i]}");
+            List<GameObject> spotters = The.Player.CurrentZone.ListPeopleWho(x => x.HasEffect<Spotter>());
+            for (int i = 0; i < spotters.Count; i++)
+                msg($"{spotters[i]}");
         }
 
         [WishCommand("staticstealth")]
-        
+
         public static void Staticstealth()
         {
             AddPlayerMessage($"{StealthCore.Player.DisplayName}");
@@ -415,7 +415,32 @@ namespace XRL.World.Parts
             }
         }
 
+        [WishCommand("addspell")]
 
+        public static void AddSpell(string text)
+        {
+            object obj = RequirePart(text);
+            if (obj is VampiricSpell spell)
+                spell.AddSpell();
+            else
+                msg($"{text} is not VampiricSpell or is null : {obj == null}");
+        }
+
+        [WishCommand("removespell")]
+
+        public static void RemoveSpell(string text)
+        {
+            var obj = The.Player.GetPart(text);
+            if (obj is VampiricSpell spell)
+            {
+                spell.RemoveSpell();
+                msg($"{text} removed");
+            }
+            else
+                msg($"{text} is not VampiricSpell or is null : {obj == null}");
+
+
+        }
 
         [WishCommand("unvampirize")]
 
@@ -784,25 +809,14 @@ namespace XRL.World.Parts
 
         public static void removepart(string value)
         {
-            if (The.Player.RemovePart(value))
-                msg("removed");
-            else
-                msg(value + " not on player");
+            RemovePart(value);
         }
 
         [WishCommand("addpart", null)]
 
         public static void addpart(string value)
         {
-            value = "XRL.World.Parts." + value;
-            Type type = Type.GetType(value, false);
-            if (type != null && Activator.CreateInstance(type) is IPart obj)
-            {
-                msg("requirepart " + value);
-                The.Player.RequirePart(obj);
-            }
-            else
-                msg($"{value} is not IPart");
+            RequirePart(value);
         }
 
 
@@ -816,7 +830,7 @@ namespace XRL.World.Parts
 
         static string[] stats = new string[]
         {
-            "Ego", "Intelligence", "Agility", "SP"  
+            "Ego", "Intelligence", "Agility", "SP"
         };
 
         static string[] mutations = new string[]
@@ -835,7 +849,7 @@ namespace XRL.World.Parts
                 m.AddMutation(mutations[i]);
             }
             GameObject g = The.Player;
-            for(int i = 0; i < stats.Length; i++)
+            for (int i = 0; i < stats.Length; i++)
             {
                 g.AddBaseStat(stats[i], 100);
             }
@@ -1121,6 +1135,28 @@ namespace XRL.World.Parts
                 if (obj.Value == true)
                     Names(obj.Key, 'W');
             }
+        }
+
+        public static object RequirePart(string value)
+        {
+            value = "XRL.World.Parts." + value;
+            Type type = Type.GetType(value, false);
+            if (type != null && Activator.CreateInstance(type) is IPart obj)
+            {
+                msg("requirepart " + value);
+                return The.Player.RequirePart(obj);
+            }
+            else
+                msg($"{value} is not IPart or is null : {value == null}");
+            return null;
+        }
+
+        public static void RemovePart(string value)
+        {
+            if (The.Player.RemovePart(value))
+                msg("removed " + value);
+            else
+                msg(value + " not on player");
         }
 
         #endregion

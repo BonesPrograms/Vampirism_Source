@@ -3,6 +3,19 @@ using XRL.UI;
 namespace Nexus.Rules
 {
 
+
+    public static class BATFORM
+    {
+        public const string COMMAND_NAME = "invokeBatform";
+
+        public const string ABILITY_NAME = "Batform";
+
+        public const int COOLDOWN = 50;
+
+        public const string FACTION = "Winged Mammals";
+
+        public const string ANATOMY = "Quadruped";
+    }
     public static class MOD
     {
         public const string VERSION = "2";

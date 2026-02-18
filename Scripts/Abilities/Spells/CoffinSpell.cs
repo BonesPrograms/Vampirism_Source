@@ -9,7 +9,9 @@ namespace XRL.World.Parts
     [Serializable]
     public class CoffinSpell : VampiricSpell
     {
-        public GameObjectReference Coffin;
+
+        public GameObject Coffin => _Coffin?.Object;
+        public GameObjectReference _Coffin;
         public override Type SpellType => typeof(CoffinSpell);
         public override int Cooldown => COFFIN.MATERIALIZE_COOLDOWN;
         bool JustJaunted;
@@ -26,9 +28,9 @@ namespace XRL.World.Parts
 
         public override bool WantEvent(int ID, int Cascade)
         {
-            if (!CoolingOff && HasCoffin && ID == TookDamageEvent.ID)
+            if (ID == TookDamageEvent.ID && !CoolingOff && HasCoffin)
                 return true;
-            if (ID == SingletonEvent<BeforeTakeActionEvent>.ID)
+            if (ID == SingletonEvent<BeforeTakeActionEvent>.ID && (JustJaunted || CoolingOff || HasCoffin))
                 return true;
             return base.WantEvent(ID, Cascade);
         }
@@ -44,49 +46,24 @@ namespace XRL.World.Parts
             return base.HandleEvent(E);
         }
 
-        void CheckCoffin()
-        {
-            if (Coffin.Object?.Blueprint != COFFIN.BLUEPRINT)
-                Coffin = null;
-            if (Coffin == null)
-            {
-                UI.Popup.Show("You feel your coffin being destroyed!");
-                HasCoffin = false;
-            }
-        }
-        void CoolOff()
-        {
-            Timer++;
-            if (Timer >= JauntCooldown)
-            {
-                CoolingOff = false;
-                Timer = default;
-                JauntCooldown = default;
-            }
-        }
-
-        void Jaunted()
-        {
-            ParentObject.ParticleBlip("&K-", 10, 0L);
-            UI.Popup.Show("You return to your coffin!");
-            JustJaunted = false;
-            CoolingOff = true;
-            Timer = 0;
-            JauntCooldown = WikiRng.Next(COFFIN.SAVE_FROM_DEATH_MIN, COFFIN.SAVE_FROM_DEATH_MAX);
-            ParentObject.ApplyEffect(new Asleep(Coffin.Object, WikiRng.Next(200, 500), true, false, false, true));
-        }
+        void msg(string text) => UI.Popup.Show(text);
         public override bool HandleEvent(TookDamageEvent E)
         {
+            msg("TDE");
             if (E.Object == ParentObject)
             {
-                if (!E.Damage.Attributes.Contains("Fire")) // explosions too maybe light
+                if (!E.Damage.Attributes.Contains("Fire") && !SunlightInterference()) // explosions too maybe light
                 {
+                    msg("NoInterf");
+                    msg($"{ParentObject.hitpoints - E.Damage.Amount <= 0} dead?");
                     if (ParentObject.hitpoints - E.Damage.Amount <= 0 && (Roll() >= COFFIN.SAVING_THROW_DC || UI.Options.GetOptionBool(OPTIONS.COFFIN)))
                     {
-                        if (RealityCheck(Coffin.Object.CurrentCell) && !Coffin.Object.IsBroken())
+                        msg("Through");
+                        if (RealityCheck(Coffin.CurrentCell) && !Coffin.IsBroken())
                         {
                             E.Damage.Amount = 0;
-                            ParentObject.DirectMoveTo(Coffin.Object.CurrentCell);
+                            ParentObject.TeleportSwirl(null, "&C", Voluntary: true, null, 'ù', IsOut: true);
+                            ParentObject.TeleportTo(Coffin.CurrentCell);
                             JustJaunted = true;
                             return false;
                         }
@@ -98,7 +75,7 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(CommandEvent E)
         {
-            if (E.Command == COFFIN.COMMAND_NAME)
+            if (E.Command == COFFIN.COMMAND_NAME && Checks.Prerequisites(ParentObject, COFFIN.ABILITY_NAME, "invoke your coffin"))
             {
                 Cell cell = ParentObject.PickDirection(COFFIN.ABILITY_NAME);
                 if (cell != null)
@@ -131,24 +108,49 @@ namespace XRL.World.Parts
         {
             HasCoffin = true;
             if (Coffin != null)
-                Coffin.Object.DirectMoveTo(cell);
+                Coffin.TeleportTo(cell);
             else
             {
                 GameObject Coffin = GameObject.Create(COFFIN.BLUEPRINT);
                 Coffin.SetStringProperty(FLAGS.COFFIN, ParentObject.ID);
                 cell.AddObject(Coffin);
-                this.Coffin = Coffin.Reference();
+                this._Coffin = Coffin.Reference();
             }
-            Coffin.Object.ParticleBlip("&K-", 10, 0L);
+            Coffin.ParticleBlip("&C\u000f", 10, 0L);
+            Coffin.TeleportSwirl(null, "&C", Voluntary: true);
             AddPlayerMessage("Your coffin appears!");
         }
 
-        string Chance()
+        void CheckCoffin()
         {
-            if (UI.Options.GetOptionBool(OPTIONS.COFFIN))
-                return "You will always return to your coffin when Save-From-Death is off cooldown.";
-            else
-                return $"Save-From-Death roll: 1d20 + {Level} versus {COFFIN.SAVING_THROW_DC}";
+            if (Coffin?.Blueprint != COFFIN.BLUEPRINT)
+                _Coffin = null;
+            if (Coffin == null)
+            {
+                UI.Popup.Show("You feel your coffin being destroyed!");
+                HasCoffin = false;
+            }
+        }
+        void CoolOff()
+        {
+            Timer++;
+            if (Timer >= JauntCooldown)
+            {
+                CoolingOff = false;
+                Timer = default;
+                JauntCooldown = default;
+            }
+        }
+
+        void Jaunted()
+        {
+            ParentObject.TeleportSwirl(null, "&C", Voluntary: true);
+            UI.Popup.Show("You return to your coffin!");
+            JustJaunted = false;
+            CoolingOff = true;
+            Timer = 0;
+            JauntCooldown = WikiRng.Next(COFFIN.SAVE_FROM_DEATH_MIN, COFFIN.SAVE_FROM_DEATH_MAX);
+            ParentObject.ApplyEffect(new Asleep(Coffin, WikiRng.Next(200, 500), true, false, false, true));
         }
 
 
@@ -157,6 +159,14 @@ namespace XRL.World.Parts
             stats.Set("Save-From-Death Cooldown", JauntCooldown - Timer, true);
             stats.Set("SaveAndChance", Chance(), true);
             stats.CollectCooldownTurns(MyActivatedAbility(SpellID), COFFIN.MATERIALIZE_COOLDOWN);
+
+            string Chance()
+            {
+                if (UI.Options.GetOptionBool(OPTIONS.COFFIN))
+                    return "You will always return to your coffin when Save-From-Death is off cooldown.";
+                else
+                    return $"Save-From-Death roll: 1d20 + {Level} versus {COFFIN.SAVING_THROW_DC}";
+            }
         }
     }
 }

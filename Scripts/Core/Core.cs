@@ -71,7 +71,7 @@ namespace Nexus.Core
 			pick = Cell?.GetCombatTarget(Object);
 			bool value = pick != null && pick != Object;
 			if (!value && Cell != null && Object.IsPlayer())
-				Popup.ShowFail(Cell.HasObjectWithPart(nameof(Combat)) ? $"There is no one there you can {text}." : $"There is no one there to {text}");
+				Popup.ShowFail(Cell.HasObjectWithPart(nameof(Combat)) ? $"There is no one there you can {text}." : $"There is no one there to {text}.");
 			return value;
 		}
 
@@ -125,6 +125,11 @@ namespace Nexus.Core
 				}
 			}
 			return false;
+		}
+
+		public static bool IsInBatForm(this GameObject Object)
+		{
+			return Object.GetPart<BatformSpell>().Transformed;
 		}
 
 		public static bool IsVampire(this GameObject Object)
@@ -310,43 +315,28 @@ namespace Nexus.Core
 			return Object.AddPart(obj);
 		}
 
-		public static BaseMutation SameMutation(this GameObject Object, BaseMutation Mutation)
-		{
-			var mutations = Object.GetPart<Mutations>();
-			return mutations.SameMutation(Mutation);
-		}
-
-		public static BaseMutation SameMutation(this Mutations mutations, BaseMutation Mutation)
-		{
-			var mutation = mutations.GetMutation(Mutation);
-			if (mutation != null)
-				return mutation;
-			return mutations.AddMutationInstance(Mutation);
-
-		}
-
-		public static BaseMutation AddMutationInstance(this Mutations Mutations, BaseMutation Mutation)
-		{
-			Mutations.AddMutation(Mutation, Mutation.Level, true);
-			return Mutation;
-		}
-
-		public static BaseMutation GetMutation(this Mutations mutations, BaseMutation Mutation)
+		public static T GetMutation<T>(this Mutations mutations, T Mutation) where T : BaseMutation
 		{
 			for (int i = 0; i < mutations.MutationList.Count; i++)
 			{
 				if (mutations.MutationList[i] == Mutation)
-					return mutations.MutationList[i];
+					return mutations.MutationList[i] as T;
 			}
 			return null;
 		}
 
-		public static T RequireMutation<T>(this GameObject Object) where T : BaseMutation, new()
+		public static T RequireMutation<T>(this GameObject Object, int level = 1) where T : BaseMutation, new()
 		{
 			var mutations = Object.RequirePart<Mutations>();
 			if (mutations.TryGetMutation(out T obj))
 				return obj;
-			return mutations.AddMutation<T>();
+			return mutations.AddMutation<T>(level);
+		}
+
+		public static T AddMutation<T>(this GameObject Object, int level = 1 ) where T : BaseMutation, new()
+		{
+			var mutations = Object.GetPart<Mutations>();
+			return mutations?.AddMutation<T>(level);
 		}
 
 		public static T GetMutation<T>(this GameObject Object) where T : BaseMutation
@@ -357,8 +347,7 @@ namespace Nexus.Core
 
 		public static bool TryGetMutation<T>(this GameObject Object, out T obj) where T : BaseMutation
 		{
-			var mutations = Object.GetPart<Mutations>();
-			obj = mutations?.GetMutation<T>();
+			obj = Object.GetMutation<T>();
 			return obj != null;
 		}
 
@@ -381,15 +370,14 @@ namespace Nexus.Core
 			return obj != null;
 		}
 
-		public static T AddMutation<T>(this Mutations mutations) where T : BaseMutation, new()
+		public static T AddMutation<T>(this Mutations mutations, int level = 1) where T : BaseMutation, new()
 		{
 			T obj = new();
-			mutations.AddMutation(obj);
+			mutations.AddMutation(obj, level);
 			//	obj.Mutate(mutations.ParentObject);
 			return obj;
 
 		}
-
 		public static void RemoveMutation<T>(this GameObject Object) where T : BaseMutation
 		{
 			if (Object.TryGetPart(out Mutations part))
@@ -473,6 +461,29 @@ namespace Nexus.Core
 					count++;
 			}
 			return count;
+		}
+
+		public static void SubtractFactionFeeling(this Brain Brain, string Faction, int Feeling)
+		{
+			if (Brain.Allegiance.ContainsKey(Faction))
+				Brain.Allegiance[Faction] -= Feeling;
+		}
+
+
+		public static void AddFactionFeeling(this Brain Brain, string Faction, int Feeling)
+		{
+			Brain.Allegiance[Faction] += Feeling;
+		}
+
+		public static bool TryGetFactionMembership(this Brain Brain, string Faction, out int value)
+		{
+			value = default;
+			if (Brain.Allegiance.ContainsKey(Faction))
+			{
+				value = Brain.Allegiance[Faction];
+				return true;
+			}
+			return false;
 		}
 	}
 	public static class Extensions
