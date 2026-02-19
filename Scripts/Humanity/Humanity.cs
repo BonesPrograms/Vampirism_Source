@@ -61,6 +61,12 @@ namespace XRL.World.Parts
 			return base.HandleEvent(E);
 		}
 
+		public void AddHumanity()
+		{
+			Score += HUMANITY.REGEN;
+			AddPlayerMessage("{{G sequence|Humanity}} gained!\nYou have " + strings() + " {{G sequence|Humanity.}}");
+		}
+
 		void Regenerate()
 		{
 			if (Score < HUMANITY.MAX)
@@ -68,8 +74,7 @@ namespace XRL.World.Parts
 				RegenTimer++;
 				if (RegenTimer >= HUMANITY.REGEN_TIME)
 				{
-					Score += HUMANITY.REGEN;
-					AddPlayerMessage("{{G sequence|Humanity}} gained!\nYou have " + strings() + " {{G sequence|Humanity.}}");
+					AddHumanity();
 					RegenTimer = 0;
 				}
 			}
@@ -77,7 +82,7 @@ namespace XRL.World.Parts
 		}
 		void HumanityGameOver()
 		{
-			Popup.ShowFail("Your {{G sequence|Humanity}} is lost.\nYou succumb to {{R sequence|the Beast}}.");
+			Popup.ShowFail("Your {{G sequence|Humanity}} is lost forever.\nYou succumb to {{R sequence|the Beast}}.");
 			ParentObject.SetStringProperty(FLAGS.GO, FLAGS.TRUE);
 			GameOver = true;
 			ParentObject.FireEvent(Event.New(Events.GAMEOVER)); //everybody changes their state after gameover, disabling all code related to humanity, and pretty much everythign related to blood (as of right now) except metabolism. frenzycore however becomes extremely active and begins checking the world each turn for targets, while stealth disables itself and stops foreaching the world each turn because it becomes impossible for you to use it.

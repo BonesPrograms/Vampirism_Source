@@ -102,11 +102,11 @@ namespace XRL.World.Parts.Mutation
 
 			//if (WasTerrifiedByFlames && (ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == EffectRemovedEvent.ID))
 			//	return true; i was using these to forcepassturn and end forcepassturn with a bool WasScaredByFire
+			if (ID == EquipperEquippedEvent.ID)
+				return true;
 			if (!Immune)
 			{
 				if (ID == TookDamageEvent.ID)
-					return CheckFireOption();
-				if (ID == EquipperEquippedEvent.ID && Options.GetOptionBool(OPTIONS.TORCH))
 					return CheckFireOption();
 				if (ID == SingletonEvent<BeforeTakeActionEvent>.ID)
 					return CheckFireOption();
@@ -120,7 +120,20 @@ namespace XRL.World.Parts.Mutation
 				return true;
 			if (ID == AfterPlayerBodyChangeEvent.ID)
 				return true;
+			if (ID == AddedToInventoryEvent.ID && Options.GetOptionBool(OPTIONS.SILVER))
+				return true;
 			return base.WantEvent(ID, cascade);
+		}
+
+		public override bool HandleEvent(AddedToInventoryEvent E)
+		{
+			AddPlayerMessage("AED");
+			if(E.Item.Blueprint.ToLower().Contains("silver"))
+			{
+				SilverAilment(E.Item);
+				return false;
+			}
+			return base.HandleEvent(E);
 		}
 		public override bool HandleEvent(AfterPlayerBodyChangeEvent E) //potential issue here:
 		{                                                               //players who are NOT a vampire and are playing old saves will not be able to use vampiric spells when dominating if the option is enabled.
@@ -158,9 +171,9 @@ namespace XRL.World.Parts.Mutation
 		}
 		public override bool HandleEvent(EffectRemovedEvent E)
 		{
-			if (E.Effect is Terrified) //tried to match by effect.Object, but it always shows up null
+			if (E.Effect.GetType() == typeof(Terrified)) //tried to match by effect.Object, but it always shows up null
 				WasTerrifiedByFlames = false;
-			else if (E.Effect is Blaze_Tonic)
+			else if (E.Effect.GetType() == typeof(Blaze_Tonic))
 				Immune = false;
 			return base.HandleEvent(E);
 		}
@@ -182,14 +195,31 @@ namespace XRL.World.Parts.Mutation
 		}
 		public override bool HandleEvent(EquipperEquippedEvent E)
 		{
-			if (E.Item.Blueprint == "Torch" && The.Game.Turns > 0) //this event runs before the game loads and was causing serious hangups/crashes
-			{                                                       //in tandem with the VampirismStartGame mutator that deletes torches
-				var Torch = E.Item.GetPart<TorchProperties>();      //just a mess of null errors
-				if (!Torch.IsUnlightableBecauseOfLiquidCovering())
-					FakeDropTorch(E.Item);
-
+			if (E.Item.Blueprint == "Torch" && The.Game.Turns > 0)
+			{
+				if (CheckFireOption() && Options.GetOptionBool(OPTIONS.TORCH)) //this event runs before the game loads and was causing serious hangups/crashes
+				{                                                       //in tandem with the VampirismStartGame mutator that deletes torches
+					var Torch = E.Item.GetPart<TorchProperties>();      //just a mess of null errors
+					if (!Torch.IsUnlightableBecauseOfLiquidCovering())
+						FakeDropTorch(E.Item);
+					return false;
+				}
+			}
+			if (E.Item.Blueprint.ToLower().Contains("silver") && Options.GetOptionBool(OPTIONS.SILVER))
+			{
+				SilverAilment(E.Item);
+				return false;
 			}
 			return base.HandleEvent(E);
+		}
+
+		void SilverAilment(GameObject obj)
+		{
+			UI.Popup.Show("{{y|IT BURNS!!!}}");
+			obj.ForceUnequip(true);
+			ParentObject.Inventory.RemoveObjectFromInventory(obj);
+			ParentObject.CurrentCell.AddObject(obj);
+			ParentObject.TakeDamage(WikiRng.Next(1, 10), obj, "SilverAilment");
 		}
 		public override bool HandleEvent(TookDamageEvent E)
 		{
@@ -209,7 +239,7 @@ namespace XRL.World.Parts.Mutation
 
 		public override bool HandleEvent(BeginTakeActionEvent E)
 		{
-			AddPlayerMessage("{{W|I HATE SUNLIGHT!!!}}");
+			AddPlayerMessage("{{W|IT BURNS!!!}}");
 			ParentObject.TakeDamage(WikiRng.Next(5, 10), null, null);
 			return base.HandleEvent(E);
 		}
@@ -289,15 +319,23 @@ namespace XRL.World.Parts.Mutation
 					for (int x = 0; x < cells[i].Objects.Count; x++)
 					{
 						GameObject obj = cells[i].Objects[x];
-						if (obj.IsAflame() || Flamelike($"{obj}") || (obj.Blueprint != "Campfire" && obj.HasPart<AnimatedMaterialFire>()))
+						if (obj.IsAflame() || Flamelike($"{obj}") || (obj.Blueprint != "Campfire" && obj.HasPart<AnimatedMaterialFire>()) || LitTorch(obj) || HoldingFlamingObject(obj))
 						{
 							Rotschrek(obj, true);
 							return;
 						}
-						else if (LitTorch(obj))
-							return;
 					}
 				}
+		}
+
+		bool HoldingFlamingObject(GameObject obj)
+		{
+			return obj.HasEquippedItem(Delegate);
+		}
+
+		bool Delegate(GameObject obj)
+		{
+			return obj.Blueprint == "Torch" || obj.IsAflame();
 		}
 
 		bool Flamelike(string obj) =>
@@ -314,7 +352,6 @@ namespace XRL.World.Parts.Mutation
 				LightSource source = obj.GetPart<LightSource>(); //private field in TorchProperties, but accessible thru the PartsList, no reflection required
 				if (source.Lit)
 				{     //thanks for parts lists, developers!
-					Rotschrek(obj, true);
 					return true;
 				}
 			}

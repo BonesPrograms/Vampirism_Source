@@ -13,9 +13,8 @@ namespace XRL.World.Effects
         /// no not trade actions, i want companion actions... i think beguiling/other party stuff does that then, well see
 
     [Serializable]
-    public class EnthralledGhoul : SpellEffect
+    public class EnthralledGhoul : IScribedEffect
     {
-        public override bool ShouldSync() => true;
         public GameObject Master;
         public Effect CurrentFeed;
         public int CurrentRegen;
@@ -30,7 +29,6 @@ namespace XRL.World.Effects
             this.Master = Master;
             base.Duration = 9999;
         }
-        public override int Roll() => VampiricSpell.Roll(Master, Level);
         public override string GetDescription()
         {
             return "{{K|ghoul}}";
@@ -92,19 +90,19 @@ namespace XRL.World.Effects
             return base.HandleEvent(E);
         }
 
-        public override bool HandleEvent(EffectRemovedEvent E)
-        {
-            if (E.Effect is IFeeding feed && feed == CurrentFeed)
-            {
-                int bonus = Roll() * 100;
-                int time = GHOUL.REGEN - bonus;
-                RegenTime = time < GHOUL.MIN ? GHOUL.MIN : time;
-                RegenTime = 500;
-                OriginalRegenTime = RegenTime;
-                CurrentFeed = null;
-            }
-            return base.HandleEvent(E);
-        }
+        // public override bool HandleEvent(EffectRemovedEvent E)
+        // {
+        //     if (E.Effect is IFeeding feed && feed == CurrentFeed)
+        //     {
+        //         int bonus = Roll() * 100;
+        //         int time = GHOUL.REGEN - bonus;
+        //         RegenTime = time < GHOUL.MIN ? GHOUL.MIN : time;
+        //         RegenTime = 500;
+        //         OriginalRegenTime = RegenTime;
+        //         CurrentFeed = null;
+        //     }
+        //     return base.HandleEvent(E);
+        // }
 
         public override bool HandleEvent(DeathEvent E)
         {

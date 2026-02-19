@@ -37,4 +37,24 @@
 	<object Name="SaltDrop" Inherits="Water">
 	<part Name="LiquidVolume" MaxVolume = "-1" Volume ="1" StartVolume="1" InitialLiquid="salt-1"/>
 	</object>
+
+	<object Name="VampireCoffin" Inherits="Bed">
+		 <part Name="Render" DisplayName="coffin" ColorString="&amp;K" DetailColor="w" Tile="vampirism/coffin.png" Occluding="false" RenderIfDark="true" />
+		<part Name="VampireCoffin"/>
+		 <tag Name="OverlayColor" Value="&amp;G^k" />
+		<removepart Name="Bed"/>
+		<part Name="Description" Short="The resting place for the dead, and those who've awoken from the dead." />
+	</object>
+
+	<object Name="MoteOfHumanity" Inherits="PhysicalObject">
+		<part Name="Render" DisplayName="{{K|sprite}} {{Y|of}} {{K|humanity}}" ColorString="&amp;K" DetailColor="Y" Tile="vampirism/mote.png" Occluding="false" RenderIfDark="true"/>
+		<part Name="NoDamage" />
+		<part Name="Commerce" Value="0" />
+		<part Name="NoBreak" />
+		<part Name="MoteOfHumanity"/>
+   		 <tag Name="OverlayColor" Value="&amp;G^k" />
+   		<part Name="Physics" Organic="false" Takeable="true" Solid="false" Weight="1"/>
+		<part Name="LightSource" Lit="true" Radius="1" />
+		<part Name="Description" Short="A shadow of memories left behind by the decay of life force. Joy, disgust, desire and misery homogenize into a writhing dark miasma, seeping with feeling. It whispers echoes of a fragmented past into your mind."/>
+	</object>
 </objects>

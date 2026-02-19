@@ -103,7 +103,7 @@ namespace XRL.World.Effects
 		{
 			if (Object != null && (!other?.Object?.HasPart<Fledgling>() ?? false))
 			{
-				if (AutoLevel || WikiRng.Next(1, 100) == 100)
+				if (AutoLevel || WikiRng.Next(1, 100) <= 5)
 				{
 					
 					if (Object.IsPlayer())
@@ -270,25 +270,25 @@ namespace XRL.World.Effects
 		}
 		void EndingStrings()
 		{
-			if (base.Object?.IsPlayer() is true && isAttacker)
+			if (base.Object?.IsPlayer() ?? false && isAttacker)
 			{
-				if (other?.Object is not null)
+				if (other?.Object != null)
 					IComponent<GameObject>.AddPlayerMessage("You release " + other.Object.t() + "'s neck.");
 				else
 					AddPlayerMessage("You release your victim's neck.");
 			}
-			else if (base.Object?.IsPlayer() is true && !isAttacker)
+			else if (base.Object?.IsPlayer() ?? false && !isAttacker)
 			{
-				if (other?.Object?.HasHitpoints() is true)
+				if (other?.Object?.HasHitpoints() ?? false)
 					IComponent<GameObject>.AddPlayerMessage(other.Object.t() + " releases your neck");
-				else if (other?.Object is not null)
+				else if (other?.Object != null)
 					AddPlayerMessage(other.Object.t() + " 's grip on your neck goes slack.");
 				else
 					AddPlayerMessage("Your neck is released.");
 			}
-			else if (base.Object?.HasHitpoints() is true && isAttacker && !base.Object.IsPlayer())
+			else if (base.Object?.HasHitpoints() ?? false && isAttacker && !base.Object.IsPlayer())
 			{
-				if (other.Object is not null)
+				if (other?.Object != null)
 					IComponent<GameObject>.AddPlayerMessage(base.Object.t() + " releases " + other.Object.t() + "'s neck");
 			}
 

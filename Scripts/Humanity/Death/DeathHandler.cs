@@ -17,6 +17,7 @@ namespace XRL.World.Parts
     [HasGameBasedStaticCache]
     public class DeathHandler : IPart
     {
+        public static bool FreeMote;
         public static GameObject Player => _Player?.Object; //this is used for two major purposes: accessing the players humanity and checking hostility
                                                             //if you try to access by the.player (static) then you will get whatever
         [GameBasedStaticCache(false)]                       //gameobject they are currently dominating
@@ -47,10 +48,20 @@ namespace XRL.World.Parts
         public override bool HandleEvent(DeathEvent E)
         {
             bool isvampire = E.Dying.IsVampire();
-            MarkForEmbrace(E.Dying, isvampire); //we always have this run even if the player isnt a vampire, incase they become one later on
+            if (E.Dying.CurrentCell != null)
+            {
+                MarkForEmbrace(E.Dying, isvampire); //we always have this run even if the player isnt a vampire, incase they become one later on
+                if (!isvampire)
+                    DropMote(E.Dying);
+            }
             if (!isvampire)
                 CreateDeathsInstance(E.Killer, E.Dying); //but this will check Security() and wont create an instance if the player isnt a vampire
             return base.HandleEvent(E);
+        }
+        static void DropMote(GameObject Dying)
+        {
+            if (FreeMote || WikiRng.Next(1,100) <= 5)
+                Dying.CurrentCell.AddObject("MoteOfHumanity");
         }
         static void CreateDeathsInstance(GameObject Killer, GameObject Dying)
         {
@@ -66,22 +77,19 @@ namespace XRL.World.Parts
 
         static void MarkForEmbrace(GameObject Dying, bool isvampire) //only "feedable" targets can become vampires, but deathhandler only exists as a part on feedable objects, so the check is already done
         {                                   //corpse objects whose source object didnt have this part wont have the property at all and thus will not be embraceable
-            if (Dying.CurrentCell != null)
+            for (int i = 0; i < Dying.CurrentCell.Objects.Count; i++)
             {
-                for (int i = 0; i < Dying.CurrentCell.Objects.Count; i++)
+                GameObject obj = Dying.CurrentCell.Objects[i];
+                if (obj.PropertyEquals("SourceID", Dying.ID))
                 {
-                    GameObject obj = Dying.CurrentCell.Objects[i];
-                    if (obj.PropertyEquals("SourceID", Dying.ID))
+                    if (isvampire)
                     {
-                        if (isvampire)
-                        {
-                            AddPlayerMessage($"{Dying.t()} burns to ashes!");
-                            obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.FALSE);
-                        }
-                        else if (Dying.TryGetPart(out Corpse corpse))
-                            CompareBlueprints(Dying.Level, obj, corpse);
-                        return;
+                        AddPlayerMessage($"{Dying.t()} burns to ashes!");
+                        obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.FALSE);
                     }
+                    else if (Dying.TryGetPart(out Corpse corpse))
+                        CompareBlueprints(Dying.Level, obj, corpse);
+                    return;
                 }
             }
         }

@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using XRL.World.Parts.Mutation;
 using Nexus.Core;
 using XRL.World.Effects;
-using System.Linq;
 using XRL.World.Parts;
-using Nexus.Wish;
 using XRL;
 
 namespace Nexus.Stealth

@@ -29,6 +29,13 @@
   Default="Yes">
   </option>
   <option
+  ID="SilverAilment"
+  DisplayText="Vampires are allergic to silver and cannot pick it up."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="Yes">
+  </option>
+  <option
   ID="CoffinAutoWin"
   Requires="enablevampiricpowers==Yes"
   DisplayText="As long as you are not on cooldown, you will always return to your coffin on death (except for fire damage)."

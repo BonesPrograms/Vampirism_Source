@@ -13,8 +13,6 @@ namespace Nexus.Rules
         public const int COOLDOWN = 50;
 
         public const string FACTION = "Winged Mammals";
-
-        public const string ANATOMY = "Quadruped";
     }
     public static class MOD
     {
@@ -40,7 +38,7 @@ namespace Nexus.Rules
     static class COFFIN
     {
 
-        public const string BLUEPRINT = "Iron Maiden";
+        public const string BLUEPRINT = "VampireCoffin";
         public const string COMMAND_NAME = "invokeCoffinCMD";
 
         public const string ABILITY_NAME = "Invoke Coffin";
@@ -49,7 +47,7 @@ namespace Nexus.Rules
 
         public const int SAVE_FROM_DEATH_MIN = 1000;
 
-        public const int SAVE_FROM_DEATH_MAX = 5000;
+        public const int SAVE_FROM_DEATH_MAX = 3000;
 
         public const int SAVING_THROW_DC = 20;
     }
@@ -66,6 +64,7 @@ namespace Nexus.Rules
     static class OPTIONS //some of these are only referenced once but i hate string literals and i like having them all in one place so i can compare them to my XMLs to make sure there
     {                     //are no typos
 
+        public const string SILVER = "SilverAilment";
         public const string COFFIN = "CoffinAutoWin";
         public const string TORCH = "FearOfTorches";
         public const string FRACTUS_NERF = "FractusNerf";

@@ -13,7 +13,7 @@ namespace XRL.World.Effects
     }
 
     [Serializable]
-    public class Embraced : Effect
+    public class Embraced : IScribedEffect
     {
         public Embraced()
         {

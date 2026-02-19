@@ -4,7 +4,7 @@ using System;
 namespace XRL.World.Parts
 {
     [Serializable]
-    public class Fledgling : IPart
+    public class Fledgling : IScribedPart
     {
         public GameObject Sire;
         public bool HatesSire;

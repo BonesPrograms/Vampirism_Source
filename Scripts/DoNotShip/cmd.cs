@@ -349,6 +349,30 @@ namespace XRL.World.Parts
 
         #region Vampirism Wishes
 
+        [WishCommand(Command = "coffindbg")]
+
+        public static void CoffinDbg()
+        {
+            Switch<CoffinSpell>(nameof(CoffinSpell.ShowDebug), null);
+        }
+
+        [WishCommand(Command = "automote")]
+        
+        public static void AutoMote()
+        {
+            Switch<MoteOfHumanity>(nameof(MoteOfHumanity.MoteAutoMemory), null);
+        }
+
+        [WishCommand(Command = "mote")]
+
+        public static void FreeMote()
+        {
+            Spawn(The.Player.CurrentCell, "MoteOfHumanity");
+        }
+
+        [WishCommand("freemote")]
+        public static void Freemote() => Switch<DeathHandler>(nameof(DeathHandler.FreeMote), null);
+
         [WishCommand("findspotter")]
 
         public static void FindSpotter()
@@ -766,6 +790,18 @@ namespace XRL.World.Parts
 
         #region Misc
 
+        [WishCommand(Command = "blueprint")]
+
+        public static void bp2() => bp();
+
+        [WishCommand(Command = "bp")]
+
+        public static void bp()
+        {
+            var obj = The.Player.GetBlueprint();
+            msg($"{obj.Name}");
+        }
+
         [WishCommand(Command = "heal")]
 
         public static void heal()
@@ -908,7 +944,7 @@ namespace XRL.World.Parts
 
         #region Helpers (not commands)
 
-        public static GameObject Spawn(Cell cell, string param) => cell.getClosestEmptyCell().AddObject(GameObject.Create(param));
+        public static GameObject Spawn(Cell CurrentCell, string param) => CurrentCell.getClosestEmptyCell().AddObject(GameObject.Create(param));
 
         static void ScanObject(GameObject obj)
         {
@@ -935,10 +971,10 @@ namespace XRL.World.Parts
         {
             BindingFlags flag = obj == null ? BindingFlags.Static : BindingFlags.Instance;
             var field = typeof(T).GetField(nameOf, flag | BindingFlags.Public);
-            SwitchFlipper(field, nameOf, obj);
+            _Switch(field, nameOf, obj);
         }
 
-        static void SwitchFlipper<T>(FieldInfo field, string nameOf, T obj)
+        static void _Switch<T>(FieldInfo field, string nameOf, T obj)
         {
             if (field?.GetValue(obj) is bool value)
             {
