@@ -3,13 +3,38 @@ using Nexus.Rules;
 using Nexus.Properties;
 using XRL.World.Effects;
 using XRL.World.Parts.Mutation;
-using System.Collections.Generic;
-using XRL.Wish;
+using Nexus.Core;
+using XRL.Messages;
 using System.Collections;
-
+using System.Collections.Generic;
+using System.Linq;
 
 namespace XRL.World.Parts
 {
+
+    [Serializable]
+    public class EmbraceableObjectCopy : IPart
+    {
+        [NonSerialized]
+        public GameObject Copy; //figure out how to make this work
+        public EmbraceableObjectCopy(GameObject Object)
+        {
+            Copy = Object.DeepCopy();
+            Copy.MakeInactive();
+        }
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+            Writer.WriteObject(Copy);
+            base.Write(Basis, Writer);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+            Copy = (GameObject)Reader.ReadObject();
+            base.Read(Basis, Reader);
+        }
+    }
+
     [Serializable]
     public class EmbraceSpell : VampiricSpell
     {
@@ -23,13 +48,15 @@ namespace XRL.World.Parts
         {
             SpellID = AddMyActivatedAbility(EMBRACE.ABILITY_NAME, EMBRACE.COMMAND_NAME, $"{CLASS}", null, "\u009f");
         }
-        //Budding
-        //one important thing: make sure the corpse is not blueprint ashes, lol. and organic and other stuff too i suppose
-        ///could maybe run scan applicable on the ID
-        //this will have listener for companion limit
-        //i can draw from beguiling to see how to add new chat options like "follow"
-
-        void Embrace()
+        public override bool HandleEvent(CommandEvent E)
+        {
+            if (E.Command == Nexus.Rules.EMBRACE.COMMAND_NAME && Nexus.Core.Checks.Prerequisites(ParentObject, EMBRACE.ABILITY_NAME, "embrace"))
+            {
+                FindEmbraceableObject();
+            }
+            return base.HandleEvent(E);
+        }
+        void FindEmbraceableObject()
         {
             Cell cell = ParentObject.PickDirection(EMBRACE.ABILITY_NAME);
             if (cell != null)
@@ -39,29 +66,23 @@ namespace XRL.World.Parts
                     var Object = cell.Objects[i];
                     if (Object.TryGetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, out string result))
                     {
-                        FinalizeEmbrace(Object, result);
+                        CheckEmbraceableObject(Object, result);
                         return; //bug here would list EVERY object in the cell. we just take the first object with the flag. i dont really care if corpses are stacked, the player can deal with that
                     }   //(because the game already has issues with trying to easily/quickly target two objets occupying the same cell)
                 }
+                UI.Popup.Show("There is nothing there to embrace");
             }
         }
 
-
-        //Embraced.t() rises from the dead!
-
-        //could be buggy but i dont really care if you have to destroy a corpse to access the corpse underneath it
-        //else      //reduces a lot of work on my end if i just get the first possible object and return
-        //  SimulateParentObject(Object);
-        //gets the first corpse with the embraceable property in a cell
-        void FinalizeEmbrace(GameObject Object, string result)
+        void CheckEmbraceableObject(GameObject Object, string result)
         {
             if (Object.HasEffect<Embraced>())
             {
-                UI.Popup.Show($"{Object.t()} is already being Embraced.");
+                UI.Popup.Show($"{Object.t()} is already being embraced.");
             }
             else if (result == FLAGS.TRUE)
             {
-                if (Object.GetIntProperty(FLAGS.EMBRACE.LEVEL_ON_DEATH) > Level + ParentObject.Level)
+                if (Object.GetIntProperty(FLAGS.EMBRACE.LEVEL_ON_DEATH) < Level + ParentObject.Level)
                 {
                     if (!ParentObject.IsRealityDistortionUsable())
                         RealityStabilized.ShowGenericInterdictMessage(ParentObject);
@@ -73,6 +94,10 @@ namespace XRL.World.Parts
                     UI.Popup.Show($"{Object.t()}'s soul is too powerful for you to embrace.");
                 }
             }
+            else
+            {
+                UI.Popup.Show($"You cannot embrace {Object.t()}");
+            }
 
         }
 
@@ -82,32 +107,26 @@ namespace XRL.World.Parts
             {
                 base.ExpendBlood(false, $"You pour your blood down {Object.t()}'s throat.");
                 if (RealityCheck(Object.CurrentCell))
-                    Vampirize(Object);
+                    Embrace(Object);
             }
         }
-
-        void Vampirize(GameObject Object) //fun secret : this was debug code that has now become content
+        void Embrace(GameObject Object)
         {
-            string blueprint = Object.GetStringProperty("SourceBlueprint");
-            string id = Object.GetStringProperty("SourceID");
-            int level = Object.GetIntProperty(FLAGS.EMBRACE.LEVEL_ON_DEATH);
-            GameObject person = GameObject.Create(blueprint);
-            Object.CurrentCell.AddObject(person);
-            person.Statistics["Level"]._Value = level;
-            Mutations m = person.RequirePart<Mutations>();
-            m.AddMutation(nameof(Vampirism));
-            //person.ApplyEffect(new Embraced());
+            MessageQueue.Suppress = true;
+            var copy = Object.GetPart<EmbraceableObjectCopy>();
+            GameObject obj = copy.Copy;
+            obj.MakeActive();
+            Object.CurrentCell.AddObject(obj);
+            int time = WikiRng.Next(50, 100);
+            obj.ApplyEffect(new Asleep(time, true, false, false, true));
+            obj.ApplyEffect(new Embracing(time, Level));
+            Object.Obliterate();
+            MessageQueue.Suppress = false;
         }
 
-        public override bool HandleEvent(CommandEvent E)
-        {
-            if (E.Command == Nexus.Rules.EMBRACE.COMMAND_NAME && Nexus.Core.Checks.Prerequisites(ParentObject, EMBRACE.ABILITY_NAME, "embrace"))
-            {
-                Embrace();
-            }
-            return base.HandleEvent(E);
-        }
+
     }
+
 
     [Serializable]
 
@@ -131,6 +150,51 @@ namespace XRL.World.Parts
 
         //OTHER ARRAY IDEA:
         //SKILLS string
+
+        //best idea: look into DeepCopy and base it off that kinda...
+
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+            Write(Writer, CyberneticAndBodypart);
+            Write(Writer, StringProperties);
+            Write(Writer, LongProperties);
+            Write(Writer, IntProperties);
+            Write(Writer, StatLevels);
+            Write(Writer, MutationsWithLevels);
+            Write(Writer, BodyParts);
+            Write(Writer, IParts);
+            base.Write(Basis, Writer);
+        }
+
+        void Write(SerializationWriter Writer, IList array)
+        {
+            Writer.Write(array.Count);
+            for (int i = 0; i < array.Count; i++)
+                Writer.WriteObject(array[i]);
+        }
+
+        void Read<T>(SerializationReader Reader, IList array)
+        {
+            Reader.ReadInt32();
+            for (int i = 0; i < array.Count; i++)
+            {
+                array[i] = (T)Reader.ReadObject();
+            }
+
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+            Read<ValueTuple<string, string>>(Reader, CyberneticAndBodypart);
+            Read<ValueTuple<string, string>>(Reader, StringProperties);
+            Read<ValueTuple<string, long>>(Reader, LongProperties);
+            Read<ValueTuple<string, int>>(Reader, IntProperties);
+            Read<ValueTuple<string, int>>(Reader, StatLevels);
+            Read<ValueTuple<string, int>>(Reader, MutationsWithLevels);
+            Read<ValueTuple<string, bool>>(Reader, BodyParts);
+            Read<string>(Reader, IParts);
+            base.Read(Basis, Reader);
+        }
         public (string, IList)[] Arrays => new (string, IList)[]
         {
                  (nameof(MutationsWithLevels), MutationsWithLevels),
@@ -244,12 +308,10 @@ namespace XRL.World.Parts
 
             }
         }
-
-        // GameObject Recreate()
-        // {
-        //     GameObject Object = GameObject.Create(Blueprint);
-
-        // }
     }
 
 }
+
+
+
+

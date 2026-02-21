@@ -2,16 +2,91 @@ using System;
 using XRL.World.Parts;
 using Nexus.Rules;
 using Nexus.Core;
+using Nexus.Spells;
+using XRL.World.Parts.Mutation;
 
 namespace XRL.World.Effects
 
 {
     [Serializable]
-    public class Embracing : Effect
+    public class Embracing : IScribedEffect
     {
+        public bool FailedEmbrace;
+
+        public int Level;
+        public Embracing(int time, int level)
+        {
+            base.Duration = time;
+            this.Level = level;
+        }
+
+        public override bool UseStandardDurationCountdown()
+        {
+            return true;
+        }
+
+        public override bool WantEvent(int ID, int Cascade)
+        {
+            if (ID == SingletonEvent<EndTurnEvent>.ID || ID == TookDamageEvent.ID || ID == DeathEvent.ID)
+                return true;
+            return base.WantEvent(ID, Cascade);
+        }
+
+        public override bool HandleEvent(DeathEvent E)
+        {
+            BurnToAshes(E.Dying);
+            return false;
+        }
+
+        public override bool HandleEvent(TookDamageEvent E)
+        {
+            if (E.Object == Object && E.Damage.Attributes.Contains("Fire") && UI.Options.GetOptionBool(OPTIONS.FIRE))
+            {
+                Message($"Fire disrupts the embracing of {Object.t()}!");
+                FailedEmbrace = true;
+                Duration = 0;
+            }
+            return base.HandleEvent(E);
+        }
+
+        void Message(string text)
+        {
+            if (The.Player.HasLOSTo(Object))
+                AddPlayerMessage(text);
+        }
+
+        public override bool HandleEvent(EndTurnEvent E)
+        {
+            if (SpellCore.SunlightInterference(Object))
+            {
+                Message($"Sunlight disrupts the embracing of {Object.t()}!");
+                FailedEmbrace = true;
+                Duration = 0;
+            }
+            return base.HandleEvent(E);
+        }
+
+        public override void Remove(GameObject Object)
+        {
+            if (!FailedEmbrace)
+            {
+                Object.RequireMutation<Vampirism>(Level);
+                Object.ApplyEffect(new Embraced());
+                Object.ApplyEffect(new Pale(999));
+                Message($"{Object.t()} rises from the dead!");
+            }
+            else
+                BurnToAshes(Object);
+        }
+
+        void BurnToAshes(GameObject Object)
+        {
+            Object.CurrentCell.AddObject("Ashes");
+            Message($"{Object.t()} burns to ashes!");
+            Object.Obliterate();
+        }
 
     }
-
     [Serializable]
     public class Embraced : IScribedEffect
     {
@@ -20,12 +95,6 @@ namespace XRL.World.Effects
             Duration = 9999;
             DisplayName = "";
         }
-
-
-
-        //furthermore
-        //you embrace people at your vampirism level (maybe)
-        //doesnt rly make sense
         public override string GetDescription() => "{{r|embraced}}";
         public sealed override string GetDetails() => "A newly embraced flegling vampire that has yet to feed.";
         bool Roll => WikiRng.Next(1, 100) == 100; //ridiculously high frenzy chance
@@ -42,21 +111,21 @@ namespace XRL.World.Effects
 
         public override bool HandleEvent(EffectAppliedEvent E)
         {
-            if (E.Effect is IFeeding feed && feed.isAttacker && feed.Object == Object)
+            if (E.Effect is IFeeding feed && feed.isAttacker)
                 Duration = 0;
             return base.HandleEvent(E);
         }
 
         public override bool HandleEvent(BeginTakeActionEvent E)
         {
-            if (!Beast.frenzied && !Beast.Incap() && Beast.HasFangs())        
-                Beast.Core.EmbraceFrenzy();
+            if (!Beast.CantFrenzy())
+                Beast.Core.Frenzy();
             return base.HandleEvent(E);
         }
 
         public override void Remove(GameObject Obj)
         {
-            if (!Obj?.IsPlayer() ?? false)
+            if (!Obj.IsPlayer())
             {
                 Vitae v = Obj.GetPart<Vitae>();
                 v.SetBlood(VITAE.BLOOD_QUENCHED);
@@ -65,8 +134,8 @@ namespace XRL.World.Effects
 
         public override bool Apply(GameObject Obj)
         {
-            Vitae v = Obj?.GetPart<Vitae>();
-            v?.SetBlood(VITAE.BLOOD_MIN);
+            Vitae v = Obj.GetPart<Vitae>();
+            v.SetBlood(VITAE.BLOOD_MIN);
             return true;
         }
 

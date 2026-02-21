@@ -91,18 +91,21 @@ namespace XRL.World.Parts
                         obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.FALSE);
                     }
                     else if (Dying.TryGetPart(out Corpse corpse))
-                        CompareBlueprints(Dying.Level, obj, corpse);
+                        CompareBlueprints(Dying, obj, corpse);
                     return;
                 }
             }
         }
 
-        static void CompareBlueprints(int level, GameObject obj, Corpse corpse)
+        static void CompareBlueprints(GameObject Dying, GameObject obj, Corpse corpse)
         {
             if (obj.Blueprint == corpse.CorpseBlueprint)
             {
-                obj.SetIntProperty(FLAGS.EMBRACE.LEVEL_ON_DEATH, level);
+                obj.SetIntProperty(FLAGS.EMBRACE.LEVEL_ON_DEATH, Dying.Level);
                 obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.TRUE);
+                EmbraceableObjectCopy copy = new(Dying);
+                obj.AddPart(copy);
+                
             }
             else if (obj.Blueprint == corpse.BurntCorpseBlueprint || obj.Blueprint == corpse.VaporizedCorpseBlueprint)
                 obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.FALSE);

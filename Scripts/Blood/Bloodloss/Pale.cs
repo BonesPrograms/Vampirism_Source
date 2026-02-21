@@ -75,7 +75,7 @@ namespace XRL.World.Effects
         public override bool HandleEvent(EndTurnEvent E)
         {
             BloodRegen();
-            if (WikiRng.Next(1, 50) is 1)
+            if (WikiRng.Next(1, 50) == 1)
                 base.Object.ApplyEffect(new Prone(false, false, false));
             return base.HandleEvent(E);
         }

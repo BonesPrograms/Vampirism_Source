@@ -92,14 +92,6 @@ namespace Nexus.Frenzy
             else if (!Source.GameOver && Source.ParentObject.IsPlayer())
                 IComponent<GameObject>.AddPlayerMessage("You feel a surge of adrenaline as {{R sequence|the Beast}} momentarily tries to take control.");
         }
-
-        public void EmbraceFrenzy()
-        {
-            if (Search.TryScan(out GameObject Target))
-            {
-                Apply(Target);
-            }
-        }
         void Apply(GameObject Target)
         {
             if (!Source.GameOver)

@@ -125,10 +125,12 @@ namespace Nexus.Core
 
         public static void RequireSpells(GameObject GO)
         {
+            XRL.UI.Popup.Suppress = true;
             for (int i = 0; i < VampiricSpells.Length; i++)
                 if (GO.RequiresPart<VampiricSpell>(VampiricSpells[i], out var obj))
                     obj.AddSpell();
             GO.SetStringProperty(FLAGS.SPELLS, FLAGS.TRUE);
+             XRL.UI.Popup.Suppress = false;
         }
 
 
