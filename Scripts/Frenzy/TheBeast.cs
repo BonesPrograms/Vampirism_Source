@@ -8,6 +8,7 @@ using Nexus.Core;
 using Nexus.Registry;
 using XRL.World.Parts.Mutation;
 using Nexus.Frenzy;
+using Nexus.Spells;
 
 namespace XRL.World.Parts
 {
@@ -19,6 +20,9 @@ namespace XRL.World.Parts
 
 	public class TheBeast : IPart
 	{
+
+		public FrenzyCore Core => _Core ??= new FrenzyCore(this, new Search(this));
+		public Vampirism Base => _Base ??= ParentObject.GetPart<Vampirism>();
 		public Dictionary<GameObject, int> TargetRegistry = new();
 		public bool GameOver;
 		public bool Wassail;
@@ -26,10 +30,14 @@ namespace XRL.World.Parts
 		public const int FLAG_AVOID = 150; //arbitrary value assigned to targets to prevent them from being re-targetted
 		public bool HasFangs() => Base.HasFangs();
 		public bool Incap() => ParentObject.Incap(true);
+		public bool CantFrenzy()
+		{
+			return Base.Rotschrek || frenzied || !HasFangs() || Incap() || ParentObject.CheckFlag(FLAGS.FEED) || SpellCore.SunlightInterference(ParentObject);
+		}
+
+
 		FrenzyCore _Core;
-		public FrenzyCore Core => _Core ??= new FrenzyCore(this, new Search(this));
 		Vampirism _Base;
-		public Vampirism Base => _Base ??= ParentObject.GetPart<Vampirism>();
 		public override void Register(GameObject Object, IEventRegistrar Registrar)
 		{
 			Registrar.Register(Events.GAMEOVER);
@@ -41,14 +49,13 @@ namespace XRL.World.Parts
 			if (E.ID == Events.GAMEOVER && ParentObject.IsPlayer())
 			{
 				GameOver = true;
-				if (HasFangs() && Options.GetOptionBool(Nexus.Rules.OPTIONS.FRENZY))
+				if (!CantFrenzy() && Options.GetOptionBool(Nexus.Rules.OPTIONS.FRENZY))
 					Core.Frenzy();
 			}
 			if (E.ID == Events.WISH_HUMANITY)
 				GameOver = false;
 			return base.FireEvent(E);
 		}
-
 
 		public override bool WantEvent(int ID, int cascade)
 		{
@@ -77,10 +84,9 @@ namespace XRL.World.Parts
 		}
 		public override bool HandleEvent(BeginTakeActionEvent E)
 		{
-			//Clean();
-			if (!ParentObject.CheckFlag(FLAGS.FEED) && !frenzied && !Incap() && HasFangs())
+			if (!CantFrenzy())
 				Core.FrenzyChances();
-			if (GameOver)
+			if (GameOver && TargetRegistry.Count != 0 && !frenzied)
 				Timer();
 			return base.HandleEvent(E);
 		}
@@ -90,16 +96,12 @@ namespace XRL.World.Parts
 		/// </summary>
 		void Timer()
 		{
-			if (TargetRegistry.Count != 0 && !frenzied)
+			if (WikiRng.Next(1, 100) == 100)
 			{
-				if (WikiRng.Next(1, 50) == 50)
-				{
-					GameObject Key = TargetRegistry.GetRandomElement();
-					AddPlayerMessage("{{R|The Beast}} forgets " + Key.t() + ".");
-					TargetRegistry.Remove(Key);
-				}
+				GameObject Key = TargetRegistry.GetRandomElement();
+				AddPlayerMessage("{{R|The Beast}} forgets " + Key.t() + ".");
+				TargetRegistry.Remove(Key);
 			}
-
 		}
 
 		// public void Clean()

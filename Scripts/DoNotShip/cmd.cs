@@ -31,45 +31,6 @@ namespace Nexus.Core
     }
 }
 
-namespace Nexus.Patches
-{
-    [HarmonyPatch(typeof(BaseMutation), nameof(BaseMutation.CompatibleWith))]
-    public static class CompatDbg
-    {
-        [HarmonyPrefix]
-
-        public static void Prefix(BaseMutation __instance, GameObject go)
-        {
-            List<MutationEntry> mutationEntries = MutationFactory.GetMutationEntries(__instance);
-            if (mutationEntries == null)
-            {
-                return;
-            }
-
-            foreach (MutationEntry item in mutationEntries)
-            {
-                string[] exclusions = item.GetExclusions();
-                admn.Log($"{item}");
-                admn.Log(exclusions);
-                foreach (string name in exclusions)
-                {
-                    if (MutationFactory.HasMutation(name))
-                    {
-                        admn.Log(name);
-                        string name2 = MutationFactory.GetMutationEntryByName(name).Class;
-                        if (go.HasPart(name2))
-                        {
-                            admn.Log(name2);
-                        }
-                    }
-                }
-            }
-
-        }
-    }
-}
-
-
 namespace XRL.World.Parts
 {
 
@@ -348,6 +309,27 @@ namespace XRL.World.Parts
 
 
         #region Vampirism Wishes
+
+        [WishCommand(Command="crocs")]
+
+        public static void crocs()
+        {
+            if(The.Player.LocalCells(out var cells))
+            {
+                foreach(var cell in cells)
+                {
+                    cell.AddObject(GameObject.Create("Croc"));
+                }
+            }
+        }
+
+        [WishCommand(Command="vampire")]
+
+        public static void GiveVampire()
+        {
+            var obj = Spawn(The.Player.CurrentCell, "WatervineFarmerJoppa");
+            obj.RequireMutation<Vampirism>();
+        }
 
         [WishCommand(Command = "coffindbg")]
 

@@ -17,6 +17,7 @@ namespace XRL.World.Effects
         public const string COMMAND_NAME = "cmdTrueformBat";
         public override Type SpellType => typeof(BatformFX);
         public bool AlreadyHadWings;
+        public bool WasLessThanTen;
         public string OldTile;
         public string OldDisplayName;
         public string OldColorString;
@@ -79,8 +80,8 @@ namespace XRL.World.Effects
         public override void Remove(GameObject Object)
         {
             Suppress(true);
-            Revert();
             RemoveMyActivatedAbility(ref ID);
+            Revert();
         }
 
 
@@ -121,7 +122,7 @@ namespace XRL.World.Effects
         {
             if (!AlreadyHadWings)
                 base.Object.RemoveMutation<Wings>();
-            else
+            else if (WasLessThanTen)
             {
                 var Wings = base.Object.GetPart<Wings>();
                 Wings.BaseLevel = CurrentWingLevel;
@@ -178,6 +179,7 @@ namespace XRL.World.Effects
             AlreadyHadWings = true;
             if (Wings.Level < 10)
             {
+                WasLessThanTen = true;
                 CurrentWingLevel = Wings.BaseLevel;
                 Wings.BaseLevel = 10;
                 Wings.CapOverride = 10;

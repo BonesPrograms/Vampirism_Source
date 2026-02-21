@@ -66,7 +66,7 @@
   </option>
   <option
   ID="NightbeastMode"
-  DisplayText="Night Beast mode - you fear the sun and acquire darkvision. Player only. (Experimental - may exit the overworld map into a sunny day and quickly die)."
+  DisplayText="Night Beast mode - you fear the sun and acquire darkvision. Player only. (Experimental - if you get lost on the overworld map during the day, you might get softlocked)."
   Category="Vampirism"
   Type="Checkbox"
   Default="No">
@@ -81,7 +81,7 @@
   <option
   ID="FearOfTorches"
   Requires="FearOfFire==Yes"
-  DisplayText="Fear of Torches - Vampires cannot use or be near lit torches."
+  DisplayText="Rotschrek: Torches - Vampires cannot use or be near lit torches."
   Category="Vampirism"
   Type="Checkbox"
   Default="Yes">

@@ -91,11 +91,10 @@ namespace Nexus.Frenzy
             && target != null
             && target.CurrentCell?.GetCombatTarget(Source.ParentObject) != null
             && target.InSameZone(Source.ParentObject) //noticed a bug in early testing where you would run off the map to targets in nearbyzones if this wasnt here 
-            && !target.IsFlying //though its been so long im not sure if i was just doing an improper Clean()
             && target.HasHitpoints()
             && Source.ParentObject.HasLOSTo(target, IncludeSolid: false)
             && Source.ParentObject.canPathTo(target.CurrentCell)
-            && Core.Checks.Applicable(target)
+            && Checks.AttackableForAI(target)
             && LightCheck(target, Source.ParentObject.DistanceTo(target));
     }
 }

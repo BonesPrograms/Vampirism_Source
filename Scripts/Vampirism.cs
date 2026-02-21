@@ -29,12 +29,417 @@ namespace XRL.World.Parts.Mutation
 		public override bool UseVariantName => false;
 		public bool GameOver = default;
 		public int bloodycounter = default;
-
 		[NonSerialized]
 		public bool Immune = default;
 
 		[NonSerialized]
-		public bool WasTerrifiedByFlames = default;
+		public bool Rotschrek = default;
+		public override void Register(GameObject Object, IEventRegistrar Registrar)
+		{
+			Registrar.Register("LungedTarget");
+			Registrar.Register(Events.GAMEOVER);
+			Registrar.Register(Events.WISH_HUMANITY);
+		}
+		public override bool FireEvent(Event E)
+		{
+			switch (E.ID)
+			{
+				case Events.GAMEOVER:
+					GameOver = true;
+					break;
+				case Events.WISH_HUMANITY:
+					GameOver = false;
+					break;
+				case "LungedTarget":
+					if (HasFangs() && !ParentObject.Body.IsPrimaryWeapon(FangsObject))
+						BiteATK(FangsObject, E.GetGameObjectParameter("Defender"));
+					break;
+			}
+			return base.FireEvent(E);
+		}
+
+		#region WantEvent
+		public override bool WantEvent(int ID, int cascade)
+		{
+			if (ID == AfterPlayerBodyChangeEvent.ID || ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == PooledEvent<CommandEvent>.ID || ID == AIGetOffensiveAbilityListEvent.ID || ID == PooledEvent<AfterDismemberEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
+				return true;
+			if (ID == SingletonEvent<EndTurnEvent>.ID)
+				return bloodycounter > 0 && HasFangs();
+			if (ID == BeforeRenderEvent.ID)
+				return CheckNightbeast();
+			if (ID == TookDamageEvent.ID)
+				return CheckFireOption() && !Immune;
+			if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID)
+				return Rotschrek || Immune;
+			if (ID == EnteringZoneEvent.ID)
+				return ParentObject.HasStringProperty(FLAGS.OLD_SAVE) && ParentObject.IsPlayer();
+			if (The.Game.Turns > 0) //will fire and go crazy if you spawn with silver items in your inventory or torches
+			{
+				if (ID == EquipperEquippedEvent.ID)
+					return true;
+				if (ID == TookEvent.ID)
+					return true;
+			}
+			return base.WantEvent(ID, cascade);
+		}
+
+		#endregion
+
+		#region Nightbeast
+		public override bool HandleEvent(BeforeRenderEvent E)
+		{
+			AddLight(21, LightLevel.Dimvision);
+			return base.HandleEvent(E);
+		}
+
+		#endregion
+
+
+		#region Fluff
+
+		public override bool HandleEvent(AfterDismemberEvent E)
+		{
+			if (E.Part?.Type == BodyPartType)
+			{
+				if (E.Actor != null && E.Object != null)
+				{
+					if (E.Object.IsPlayer())
+						Popup.Show($"You are defanged by {E.Actor.t()}!");
+					else if (E.Actor.IsPlayer())
+						AddPlayerMessage($"You defang {E.Object.t()}!");
+					else
+						AddPlayerMessage($"{E.Object.t()} is defanged by {E.Actor.t()}!");
+				}
+				else
+					Popup.Show("You defang yourself!");
+			}
+			return base.HandleEvent(E);
+		}
+		public override bool HandleEvent(EndTurnEvent E)
+		{
+			if (WikiRng.Next(1, 10) == 10 && !ParentObject.CheckFlag(FLAGS.FEED))
+			{
+				AddPlayerMessage("{{r|Blood}} drips from your fangs.");
+				if (!ParentObject.OnWorldMap())
+					ParentObject.CurrentCell?.AddObject("FangBloodDrop");
+			}
+			bloodycounter++;
+			if (bloodycounter >= 25)
+			{
+				FangsObject.DisplayName = "fangs";
+				bloodycounter = 0;
+			}
+			return base.HandleEvent(E);
+		}
+		#endregion
+
+		#region [Debuff] Combined Event Handlers
+		public override bool HandleEvent(EquipperEquippedEvent E)
+		{
+			if (E.Item.Blueprint == "Torch")
+			{
+				if (CheckFireOption() && Options.GetOptionBool(OPTIONS.TORCH)) //this event runs before the game loads and was causing serious hangups/crashes
+				{                                                       //in tandem with the VampirismStartGame mutator that deletes torches
+					var Torch = E.Item.GetPart<TorchProperties>();      //just a mess of null errors
+					if (!Torch.IsUnlightableBecauseOfLiquidCovering())
+						FakeDropTorch(E.Item);
+					return false;
+				}
+			}
+			if (E.Item.IsSilver() && Options.GetOptionBool(OPTIONS.SILVER))
+			{
+				SilverAilment(E.Item);
+				return false;
+			}
+			return base.HandleEvent(E);
+		}
+
+		public override bool HandleEvent(TookEvent E)
+		{
+			if (E.Item.IsSilver() && Options.GetOptionBool(OPTIONS.SILVER))
+			{
+				SilverAilment(E.Item);
+				return false;
+			}
+			if (CheckFireOption() && FireyObject(E.Item))
+			{
+				Panic(E.Item, true);
+				return false;
+			}
+			return base.HandleEvent(E);
+		}
+
+
+		public override bool HandleEvent(BeginTakeActionEvent E)
+		{
+			if (CheckNightbeast() && IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false))
+			{
+				AddPlayerMessage("{{W|IT BURNS!!!}}");
+				ParentObject.TakeDamage(WikiRng.Next(5, 10), null, null);
+			}
+			if (!Immune && CheckFireOption() && ParentObject.LocalCells(out var cells))
+			{
+				if (ParentObject.IsPlayer() || !Rotschrek) //if you place a vampire inbetween the two torches infront of elder irudads house, he is locked in a permanent state of terror if he already has terrified  
+					SearchForFire(cells);                  //because terrified removes the old one if you try to apply a new one and it just cycles between the two and hes unable to move anywhere cause every empty adjacent cell
+				 											// borders a flame object
+															//however if its the player it doesnt matter because you can move yourself a bit so rotschrek can chain on the player
+
+			}
+			return base.HandleEvent(E);
+		}
+
+
+
+		#endregion
+
+		#region [Debuff] Silver Ailment 
+		void SilverAilment(GameObject obj)
+		{
+			UI.Popup.Show("{{y|IT BURNS!!!}}");
+			obj.ForceUnequip(true);
+			ParentObject.Inventory.RemoveObjectFromInventory(obj);
+			ParentObject.CurrentCell.AddObject(obj);
+			ParentObject.TakeDamage(WikiRng.Next(1, 10), obj, null);
+		}
+
+		#endregion
+
+		#region [Debuff] Rotschrek 
+
+		public override bool HandleEvent(EffectRemovedEvent E)
+		{
+			if (E.Effect.GetType() == typeof(Terrified)) //tried to match by effect.Object, but it always shows up null
+				Rotschrek = false;
+			else if (E.Effect.GetType() == typeof(Blaze_Tonic))
+				Immune = false;
+			return base.HandleEvent(E);
+		}
+
+		public override bool HandleEvent(EffectAppliedEvent E)
+		{
+			if (E.Effect.GetType() == typeof(Blaze_Tonic))
+			{
+				Immune = true;
+				if (Rotschrek)
+					ParentObject.RemoveEffect<Terrified>();
+			}
+			return base.HandleEvent(E);
+		}
+
+		public override bool HandleEvent(TookDamageEvent E)
+		{
+			if (E.Object == ParentObject && E.Damage.Attributes.Contains("Fire"))
+			{
+				Panic(E?.Actor, true);
+				E.Damage.Amount *= 2;
+			}
+			return base.HandleEvent(E);
+		}
+		void SearchForFire(List<Cell> cells)
+		{
+			for (int i = 0; i < cells.Count; i++)
+			{
+				for (int x = 0; x < cells[i].Objects.Count; x++)
+				{
+					GameObject obj = cells[i].Objects[x];
+					if (FireyObject(obj))//|| HoldingFlamingObject(obj))
+					{
+						Panic(obj, true);
+						return;
+					}
+				}
+			}
+		}
+
+		bool FireyObject(GameObject obj)
+		{
+			return obj.IsAflame() || Flamelike($"{obj}") || (obj.Blueprint != "Campfire" && obj.HasPart<AnimatedMaterialFire>()) || LitTorch(obj);
+		}
+
+		// bool HoldingFlamingObject(GameObject obj)
+		// {
+		// 	return obj.HasEquippedItem(x => LitTorch(x) || x.IsAflame());
+		// }
+		bool Flamelike(string obj) =>
+		 obj switch
+		 {
+			 "LavaPuddle" or "SmallLavaPuddle" or "LavaPool" or "Shimmering Heat" => true,
+			 _ => false
+		 };
+
+		bool LitTorch(GameObject obj) //im pretty sure this cannot actually happen (cannot drop lit torches) but ive included it anyways
+		{
+			if (obj.Blueprint == "Torch" && Options.GetOptionBool(OPTIONS.TORCH))
+			{
+				LightSource source = obj.GetPart<LightSource>(); //private field in TorchProperties, but accessible thru the PartsList, no reflection required
+				if (source.Lit)
+				{     //thanks for parts lists, developers!
+					return true;
+				}
+			}
+			return false;
+		}
+
+		void Panic(GameObject FireSource, bool showmessage)
+		{
+			Rotschrek = true;
+			Capabilities.AutoAct.Interrupt();
+			if (showmessage)
+			{
+				if (ParentObject.IsPlayer())
+				{
+					AddPlayerMessage("{{R|ROTSCHREK!!!}}");
+				}
+			}
+			if (FireSource == null)
+				ParentObject.ApplyEffect(new Terrified(WikiRng.Next(5, 10), ParentObject.CurrentCell, true));
+			else
+				ParentObject.ApplyEffect(new Terrified(WikiRng.Next(5, 10), FireSource, false));
+		}
+
+		public void FakeDropTorch(GameObject Torch)
+		{
+			if (ParentObject.CurrentCell != null)
+			{
+				Torch.Obliterate();
+				ReplaceTorch();
+			}
+		}
+
+		void ReplaceTorch()
+		{
+			GameObject replacement = GameObject.Create("Torch");
+			ParentObject.CurrentCell.AddObject(replacement);
+			DidXToY("drop", replacement, null, null, null, null, null, null, UseFullNames: false, IndefiniteSubject: false, IndefiniteObject: true);
+			TryLight(replacement);
+		}
+
+		void TryLight(GameObject replacement)
+		{
+			var Part = replacement.GetPart<TorchProperties>();
+			Part.Light();
+			if (!Part.IsUnlightableBecauseOfLiquidCovering() && !Part.IsUnlightableBecauseOfSubmersion())
+			{
+				if (ParentObject.IsPlayer())
+					Popup.Show("{{R|ROTSCHREK!!!}}");
+				Panic(replacement, false);
+			}
+			else
+				Part.Extinguish();
+		}
+
+		#endregion
+
+		#region Structural
+		bool Prerequisites()
+		{
+			if (!HasFangs())
+			{
+				ParentObject.ShowFailure("You have been defanged and cannot feed right now.");
+				return false;
+			}
+			return Checks.Prerequisites(ParentObject, ABILITY_NAME, "feed");
+		}
+		public bool HasFangs() => FangsObject is not null && ParentObject.HasBodyPart(BodyPartType);
+		public void BiteATK(GameObject Fangs, GameObject Defender, bool Auto = false)
+		 =>
+			Combat.MeleeAttackWithWeapon
+			(ParentObject, Defender, Fangs, ParentObject.GetBodyPartByManager(ManagerID), Auto ? "Autohit,Autopen,Biting" : "Biting");
+		public void BiteActivate(GameObject Target)
+		{
+			if (ParentObject.IsPlayer())
+				DidX("sink your fangs into", Target.the + Target.ShortDisplayName + "'s neck", "!", null, null, ParentObject);
+			else
+				DidX("sinks " + ParentObject.its + " fangs into", Target.the + Target.ShortDisplayName + "'s neck", "!", null, null, ParentObject);
+			BiteATK(FangsObject, Target, Auto: true);
+			Target?.Bloodsplatter();
+		}
+
+		#endregion
+
+		#region QuickOptionCheckers
+
+		bool CheckNightbeast()
+		{
+			return ParentObject.IsPlayer() && Options.GetOptionBool(OPTIONS.NIGHTBEAST) && !ParentObject.OnWorldMap();
+		}
+
+		static bool CheckFireOption()
+		{
+			return Options.GetOptionBool(OPTIONS.FIRE);
+		}
+
+
+		#endregion
+
+		#region Update
+		public override bool HandleEvent(AfterPlayerBodyChangeEvent E) //potential issue here:
+		{                                                               //players who are NOT a vampire and are playing old saves will not be able to use vampiric spells when dominating if the option is enabled.
+			if (E.NewBody.IsVampire())                                  //because only players with vampire parts can request an update
+			{
+				//though this can be fixed by saving/loading as the dominatee
+				Nexus.Update.Update.Spells(E.NewBody);                  //ALSO vampires wont get access to the new corpse type unless the player is a vampire that can update them
+				if (E.OldBody?.HasStringProperty(FLAGS.OLD_SAVE) ?? false)
+					E.NewBody.SetStringProperty(FLAGS.OLD_SAVE, null);
+			}
+			return base.HandleEvent(E);
+		}
+		public override bool HandleEvent(EnteringZoneEvent E)
+		{
+			Zone zone = E.Cell.ParentZone;
+			if (zone.TryGetZoneProperty(FLAGS.MOD.VERSION_TAG, out string result)) //to prevent repeated sifting of zones already updated in old saves
+			{
+				if (result != MOD.VERSION)
+					Update(zone);
+			}
+			else
+				Update(zone);
+			return base.HandleEvent(E);
+		}
+		static void Update(Zone zone)
+		{
+			zone.SetPeopleWho(x =>
+			{
+				if (x.IsVampire() && !x.IsPlayer())
+					Nexus.Update.Update.DoUpdate(x);
+			});
+			zone.SetZoneProperty(FLAGS.MOD.VERSION_TAG, MOD.VERSION);
+		}
+		#endregion
+
+		#region Mutation functionality
+
+		public override bool HandleEvent(BeforeAbilityManagerOpenEvent E)
+		{
+			DescribeMyActivatedAbility(FangsActivatedAbilityID, this.CollectStats);
+			return base.HandleEvent(E);
+		}
+		public override bool HandleEvent(AIGetOffensiveAbilityListEvent E)
+		{
+			if (AITargetting(E))
+				E.Add(COMMAND_NAME);
+			return base.HandleEvent(E);
+		}
+		public override bool HandleEvent(CommandEvent E)
+		{
+			if (E.Command == COMMAND_NAME && Prerequisites())
+			{
+				if (ParentObject.TryGetTarget(ABILITY_NAME, "feed from", out GameObject Target))
+					FeedCommand.Initialize(Target);
+			}
+			return base.HandleEvent(E);
+		}
+
+		bool AITargetting(AIGetOffensiveAbilityListEvent E)
+		 =>
+			E.Distance <= 1
+			&& HasFangs()
+			&& IsMyActivatedAbilityAIUsable(FangsActivatedAbilityID)
+			&& E.Target.CurrentCell?.GetCombatTarget(E.Actor) != null
+			&& !E.Actor.Incap(false)
+			&& !E.Target.HasEffect<Vampires_Kiss>() //this is so that they prefer to try and kill you instead of your victim
+			&& Checks.AttackableForAI(E.Target);
+
 		public override string GetDescription() => "You feed on the blood of living creatures.";
 		public string GetDamageDice()
 		 =>
@@ -64,381 +469,6 @@ namespace XRL.World.Parts.Mutation
 		public override string GetLevelText(int Level)
 		=> "Feeds {{rules|" + GetDamageDice() + "}} blood per round, for up to {{rules|5}} rounds.\n" +
 		"Success roll: {{rules|mutation rank}} or Agility mod (whichever is higher) + character level + 1d8 VS. Defender DV + character level.\n";
-
-		public override void Register(GameObject Object, IEventRegistrar Registrar)
-		{
-			Registrar.Register("LungedTarget");
-			Registrar.Register(Events.GAMEOVER);
-			Registrar.Register(Events.WISH_HUMANITY);
-		}
-		public override bool FireEvent(Event E)
-		{
-			switch (E.ID)
-			{
-				case Events.GAMEOVER:
-					GameOver = true;
-					break;
-				case Events.WISH_HUMANITY:
-					GameOver = false;
-					break;
-				case "LungedTarget":
-					if (HasFangs() && !ParentObject.Body.IsPrimaryWeapon(FangsObject))
-						BiteATK(FangsObject, E.GetGameObjectParameter("Defender"));
-					break;
-			}
-			return base.FireEvent(E);
-		}
-		public override bool WantEvent(int ID, int cascade)
-		{
-			if (ID == SingletonEvent<EndTurnEvent>.ID && bloodycounter > 0 && HasFangs())
-				return true;
-			if (ID == PooledEvent<CommandEvent>.ID || ID == AIGetOffensiveAbilityListEvent.ID || ID == PooledEvent<AfterDismemberEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
-				return true;
-			if (ID == SingletonEvent<BeginTakeActionEvent>.ID && IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false)) //Albino
-				return CheckNightbeast();
-			if (ID == BeforeRenderEvent.ID)
-				return CheckNightbeast();
-			//force passing turn does not play well with the Terrified effect and//likely wont work at all with frenzy
-
-			//if (WasTerrifiedByFlames && (ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == EffectRemovedEvent.ID))
-			//	return true; i was using these to forcepassturn and end forcepassturn with a bool WasScaredByFire
-			if (ID == EquipperEquippedEvent.ID)
-				return true;
-			if (!Immune)
-			{
-				if (ID == TookDamageEvent.ID)
-					return CheckFireOption();
-				if (ID == SingletonEvent<BeforeTakeActionEvent>.ID)
-					return CheckFireOption();
-			}
-			if (WasTerrifiedByFlames || Immune)
-			{
-				if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID)
-					return true;
-			}
-			if (ID == EnteringZoneEvent.ID && ParentObject.HasStringProperty(FLAGS.OLD_SAVE) && ParentObject.IsPlayer())
-				return true;
-			if (ID == AfterPlayerBodyChangeEvent.ID)
-				return true;
-			if (ID == AddedToInventoryEvent.ID && Options.GetOptionBool(OPTIONS.SILVER))
-				return true;
-			return base.WantEvent(ID, cascade);
-		}
-
-		public override bool HandleEvent(AddedToInventoryEvent E)
-		{
-			AddPlayerMessage("AED");
-			if(E.Item.Blueprint.ToLower().Contains("silver"))
-			{
-				SilverAilment(E.Item);
-				return false;
-			}
-			return base.HandleEvent(E);
-		}
-		public override bool HandleEvent(AfterPlayerBodyChangeEvent E) //potential issue here:
-		{                                                               //players who are NOT a vampire and are playing old saves will not be able to use vampiric spells when dominating if the option is enabled.
-			if (E.NewBody.IsVampire())                                  //because only players with vampire parts can request an update
-			{
-				//though this can be fixed by saving/loading as the dominatee
-				Nexus.Update.Update.Spells(E.NewBody);                  //ALSO vampires wont get access to the new corpse type unless the player is a vampire that can update them
-				if (E.OldBody?.HasStringProperty(FLAGS.OLD_SAVE) ?? false)
-					E.NewBody.SetStringProperty(FLAGS.OLD_SAVE, null);
-			}
-			return base.HandleEvent(E);
-		}
-
-		bool CheckNightbeast()
-		{
-			return ParentObject.IsPlayer() && Options.GetOptionBool(OPTIONS.NIGHTBEAST) && !ParentObject.OnWorldMap();
-		}
-
-		bool CheckFireOption()
-		{
-			return Options.GetOptionBool(OPTIONS.FIRE) && !ParentObject.CheckFlag(FLAGS.FRENZY);
-		}
-
-		public override bool HandleEvent(EnteringZoneEvent E)
-		{
-			Zone zone = E.Cell.ParentZone;
-			if (zone.TryGetZoneProperty(FLAGS.MOD.VERSION_TAG, out string result)) //to prevent repeated sifting of zones already updated in old saves
-			{
-				if (result != MOD.VERSION)
-					DoUpdate(zone);
-			}
-			else
-				DoUpdate(zone);
-			return base.HandleEvent(E);
-		}
-		public override bool HandleEvent(EffectRemovedEvent E)
-		{
-			if (E.Effect.GetType() == typeof(Terrified)) //tried to match by effect.Object, but it always shows up null
-				WasTerrifiedByFlames = false;
-			else if (E.Effect.GetType() == typeof(Blaze_Tonic))
-				Immune = false;
-			return base.HandleEvent(E);
-		}
-
-		public override bool HandleEvent(EffectAppliedEvent E)
-		{
-			if (E.Effect is Blaze_Tonic)
-			{
-				Immune = true;
-				ParentObject.RemoveEffect<Terrified>();
-			}
-			return base.HandleEvent(E);
-		}
-		public override bool HandleEvent(BeforeTakeActionEvent E)
-		{
-			if (ParentObject.LocalCells(out var cells))
-				SearchForFire(cells);
-			return base.HandleEvent(E);
-		}
-		public override bool HandleEvent(EquipperEquippedEvent E)
-		{
-			if (E.Item.Blueprint == "Torch" && The.Game.Turns > 0)
-			{
-				if (CheckFireOption() && Options.GetOptionBool(OPTIONS.TORCH)) //this event runs before the game loads and was causing serious hangups/crashes
-				{                                                       //in tandem with the VampirismStartGame mutator that deletes torches
-					var Torch = E.Item.GetPart<TorchProperties>();      //just a mess of null errors
-					if (!Torch.IsUnlightableBecauseOfLiquidCovering())
-						FakeDropTorch(E.Item);
-					return false;
-				}
-			}
-			if (E.Item.Blueprint.ToLower().Contains("silver") && Options.GetOptionBool(OPTIONS.SILVER))
-			{
-				SilverAilment(E.Item);
-				return false;
-			}
-			return base.HandleEvent(E);
-		}
-
-		void SilverAilment(GameObject obj)
-		{
-			UI.Popup.Show("{{y|IT BURNS!!!}}");
-			obj.ForceUnequip(true);
-			ParentObject.Inventory.RemoveObjectFromInventory(obj);
-			ParentObject.CurrentCell.AddObject(obj);
-			ParentObject.TakeDamage(WikiRng.Next(1, 10), obj, "SilverAilment");
-		}
-		public override bool HandleEvent(TookDamageEvent E)
-		{
-			if (E.Object == ParentObject && E.Damage.Attributes.Contains("Fire"))
-			{
-				Rotschrek(E?.Actor, true);
-				E.Damage.Amount *= 2;
-			}
-			return base.HandleEvent(E);
-		}
-
-		public override bool HandleEvent(BeforeRenderEvent E)
-		{
-			AddLight(21, LightLevel.Dimvision);
-			return base.HandleEvent(E);
-		}
-
-		public override bool HandleEvent(BeginTakeActionEvent E)
-		{
-			AddPlayerMessage("{{W|IT BURNS!!!}}");
-			ParentObject.TakeDamage(WikiRng.Next(5, 10), null, null);
-			return base.HandleEvent(E);
-		}
-		public override bool HandleEvent(AfterDismemberEvent E)
-		{
-			if (E.Part?.Type == BodyPartType)
-			{
-				if (E.Actor != null && E.Object != null)
-				{
-					if (E.Object.IsPlayer())
-						Popup.Show($"You are defanged by {E.Actor.t()}!");
-					else if (E.Actor.IsPlayer())
-						AddPlayerMessage($"You defang {E.Object.t()}!");
-					else
-						AddPlayerMessage($"{E.Object.t()} is defanged by {E.Actor.t()}!");
-				}
-				else
-					Popup.Show("You defang yourself!");
-			}
-			return base.HandleEvent(E);
-		}
-
-		public override bool HandleEvent(EndTurnEvent E)
-		{
-			if (WikiRng.Next(1, 10) == 10 && !ParentObject.CheckFlag(FLAGS.FEED))
-			{
-				AddPlayerMessage("{{r|Blood}} drips from your fangs.");
-				if (!ParentObject.OnWorldMap())
-					ParentObject.CurrentCell?.AddObject("FangBloodDrop");
-			}
-			bloodycounter++;
-			if (bloodycounter >= 25)
-			{
-				FangsObject.DisplayName = "fangs";
-				bloodycounter = 0;
-			}
-			return base.HandleEvent(E);
-		}
-		public override bool HandleEvent(BeforeAbilityManagerOpenEvent E)
-		{
-			DescribeMyActivatedAbility(FangsActivatedAbilityID, this.CollectStats);
-			return base.HandleEvent(E);
-		}
-		public override bool HandleEvent(AIGetOffensiveAbilityListEvent E)
-		{
-			if (AITargetting(E))
-				E.Add(COMMAND_NAME);
-			return base.HandleEvent(E);
-		}
-		public override bool HandleEvent(CommandEvent E)
-		{
-			if (E.Command == COMMAND_NAME && Prerequisites())
-			{
-				if (ParentObject.TryGetTarget(ABILITY_NAME, "feed from", out GameObject Target))
-					FeedCommand.Initialize(Target);
-			}
-			return base.HandleEvent(E);
-		}
-
-		static void DoUpdate(Zone zone)
-		{
-			zone.SetPeopleWho(NeedUpdate);
-			zone.SetZoneProperty(FLAGS.MOD.VERSION_TAG, MOD.VERSION);
-		}
-
-		static void NeedUpdate(GameObject obj)
-		{
-			if (obj.IsVampire() && !obj.IsPlayer()) //player is checked on gameload
-				Nexus.Update.Update.DoUpdate(obj);
-		}
-
-		void SearchForFire(List<Cell> cells)
-		{
-			if (ParentObject.IsPlayer() || !ParentObject.HasEffect<Terrified>()) //if you place a vampire inbetween the two torches infront of elder irudads house, he is locked in a permanent state of terror if he already has terrified
-				for (int i = 0; i < cells.Count; i++)   //because terrified removes the old one if you try to apply a new one and it just cycles between the two
-				{
-					for (int x = 0; x < cells[i].Objects.Count; x++)
-					{
-						GameObject obj = cells[i].Objects[x];
-						if (obj.IsAflame() || Flamelike($"{obj}") || (obj.Blueprint != "Campfire" && obj.HasPart<AnimatedMaterialFire>()) || LitTorch(obj) || HoldingFlamingObject(obj))
-						{
-							Rotschrek(obj, true);
-							return;
-						}
-					}
-				}
-		}
-
-		bool HoldingFlamingObject(GameObject obj)
-		{
-			return obj.HasEquippedItem(Delegate);
-		}
-
-		bool Delegate(GameObject obj)
-		{
-			return obj.Blueprint == "Torch" || obj.IsAflame();
-		}
-
-		bool Flamelike(string obj) =>
-		 obj switch
-		 {
-			 "LavaPuddle" or "SmallLavaPuddle" or "LavaPool" or "Shimmering Heat" => true,
-			 _ => false
-		 };
-
-		bool LitTorch(GameObject obj) //im pretty sure this cannot actually happen (cannot drop lit torches) but ive included it anyways
-		{
-			if (obj.Blueprint == "Torch" && Options.GetOptionBool(OPTIONS.TORCH))
-			{
-				LightSource source = obj.GetPart<LightSource>(); //private field in TorchProperties, but accessible thru the PartsList, no reflection required
-				if (source.Lit)
-				{     //thanks for parts lists, developers!
-					return true;
-				}
-			}
-			return false;
-		}
-
-		void Rotschrek(GameObject FireSource, bool external)
-		{
-			WasTerrifiedByFlames = true;
-			Capabilities.AutoAct.Interrupt();
-			if (external)
-				AlreadyOnFire();
-			if (FireSource == null)
-				ParentObject.ApplyEffect(new Terrified(WikiRng.Next(5, 10), ParentObject.CurrentCell, true));
-			else
-				ParentObject.ApplyEffect(new Terrified(WikiRng.Next(5, 10), FireSource, false));
-		}
-
-		public void FakeDropTorch(GameObject Torch)
-		{
-			if (ParentObject.CurrentCell != null)
-			{
-				if (ParentObject.IsPlayer())
-					Popup.Show("{{R|ROTSCHREK!!!}}");
-				Torch.Obliterate();
-				ReplaceTorch();
-			}
-		}
-
-		void ReplaceTorch()
-		{
-			GameObject replacement = GameObject.Create("Torch");
-			ParentObject.CurrentCell.AddObject(replacement);
-			DidXToY("drop", replacement, null, null, null, null, null, null, UseFullNames: false, IndefiniteSubject: false, IndefiniteObject: true);
-			TryLight(replacement);
-		}
-
-		void TryLight(GameObject replacement)
-		{
-			var Part = replacement.GetPart<TorchProperties>();
-			Part.Light();
-			if (!Part.IsUnlightableBecauseOfLiquidCovering() && !Part.IsUnlightableBecauseOfSubmersion())
-				Rotschrek(replacement, false);
-			else
-				Part.Extinguish();
-		}
-		void AlreadyOnFire()
-		{
-			if (ParentObject.IsPlayer())
-			{
-				AddPlayerMessage("{{R|ROTSCHREK!!!}}");
-			}
-		}
-		bool Prerequisites()
-		{
-			if (!HasFangs())
-			{
-				ParentObject.ShowFailure("You have been defanged and cannot feed right now.");
-				return false;
-			}
-			return Checks.Prerequisites(ParentObject, ABILITY_NAME, "feed");
-		}
-		public bool HasFangs() => FangsObject is not null && ParentObject.HasBodyPart(BodyPartType);
-		public void BiteATK(GameObject Fangs, GameObject Defender, bool Auto = false)
-		 =>
-			Combat.MeleeAttackWithWeapon
-			(ParentObject, Defender, Fangs, ParentObject.GetBodyPartByManager(ManagerID), Auto ? "Autohit,Autopen,Biting" : "Biting");
-		public void BiteActivate(GameObject Target)
-		{
-			if (ParentObject.IsPlayer())
-				DidX("sink your fangs into", Target.the + Target.ShortDisplayName + "'s neck", "!", null, null, ParentObject);
-			else
-				DidX("sinks " + ParentObject.its + " fangs into", Target.the + Target.ShortDisplayName + "'s neck", "!", null, null, ParentObject);
-			BiteATK(FangsObject, Target, Auto: true);
-			Target?.Bloodsplatter();
-		}
-		bool AITargetting(AIGetOffensiveAbilityListEvent E)
-		 =>
-			E.Distance <= 1
-			&& HasFangs()
-			&& IsMyActivatedAbilityAIUsable(FangsActivatedAbilityID)
-			&& !E.Actor.Incap(false)
-			&& !E.Target.HasEffect<Vampires_Kiss>() //this is so that they prefer to try and kill you instead of your victim
-			&& !E.Target.IsFlying
-			&& !E.Target.IsFrozen()
-			&& !E.Target.IsInStasis()
-			&& Checks.Applicable(E.Target);
 
 		public override IPart DeepCopy(GameObject Parent, Func<GameObject, GameObject> MapInv)
 		{
@@ -494,5 +524,7 @@ namespace XRL.World.Parts.Mutation
 		public static bool IsUnmanagedPart(BodyPart Part) => Part.Manager.IsNullOrEmpty();
 		public override bool GeneratesEquipment() => true;
 		public override bool AllowStaticRegistration() => true;
+
+		#endregion
 	}
 }

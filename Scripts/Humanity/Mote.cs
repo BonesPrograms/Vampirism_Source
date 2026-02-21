@@ -51,7 +51,7 @@ namespace XRL.World.Parts
             return base.HandleEvent(E);
         }
 
-        void Secrets()
+        void Secrets() //from mumble mouth
         {
             if (MoteAutoMemory || WikiRng.Next(1, 5000) <= 5)
             {
@@ -61,7 +61,6 @@ namespace XRL.World.Parts
                 text = ((obj == null) ? randomUnrevealedNote.Text : ("The location of " + Grammar.InitLowerIfArticle(randomUnrevealedNote.Text)));
                 Popup.Show($"{ParentObject.t()} whispers to you one of it's secrets:\n\n" + text);
                 randomUnrevealedNote.Reveal(ParentObject.DisplayName);
-                Achievement.LEARN_SECRET_FROM_MUMBLEMOUTH.Unlock();
             }
         }
 
@@ -71,7 +70,7 @@ namespace XRL.World.Parts
             {
                 UI.Popup.Show("The feeling of human experience repulses you. You will never know what it is like to be human again.");
                 AddPlayerMessage($"{ParentObject.t()} dissipates into mist.");
-                ParentObject.TakeDamage(WikiRng.Next(5, 10), ParentObject, "wassailAteMote");
+                ParentObject.TakeDamage(WikiRng.Next(5, 10), ParentObject, null);
                 ParentObject.Obliterate();
                 return false;
             }

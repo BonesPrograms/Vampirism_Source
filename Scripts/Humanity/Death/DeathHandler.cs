@@ -60,8 +60,11 @@ namespace XRL.World.Parts
         }
         static void DropMote(GameObject Dying)
         {
-            if (FreeMote || WikiRng.Next(1,100) <= 5)
-                Dying.CurrentCell.AddObject("MoteOfHumanity");
+            if (Dying.CheckFlag(FLAGS.INNOCENT))
+            {
+                if (FreeMote || WikiRng.Next(1, 1000) <= 1)
+                    Dying.CurrentCell.AddObject("MoteOfHumanity");
+            }
         }
         static void CreateDeathsInstance(GameObject Killer, GameObject Dying)
         {

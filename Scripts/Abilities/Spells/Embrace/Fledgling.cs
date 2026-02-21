@@ -15,7 +15,7 @@ namespace XRL.World.Parts
             return Target == Sire;
         }
 
-        public Fledgling()
+        public Fledgling() //dont forget to sync vamp levels for fun
         {
 
         }

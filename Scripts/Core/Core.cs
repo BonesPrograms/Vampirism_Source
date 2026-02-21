@@ -94,11 +94,10 @@ namespace Nexus.Core
 		 	theVampire != null &&
 			 (theVampire.IsFrozen()
 			|| theVampire.IsInStasis()
-			|| !theVampire.CanMoveExtremities(XRL.World.Parts.Mutation.Vampirism.ABILITY_NAME)
 			|| Unaware(theVampire, false)
 			|| (theVampire.IsConfused && frenzying) // specifically to end frenzy if confused
-			|| (!theVampire.IsPlayer() && theVampire.HasEffect<StunGasStun>())); //stungasstun does not count as unawareness but does count as incapacitated only because i dont like being bitten by stun-gassed vampires
-																				 //even with useenergy event, still had some bugs associated with effects and conditions that youd normally expect to end a feeding
+			|| (!theVampire.IsPlayer() && theVampire.HasEffect<StunGasStun>())) //stungasstun does not count as unawareness but does count as incapacitated only because i dont like being bitten by stun-gassed vampires
+			|| !theVampire.CanMoveExtremities(XRL.World.Parts.Mutation.Vampirism.ABILITY_NAME);                                              //even with useenergy event, still had some bugs associated with effects and conditions that youd normally expect to end a feeding
 
 		public readonly static Type[] UnawareFX =
 		{
@@ -333,7 +332,7 @@ namespace Nexus.Core
 			return mutations.AddMutation<T>(level);
 		}
 
-		public static T AddMutation<T>(this GameObject Object, int level = 1 ) where T : BaseMutation, new()
+		public static T AddMutation<T>(this GameObject Object, int level = 1) where T : BaseMutation, new()
 		{
 			var mutations = Object.GetPart<Mutations>();
 			return mutations?.AddMutation<T>(level);
@@ -484,6 +483,11 @@ namespace Nexus.Core
 				return true;
 			}
 			return false;
+		}
+
+		public static bool IsSilver(this GameObject Object)
+		{
+			return Object.Blueprint.ToLower().Contains("silver");
 		}
 	}
 	public static class Extensions
@@ -742,10 +746,21 @@ namespace Nexus.Core
 			return true;
 		}
 
+		public static bool AttackableForAI(GameObject Target)
+		{
+			return Applicable(Target) && IsNotASolidBlock(Target);
+		}
+
+		public static bool IsNotASolidBlock(GameObject Target)
+		{
+			return !Target.IsFrozen() && !Target.IsInStasis();
+		}
+
 		public static bool Attackable(GameObject Target, string text)
 		{
 			if (!Applicable(Target)) //invalid targets are those not from the animal kingdom
 			{
+
 				Popup.ShowFail($"You cannot {text} " + Target.t() + ".");
 				return false;
 			}
@@ -776,18 +791,5 @@ namespace Nexus.Core
 			null or "Star" or "Echinoid" or "Flower" or "Vine" or "Tree" or "Cactus" or "Bush" or "Ooze" or "Jelly" => true,
 			_ => false
 		};
-
-
-		// {
-		// 	if (FailedSimpleChecks(Victim))
-		// 		return false;
-		// 	if (HasWrongAnatomy(Victim.Body?.Anatomy))
-		// 		return false;
-		// 	if (Stealth.StealthCore.Inanimate(Victim)) //just so happens that my checks against plants for stealth work perfectly here
-		// 		return false;
-		// 	return true;
-		// }
-
-		//who wouldve thought i needed to be so specific
 	}
 }

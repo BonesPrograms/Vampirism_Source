@@ -7,6 +7,7 @@ using Nexus.Properties;
 using Nexus.Attack;
 using XRL.World.Effects;
 using XRL.World.AI.Pathfinding;
+using Nexus.Spells;
 
 namespace Nexus.Frenzy
 {
@@ -25,13 +26,18 @@ namespace Nexus.Frenzy
             this.Search = Search;
         }
         bool BadBite(GameObject Target) => Bite.BadTarget(Target) && Bite.CannotFeed(Target);
+
+		bool AICantFrenzy()
+		{
+			return AI.Source.Base.Rotschrek || !AI.Source.HasFangs() || AI.Source.Incap() || SpellCore.SunlightInterference(AI.Object);
+		}
         public void Act()
         {
-            if (AI.Object.Incap(true))
+            if (AICantFrenzy())
                 AI.Duration = 0;
             else if (!AI.Object.CheckFlag(FLAGS.FEED))
             {
-                if (AI.Target?.HasHitpoints() ?? false && AI.Object.canPathTo(AI.Target.CurrentCell)) //canpathto does nullcheck for us
+                if (AI.Target?.HasHitpoints() ?? false && AI.Object.canPathTo(AI.Target.CurrentCell) && Checks.IsNotASolidBlock(AI.Target)) //canpathto does nullcheck for us
                     DecideAction();
                 else
                     FindNewTarget();

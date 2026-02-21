@@ -10,27 +10,24 @@ using Nexus.Rules;
 using XRL.Liquids;
 using Qud.UI;
 using System;
+using Nexus.Core;
 
 namespace Nexus.Patches
 {
 
-				///NOTE: found a heal string event in Albino that is useful for interrupting heal without throwing messages in chat
-	// [HarmonyPatch(typeof(GameObject), nameof(GameObject.HealsNaturally))]
+    [HarmonyPatch(typeof(GameObject), nameof(GameObject.ShouldAutoget))]
+    public static class AutogetSilverAilment //i will probably redo blood autoget to be this one day but for now its just for silver ailment
+    {
+        [HarmonyPostfix]
+        public static void Postfix(ref bool __result, GameObject __instance) //prevents you from autogetting silver nuggets and burning yourself to death
+        {
+            if (__result == true && __instance.IsSilver() && Options.GetOptionBool(OPTIONS.SILVER))
+                __result = false;
+        }
+    }
 
-	// public static class GhoulHealPatch
-	// {
-	// 	[HarmonyPostfix]
-	// 	public static void Postfix(GameObject __instance, ref bool __result)
-	// 	{
-	// 		if (__instance.TryGetEffect(out EnthralledGhoul ghoul) && ghoul.WasFedOn)
-	// 			__result = false;
-	// 	}
-	// }
-
-
-
-    [HarmonyPatch(typeof(TorchProperties), nameof(TorchProperties.HandleEvent), new Type[] { typeof(InventoryActionEvent) })]
-    public static class TorchPatch
+    [HarmonyPatch(typeof(TorchProperties), nameof(TorchProperties.HandleEvent), new Type[] { typeof(InventoryActionEvent) })] //prevents you from lighting torches as a vampire and does some other fun stuff that wouldnt happen normally
+    public static class TorchLightRotschrek                                                                                     //when dropping a torch (such as it dropping lit)
     {
         [HarmonyPostfix]
         public static void Postfix(ref bool __result, TorchProperties __instance, InventoryActionEvent E)
@@ -44,7 +41,7 @@ namespace Nexus.Patches
     }
 
     [HarmonyPatch(typeof(LiquidBlood), nameof(LiquidBlood.Drank))]
-    public static class Blood
+    public static class BloodDrinking
     {
         static bool PreventGhostConsumption; //prevents blood from being consumed if you refuse to drink while vomitting
 
@@ -98,7 +95,7 @@ namespace Nexus.Patches
     }
 
     [HarmonyPatch(typeof(Stomach), nameof(Stomach.WaterStatus))]
-    public static class Status
+    public static class BloodStatus
     {
 
         [HarmonyPostfix]
@@ -112,7 +109,7 @@ namespace Nexus.Patches
     }
 
     [HarmonyPatch(typeof(LiquidWater), nameof(LiquidWater.Drank))]
-    public static class Water
+    public static class WaterDrinking
     {
         [HarmonyPrefix]
         public static bool Prefix(LiquidVolume Liquid, GameObject Target)
@@ -137,7 +134,7 @@ namespace Nexus.Patches
     }
 
     [HarmonyPatch(typeof(PlayerStatusBar), "BeginEndTurn")]
-    public static class UI
+    public static class UIFreeDramsColor
     {
 
         static int GetFreeDramsReplacement(GameObject player)
@@ -156,7 +153,7 @@ namespace Nexus.Patches
                     new[] { typeof(string), typeof(GameObject),
                     typeof(List<GameObject>),
                     typeof(System.Predicate<GameObject>), typeof(bool) });
-                var repl = AccessTools.Method(typeof(UI),
+                var repl = AccessTools.Method(typeof(UIFreeDramsColor),
                                                 nameof(GetFreeDramsReplacement));
 
                 for (int i = 0; i < codes.Count; i++)

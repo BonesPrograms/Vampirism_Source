@@ -103,7 +103,7 @@ namespace XRL.World.Effects
 		{
 			if (Object != null && (!other?.Object?.HasPart<Fledgling>() ?? false))
 			{
-				if (AutoLevel || WikiRng.Next(1, 100) <= 5)
+				if (AutoLevel || WikiRng.Next(1, 20) == 1)
 				{
 					
 					if (Object.IsPlayer())

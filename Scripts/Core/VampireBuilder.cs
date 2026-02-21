@@ -99,7 +99,7 @@ namespace Nexus.Core
             for (int i = 0; i < IParts.Length; i++)
                 GO.RequirePart(IParts[i]);
             GO.ApplyEffect(new HumanityUI(9999));
-            if (XRL.UI.Options.GetOptionBool(OPTIONS.SPELLS))
+            if (XRL.UI.Options.GetOptionBool(OPTIONS.SPELLS) && GO.IsPlayer())
                 RequireSpells(GO);
         }
 

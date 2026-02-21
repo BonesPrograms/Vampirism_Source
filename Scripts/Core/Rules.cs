@@ -45,9 +45,9 @@ namespace Nexus.Rules
 
         public const int MATERIALIZE_COOLDOWN = 500;
 
-        public const int SAVE_FROM_DEATH_MIN = 1000;
+        public const int SAVE_FROM_DEATH_MIN = 3000;
 
-        public const int SAVE_FROM_DEATH_MAX = 3000;
+        public const int SAVE_FROM_DEATH_MAX = 5000;
 
         public const int SAVING_THROW_DC = 20;
     }

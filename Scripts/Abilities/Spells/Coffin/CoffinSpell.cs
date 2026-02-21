@@ -12,16 +12,20 @@ namespace XRL.World.Parts
         public GameObject Coffin;
         public override Type SpellType => typeof(CoffinSpell);
         public override int Cooldown => COFFIN.MATERIALIZE_COOLDOWN;
-        public bool JustJaunted;
         public int JauntCooldown;
         public int Timer;
         public bool CoolingOff;
         public bool HasCoffin;
-        public bool Saved;
         public string Zone;
         public int CellX;
         public int CellY;
         public static bool ShowDebug;
+
+        [NonSerialized]
+        public bool JustJaunted;
+
+        [NonSerialized]
+        public bool TookFireDamage;
         public override int Roll() => WikiRng.Next(1, 20) + Level;
         //uses vampirism level like all spells
         public override void AddSpell()
@@ -33,21 +37,21 @@ namespace XRL.World.Parts
         {
             if ((ID == BeforeDieEvent.ID || ID == TookDamageEvent.ID) && !CoolingOff && HasCoffin)
                 return true;
-            if (ID == SingletonEvent<BeforeTakeActionEvent>.ID && (JustJaunted || CoolingOff || HasCoffin))
+            if (ID == SingletonEvent<BeginTakeActionEvent>.ID && (JustJaunted || CoolingOff || HasCoffin))
                 return true;
-            if (ID == DeathEvent.ID)
+            if (ID == AfterDieEvent.ID && HasCoffin)
                 return true;
             return base.WantEvent(ID, Cascade);
         }
 
-        public override bool HandleEvent(DeathEvent E)
+        public override bool HandleEvent(AfterDieEvent E)
         {
             if (E.Dying == ParentObject)
             {
                 ActivateCoffin(out var cell);
                 if (Coffin != null)
                 {
-                    if (The.Player.HasLOSTo(cell))
+                    if (The.Player.HasLOSTo(cell, false))
                     {
                         Coffin.ParticleBlip("&R\u000f", 10, 0L);
                         AddPlayerMessage($"{Coffin.t()} vanishes!");
@@ -58,7 +62,7 @@ namespace XRL.World.Parts
             return base.HandleEvent(E);
         }
 
-        public override bool HandleEvent(BeforeTakeActionEvent E)
+        public override bool HandleEvent(BeginTakeActionEvent E)
         {
             if (JustJaunted)
                 Jaunted();
@@ -69,36 +73,30 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(BeforeDieEvent E)
         {
-            if (E.Dying == ParentObject && Saved)
+            if (E.Dying == ParentObject && !TookFireDamage && !SpellCore.SunlightInterference(ParentObject))
             {
-                ParentObject.RestorePristineHealth();
-                ActivateCoffin(out var cell);
-                E.Dying.TeleportTo(cell);
-                E.Dying.TeleportSwirl(null, "&C", Voluntary: true, null, 'ù', IsOut: true);
-                E.RequestInterfaceExit();
-                JustJaunted = true;
-                Saved = false;
-                return false;
+                if (Roll() > COFFIN.SAVING_THROW_DC || UI.Options.GetOptionBool(OPTIONS.COFFIN))
+                {
+                    if (RealityCheck(ParentObject.CurrentCell))
+                    {
+                        ParentObject.RestorePristineHealth();
+                        ActivateCoffin(out var cell);
+                        E.Dying.TeleportTo(cell);
+                        E.Dying.TeleportSwirl(null, "&C", Voluntary: true, null, 'ù', IsOut: true);
+                        E.RequestInterfaceExit();
+                        JustJaunted = true;
+                        return false;
+                    }
+                }
+
             }
             return base.HandleEvent(E);
         }
         public override bool HandleEvent(TookDamageEvent E)
         {
-            if (E.Object == ParentObject)
+            if (E.Object == ParentObject && UI.Options.GetOptionBool(OPTIONS.FIRE))
             {
-                if (!E.Damage.Attributes.Contains("Fire") && !SpellCore.SunlightInterference(ParentObject)) // explosions too maybe light
-                {
-                    if (ParentObject.hitpoints - E.Damage.Amount < 1 && (Roll() >= COFFIN.SAVING_THROW_DC || UI.Options.GetOptionBool(OPTIONS.COFFIN)))
-                    {
-                        if (RealityCheck(ParentObject.CurrentCell))
-                        {
-                            E.Damage.Amount = 0;
-                            Saved = true;
-                            BeforeDieEvent.Check(ParentObject, E.Actor);
-                            return false;
-                        }
-                    }
-                }
+                TookFireDamage = E.Damage.Attributes.Contains("Fire");
             }
             return base.HandleEvent(E);
         }
@@ -137,8 +135,8 @@ namespace XRL.World.Parts
         void ActivateCoffin(out Cell cell) //WIERD BUGS: SEE END OF FILE
         {
             Zone zone = The.ZoneManager.GetZone(Zone);
-            cell = zone?.Map[CellX][CellY];
-            if (cell != null && (Coffin == null || !GameObject.Validate(ref Coffin)))
+            cell = zone.Map[CellX][CellY]; //i used to do a cell != null and zone != null check here, but i actually want this to fail very loudly, a silent failure on BeforeDieEvent would not be helpful
+            if (Coffin == null || !GameObject.Validate(ref Coffin))
             {
                 for (int i = 0; i < cell.Objects.Count; i++)
                 {
@@ -159,7 +157,9 @@ namespace XRL.World.Parts
         {
             obj?.Obliterate(); //either way, moving and teleporting the object was buggy, so we dont actually, we just destroy it and replace it
             Coffin = GameObject.Create(COFFIN.BLUEPRINT); //hopefully no one is customizing their coffins... well work on that
-            Coffin.GetPart<VampireCoffin>().OwnerID = ParentObject.ID;
+            var part = Coffin.GetPart<VampireCoffin>();
+            part.OwnerID = ParentObject.ID;
+            Coffin.SetIntProperty("DroppedByPlayer", 1);
         }
 
         void PlaceCoffin(Cell cell)
@@ -200,6 +200,8 @@ namespace XRL.World.Parts
 
         void Jaunted()
         {
+            if (ParentObject.TryGetEffect<FrenzyAI>(out var fx))
+                StopFrenzy(fx);
             ParentObject.TeleportSwirl(null, "&C", Voluntary: true);
             if (ParentObject.IsPlayer())
                 UI.Popup.Show("You return to your coffin!");
@@ -210,6 +212,12 @@ namespace XRL.World.Parts
             Timer = 0;
             JauntCooldown = WikiRng.Next(COFFIN.SAVE_FROM_DEATH_MIN, COFFIN.SAVE_FROM_DEATH_MAX);
             ParentObject.ApplyEffect(new Asleep(null, WikiRng.Next(200, 500), true, false, false, true));
+        }
+
+        void StopFrenzy(FrenzyAI fx)
+        {
+            fx.Source.TargetRegistry = new();
+            fx.Duration = 0;
         }
 
         public override void CollectStats(Templates.StatCollector stats)
