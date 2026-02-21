@@ -128,6 +128,20 @@ namespace XRL.World.Parts
     }
 
 
+
+    //plan: we will requirepart by string name
+    //we prob wont create an instance from a blueprint, well create an instance of their blueprint to match things like physics and  render and displayname stuff maybe idk. lots of parts to add lowkey.
+
+    // final note: in scan, have it show object level specifically. additionally will need to see mutations w/ levels and skills and cybernetics etc for our copier. 
+    // thank god there is a mutation lsit i can past that to one of my loggers. will need otherstuff like bodyparts too - anything listed in Copy. new wish "CheckCopy"
+
+    //NEW ARRAY IDEA:
+    //should we tag relations as well? opinions of the player? yes a list of Opinions to the player at least would be valid
+
+    //OTHER ARRAY IDEA:
+    //SKILLS string
+
+    //best idea: look into DeepCopy and base it off that kinda...
     [Serializable]
 
     public class EmbraceableObjectCopy : IPart
@@ -141,17 +155,10 @@ namespace XRL.World.Parts
         public (string, string)[] StringProperties = new (string, string)[0];
         public (string, long)[] LongProperties = new (string, long)[0];
         public (string, int)[] IntProperties = new (string, int)[0];
-        public (string, int)[] StatLevels= new (string, int)[0];
+        public (string, int)[] StatLevels = new (string, int)[0];
         public (string, int)[] MutationsWithLevels = new (string, int)[0]; //cap = mutations.count
         public (string, bool)[] BodyParts = new (string, bool)[0];
         public string[] IParts = new string[0];
-        //NEW ARRAY IDEA:
-        //should we tag relations as well? opinions of the player? yes a list of Opinions to the player at least would be valid
-
-        //OTHER ARRAY IDEA:
-        //SKILLS string
-
-        //best idea: look into DeepCopy and base it off that kinda...
 
         public override void Write(GameObject Basis, SerializationWriter Writer)
         {
@@ -168,14 +175,14 @@ namespace XRL.World.Parts
 
         void Write(SerializationWriter Writer, IList array)
         {
-           // Writer.Write(array.Count);
+            // Writer.Write(array.Count);
             for (int i = 0; i < array.Count; i++)
                 Writer.WriteObject(array[i]);
         }
 
         void Read<T>(SerializationReader Reader, IList array)
         {
-           // Reader.ReadInt32();
+            // Reader.ReadInt32();
             for (int i = 0; i < array.Count; i++)
             {
                 array[i] = (T)Reader.ReadObject();
@@ -206,12 +213,6 @@ namespace XRL.World.Parts
                  (nameof(StatLevels), StatLevels),
                  (nameof(BodyParts), BodyParts)
         };
-
-        //plan: we will requirepart by string name
-        //we prob wont create an instance from a blueprint, well create an instance of their blueprint to match things like physics and  render and displayname stuff maybe idk. lots of parts to add lowkey.
-
-        // final note: in scan, have it show object level specifically. additionally will need to see mutations w/ levels and skills and cybernetics etc for our copier. 
-        // thank god there is a mutation lsit i can past that to one of my loggers. will need otherstuff like bodyparts too - anything listed in Copy. new wish "CheckCopy"
 
         public (string, object)[] SimpleFields => new (string, object)[]
         {
