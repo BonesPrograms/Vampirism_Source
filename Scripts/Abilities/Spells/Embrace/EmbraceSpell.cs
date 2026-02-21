@@ -24,13 +24,13 @@ namespace XRL.World.Parts
     //     }
     //     public override void Write(GameObject Basis, SerializationWriter Writer)
     //     {
-    //         Writer.WriteObject(Copy);
+    //         Writer.WriteGameObject(Copy);
     //         base.Write(Basis, Writer);
     //     }
 
     //     public override void Read(GameObject Basis, SerializationReader Reader)
     //     {
-    //         Copy = (GameObject)Reader.ReadObject();
+    //         Copy = Reader.ReadGameObject();
     //         base.Read(Basis, Reader);
     //     }
     // }
@@ -129,7 +129,13 @@ namespace XRL.World.Parts
 
 
 
-    //plan: we will requirepart by string name
+    //plan: we will requirepart and mutation by string name and .Name
+    // we will recreate them from the blueprint then require everything onto the new object
+    //dismember limbs that shant be there etc
+    //look into DeepCopy to see what we need to copy
+    //but first TEST SERIALIZING with only the mutations list for now
+    // or partslist thats easy
+    //IDEA was to make the arrays not public so that they dont throw deserialize errors
     //we prob wont create an instance from a blueprint, well create an instance of their blueprint to match things like physics and  render and displayname stuff maybe idk. lots of parts to add lowkey.
 
     // final note: in scan, have it show object level specifically. additionally will need to see mutations w/ levels and skills and cybernetics etc for our copier. 
@@ -144,7 +150,7 @@ namespace XRL.World.Parts
     //best idea: look into DeepCopy and base it off that kinda...
     [Serializable]
 
-    public class EmbraceableObjectCopy : IPart
+    public class GameObjectDataCopy : IPart
     {
         public string DisplayName = default;
         public bool HadMutations = default;
@@ -171,7 +177,7 @@ namespace XRL.World.Parts
         public (string, int)[] MutationsWithLevels = new (string, int)[0]; //cap = mutations.count
 
         [NonSerialized]
-        public (string, bool)[] BodyParts = new (string, bool)[0];
+        public (string, bool)[] BodyParts = new (string, bool)[0]; //i could just only store dismembered bodyparts and match them and dismember them instead of storing all bodyparts
 
         [NonSerialized]
         public string[] IParts = new string[0];
@@ -209,7 +215,7 @@ namespace XRL.World.Parts
                 Writer.WriteObject(array[i]);
         }
 
-        void Read<T>(SerializationReader Reader, IList array)
+        void Read<T>(SerializationReader Reader, IList array) //future note: i couldve done IList<T> and not had to write out all of those explicit casts
         {
             // Reader.ReadInt32();
             for (int i = 0; i < array.Count; i++)
@@ -240,7 +246,7 @@ namespace XRL.World.Parts
             (nameof(DisplayName), DisplayName)
         };
 
-        public EmbraceableObjectCopy(GameObject Object)
+        public GameObjectDataCopy(GameObject Object)
         {
             Copy(Object);
         }

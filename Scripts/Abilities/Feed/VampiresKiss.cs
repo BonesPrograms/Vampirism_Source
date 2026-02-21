@@ -10,7 +10,7 @@ namespace XRL.World.Effects
     [Serializable]
     public class Vampires_Kiss : Exhausted
     {
-        public Vampires_Kiss() => DisplayName = "vampire's kiss";
+        public Vampires_Kiss() => DisplayName = "";
         public Vampires_Kiss(int Duration) : this() => base.Duration = Duration;
         public override string GetDescription() => "{{R sequence|vampire's kiss}}";
         public override string GetStateDescription() => "{{R sequence|vampire's kiss}}";

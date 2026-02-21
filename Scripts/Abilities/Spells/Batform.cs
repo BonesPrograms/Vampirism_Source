@@ -258,16 +258,14 @@ namespace XRL.World.Effects
         List<GameObject> UnequipAndGet()
         {
             List<GameObject> equipped = new(12);
-            Object.ForeachEquippedObject(UnequipAndAdd);
-
-            void UnequipAndAdd(GameObject x)
+            Object.ForeachEquippedObject(delegate (GameObject obj)
             {
-                equipped.Add(x);
-                x.ForceUnequip(true);
-            }
-
+                equipped.Add(obj);
+                obj.ForceUnequip(true);
+            });
             return equipped;
         }
+
         bool VerifyObject()
         {
             DeathHandler.Security();

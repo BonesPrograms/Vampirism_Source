@@ -103,7 +103,7 @@ namespace XRL.World.Parts
             {
                 obj.SetIntProperty(FLAGS.EMBRACE.LEVEL_ON_DEATH, Dying.Level);
                 obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.TRUE);
-                EmbraceableObjectCopy copy = new(Dying);
+                GameObjectDataCopy copy = new(Dying);
                 obj.AddPart(copy);
                 
             }
