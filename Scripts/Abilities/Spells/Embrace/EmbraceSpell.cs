@@ -151,13 +151,29 @@ namespace XRL.World.Parts
         public bool HadCybernetics = default;
         public int Level = default;
         public string Blueprint = default;
+
+        [NonSerialized]
         public (string, string)[] CyberneticAndBodypart = new (string, string)[0];
+
+        [NonSerialized]
         public (string, string)[] StringProperties = new (string, string)[0];
+
+        [NonSerialized]
         public (string, long)[] LongProperties = new (string, long)[0];
+
+        [NonSerialized]
         public (string, int)[] IntProperties = new (string, int)[0];
+
+        [NonSerialized]
         public (string, int)[] StatLevels = new (string, int)[0];
+
+        [NonSerialized]
         public (string, int)[] MutationsWithLevels = new (string, int)[0]; //cap = mutations.count
+
+        [NonSerialized]
         public (string, bool)[] BodyParts = new (string, bool)[0];
+
+        [NonSerialized]
         public string[] IParts = new string[0];
 
         public override void Write(GameObject Basis, SerializationWriter Writer)
@@ -171,6 +187,19 @@ namespace XRL.World.Parts
             Write(Writer, BodyParts);
             Write(Writer, IParts);
             base.Write(Basis, Writer);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+            Read<ValueTuple<string, string>>(Reader, CyberneticAndBodypart);
+            Read<ValueTuple<string, string>>(Reader, StringProperties);
+            Read<ValueTuple<string, long>>(Reader, LongProperties);
+            Read<ValueTuple<string, int>>(Reader, IntProperties);
+            Read<ValueTuple<string, int>>(Reader, StatLevels);
+            Read<ValueTuple<string, int>>(Reader, MutationsWithLevels);
+            Read<ValueTuple<string, bool>>(Reader, BodyParts);
+            Read<string>(Reader, IParts);
+            base.Read(Basis, Reader);
         }
 
         void Write(SerializationWriter Writer, IList array)
@@ -190,18 +219,6 @@ namespace XRL.World.Parts
 
         }
 
-        public override void Read(GameObject Basis, SerializationReader Reader)
-        {
-            Read<ValueTuple<string, string>>(Reader, CyberneticAndBodypart);
-            Read<ValueTuple<string, string>>(Reader, StringProperties);
-            Read<ValueTuple<string, long>>(Reader, LongProperties);
-            Read<ValueTuple<string, int>>(Reader, IntProperties);
-            Read<ValueTuple<string, int>>(Reader, StatLevels);
-            Read<ValueTuple<string, int>>(Reader, MutationsWithLevels);
-            Read<ValueTuple<string, bool>>(Reader, BodyParts);
-            Read<string>(Reader, IParts);
-            base.Read(Basis, Reader);
-        }
         public (string, IList)[] Arrays => new (string, IList)[]
         {
                  (nameof(MutationsWithLevels), MutationsWithLevels),
