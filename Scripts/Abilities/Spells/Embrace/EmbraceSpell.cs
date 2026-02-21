@@ -12,28 +12,28 @@ using System.Linq;
 namespace XRL.World.Parts
 {
 
-    [Serializable]
-    public class EmbraceableObjectCopy : IPart
-    {
-        [NonSerialized]
-        public GameObject Copy; //figure out how to make this work
-        public EmbraceableObjectCopy(GameObject Object)
-        {
-            Copy = Object.DeepCopy();
-            Copy.MakeInactive();
-        }
-        public override void Write(GameObject Basis, SerializationWriter Writer)
-        {
-            Writer.WriteObject(Copy);
-            base.Write(Basis, Writer);
-        }
+    // [Serializable]
+    // public class EmbraceableObjectCopy : IPart
+    // {
+    //     [NonSerialized]
+    //     public GameObject Copy; //figure out how to make this work
+    //     public EmbraceableObjectCopy(GameObject Object)
+    //     {
+    //         Copy = Object.DeepCopy();
+    //         Copy.MakeInactive();
+    //     }
+    //     public override void Write(GameObject Basis, SerializationWriter Writer)
+    //     {
+    //         Writer.WriteObject(Copy);
+    //         base.Write(Basis, Writer);
+    //     }
 
-        public override void Read(GameObject Basis, SerializationReader Reader)
-        {
-            Copy = (GameObject)Reader.ReadObject();
-            base.Read(Basis, Reader);
-        }
-    }
+    //     public override void Read(GameObject Basis, SerializationReader Reader)
+    //     {
+    //         Copy = (GameObject)Reader.ReadObject();
+    //         base.Read(Basis, Reader);
+    //     }
+    // }
 
     [Serializable]
     public class EmbraceSpell : VampiricSpell
@@ -112,16 +112,16 @@ namespace XRL.World.Parts
         }
         void Embrace(GameObject Object)
         {
-            MessageQueue.Suppress = true;
-            var copy = Object.GetPart<EmbraceableObjectCopy>();
-            GameObject obj = copy.Copy;
-            obj.MakeActive();
-            Object.CurrentCell.AddObject(obj);
-            int time = WikiRng.Next(50, 100);
-            obj.ApplyEffect(new Asleep(time, true, false, false, true));
-            obj.ApplyEffect(new Embracing(time, Level));
-            Object.Obliterate();
-            MessageQueue.Suppress = false;
+            // MessageQueue.Suppress = true;
+            // var copy = Object.GetPart<EmbraceableObjectCopy>();
+            // GameObject obj = copy.Copy;
+            // obj.MakeActive();
+            // Object.CurrentCell.AddObject(obj);
+            // int time = WikiRng.Next(50, 100);
+            // obj.ApplyEffect(new Asleep(time, true, false, false, true));
+            // obj.ApplyEffect(new Embracing(time, Level));
+            // Object.Obliterate();
+            // MessageQueue.Suppress = false;
         }
 
 
@@ -130,21 +130,21 @@ namespace XRL.World.Parts
 
     [Serializable]
 
-    public class GameObjectCopy : IPart
+    public class EmbraceableObjectCopy : IPart
     {
         public string DisplayName = default;
         public bool HadMutations = default;
         public bool HadCybernetics = default;
         public int Level = default;
         public string Blueprint = default;
-        public (string, string)[] CyberneticAndBodypart = default;
-        public (string, string)[] StringProperties = default;
-        public (string, long)[] LongProperties = default;
-        public (string, int)[] IntProperties = default;
-        public (string, int)[] StatLevels = default;
-        public (string, int)[] MutationsWithLevels = default; //cap = mutations.count
-        public (string, bool)[] BodyParts = default;
-        public string[] IParts = default;
+        public (string, string)[] CyberneticAndBodypart = new (string, string)[0];
+        public (string, string)[] StringProperties = new (string, string)[0];
+        public (string, long)[] LongProperties = new (string, long)[0];
+        public (string, int)[] IntProperties = new (string, int)[0];
+        public (string, int)[] StatLevels= new (string, int)[0];
+        public (string, int)[] MutationsWithLevels = new (string, int)[0]; //cap = mutations.count
+        public (string, bool)[] BodyParts = new (string, bool)[0];
+        public string[] IParts = new string[0];
         //NEW ARRAY IDEA:
         //should we tag relations as well? opinions of the player? yes a list of Opinions to the player at least would be valid
 
@@ -168,14 +168,14 @@ namespace XRL.World.Parts
 
         void Write(SerializationWriter Writer, IList array)
         {
-            Writer.Write(array.Count);
+           // Writer.Write(array.Count);
             for (int i = 0; i < array.Count; i++)
                 Writer.WriteObject(array[i]);
         }
 
         void Read<T>(SerializationReader Reader, IList array)
         {
-            Reader.ReadInt32();
+           // Reader.ReadInt32();
             for (int i = 0; i < array.Count; i++)
             {
                 array[i] = (T)Reader.ReadObject();
@@ -222,7 +222,7 @@ namespace XRL.World.Parts
             (nameof(DisplayName), DisplayName)
         };
 
-        public GameObjectCopy(GameObject Object)
+        public EmbraceableObjectCopy(GameObject Object)
         {
             Copy(Object);
         }

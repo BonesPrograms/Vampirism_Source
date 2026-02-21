@@ -498,27 +498,27 @@ namespace XRL.World.Parts
         }
 
 
-        // [WishCommand("ReadCopy")]
-        // public static void ReadCopy()
-        // {
-        //     Cell cell = The.Player.PickDirection("ReadCopy");
-        //     if (cell != null)
-        //     {
-        //         int copies = 0;
-        //         for (int i = 0; i < cell.Objects.Count; i++)
-        //         {
-        //             if (cell.Objects[i].TryGetPart<EmbraceableObjectCopy>(out var copy))
-        //             {
-        //                 copies++;
-        //                 copy.Read();
-        //             }
-        //         }
-        //         if (copies > 0)
-        //             AddPlayerMessage($"Read {copies} copies. See Player.log");
-        //         else
-        //             AddPlayerMessage($"No objects found with GameObjectCopy part in cell.");
-        //     }
-        // }
+        [WishCommand("ReadCopy")]
+        public static void ReadCopy()
+        {
+            Cell cell = The.Player.PickDirection("ReadCopy");
+            if (cell != null)
+            {
+                int copies = 0;
+                for (int i = 0; i < cell.Objects.Count; i++)
+                {
+                    if (cell.Objects[i].TryGetPart<EmbraceableObjectCopy>(out var copy))
+                    {
+                        copies++;
+                        copy.Read();
+                    }
+                }
+                if (copies > 0)
+                    AddPlayerMessage($"Read {copies} copies. See Player.log");
+                else
+                    AddPlayerMessage($"No objects found with GameObjectCopy part in cell.");
+            }
+        }
 
         [WishCommand("embrace")]
 
