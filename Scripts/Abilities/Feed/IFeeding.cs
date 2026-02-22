@@ -5,6 +5,8 @@ using Nexus.Properties;
 using Nexus.Core;
 using XRL.World.Parts.Mutation;
 using Nexus.Rules;
+using SerializeField = UnityEngine.SerializeField;
+
 namespace XRL.World.Effects
 {
 
@@ -15,25 +17,40 @@ namespace XRL.World.Effects
 	[Serializable]
 	public abstract class IFeeding : Effect
 	{
+
 		public static bool AutoLevel;
+		public GameObjectReference other; // a long time ago, this was life drain
 		Vitae _Vitae;
 		Vitae Vitae => _Vitae ??= Object.GetPart<Vitae>();
-		public string Damage;
-		public GameObjectReference other; // a long time ago, this was life drain
-		public bool isAttacker;
-		public int VictimHP => isAttacker ? other.Object.GetHPPercent() : base.Object.GetHPPercent();
-		public bool StealthVersion;
-		public bool Ghoul;
+		public bool isAttacker => _isAttacker;
+		int VictimHP => isAttacker ? other.Object.GetHPPercent() : base.Object.GetHPPercent();
 		protected int Amount;
-		public bool friendly;
+
+		
+		public string Damage;
+
+		
+		public  bool _isAttacker;
+
+		
+		public  bool StealthVersion;
+
+		
+		public  bool Ghoul;
+
+		
+		public  bool friendly;
+
+		
+		public  bool vampire;
+
 		public IFeeding() => DisplayName = "";
-		public bool vampire;
 		public IFeeding(GameObject other, bool isAttacker, string DamagePerRound, int Duration, bool Ghoul, bool friendly, bool vampire) : this()
 		{
 			this.Damage = DamagePerRound;
 			this.Duration = Duration;
 			this.other = other.Reference();
-			this.isAttacker = isAttacker;
+			this._isAttacker = isAttacker;
 			this.Ghoul = Ghoul;
 			this.friendly = friendly;
 			this.vampire = vampire;
@@ -105,7 +122,7 @@ namespace XRL.World.Effects
 			{
 				if (AutoLevel || WikiRng.Next(1, 20) == 1)
 				{
-					
+
 					if (Object.IsPlayer())
 					{
 						string msg = WikiRng.Next(1, 2) == 2 ? "Diablerie!" : "Amaranth!";

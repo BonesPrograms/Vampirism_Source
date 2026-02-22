@@ -4,7 +4,7 @@ using Nexus.Properties;
 using Nexus.Core;
 using Nexus.Registry;
 using Nexus.Rules;
-using XRL.World.Parts.Mutation;
+using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Parts
 {
@@ -17,11 +17,11 @@ namespace XRL.World.Parts
 	public class Humanity : IPart //AI do not experience humanity on their own, but if dominated, 
 								  //they can lose humanity by killing people via feeding, and enter a gameover state.
 	{                               //Other forms of humanity loss covered by DeathEvents all track back to the original player instead.
-
+		bool State_GO => Score <= HUMANITY.GAMEOVER;
 		public int Score = HUMANITY.MAX;
 		public int RegenTimer;
 		public bool GameOver;
-		public bool State_GO => Score <= HUMANITY.GAMEOVER;
+
 		public override void Register(GameObject Object, IEventRegistrar Registrar) => Registrar.Register(Events.WISH_HUMANITY);
 		public override bool FireEvent(Event E)
 		{
@@ -59,6 +59,11 @@ namespace XRL.World.Parts
 			ParentObject.SetIntProperty(FLAGS.HUMANITY, Score);
 			ParentObject.SetIntProperty(FLAGS.REGEN, RegenTimer);
 			return base.HandleEvent(E);
+		}
+
+		public void SetZero()
+		{
+			Score = 0;
 		}
 
 		public void AddHumanity()

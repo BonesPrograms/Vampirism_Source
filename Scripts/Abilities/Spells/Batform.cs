@@ -7,6 +7,7 @@ using XRL.Core;
 using XRL.World.Parts;
 using System.Collections.Generic;
 using XRL.World.Anatomy;
+using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Effects
 {
@@ -16,19 +17,45 @@ namespace XRL.World.Effects
     {
         public const string COMMAND_NAME = "cmdTrueformBat";
         public override Type SpellType => typeof(BatformFX);
-        public bool AlreadyHadWings;
-        public bool WasLessThanTen;
-        public string OldTile;
-        public string OldDisplayName;
-        public string OldColorString;
-        public string OldRenderString;
-        public string OriginalBlueprint;
-        public string OldAnatomy = default;
-        public string LastDescriptionShort = default;
-        public int CurrentWingLevel = default;
-        public int OriginalFactionFeeling = default;
-        public int OriginalCapOverride = default;
-        public List<GameObject> OriginallyEquippedObjects;
+
+        
+       public  bool AlreadyHadWings;
+
+        
+       public  bool WasLessThanTen;
+
+        
+       public  string OldTile;
+
+        
+       public  string OldDisplayName;
+
+        
+       public  string OldColorString;
+
+        
+       public  string OldRenderString;
+
+        
+       public  string OriginalBlueprint;
+
+        
+      public   string OldAnatomy = default;
+
+        
+       public  string LastDescriptionShort = default;
+
+        
+       public  int CurrentWingLevel = default;
+
+        
+       public  int OriginalFactionFeeling = default;
+
+        
+      public   int OriginalCapOverride = default;
+
+        
+       public  List<GameObject> OriginallyEquippedObjects;
         public BatformFX()
         {
             DisplayName = "";
@@ -287,7 +314,10 @@ namespace XRL.World.Parts
     {                                           //because the alternative is easier: fake transformation as you see in this type. there are also tons of other issues like mutations and stats not easily being synced so this is optimal
         public override Type SpellType => typeof(BatformSpell);
         public override int Cooldown => BATFORM.COOLDOWN;
-        public bool Transformed = false;
+        public bool Transformed => _Transformed;
+
+        
+        bool _Transformed = false;
         public override bool WantEvent(int ID, int Cascade)
         {
             if (ID == EffectRemovedEvent.ID && Transformed)
@@ -307,7 +337,7 @@ namespace XRL.World.Parts
         public override bool HandleEvent(EffectRemovedEvent E)
         {
             if (E.Effect.GetType() == typeof(BatformFX))
-                Transformed = false;
+                _Transformed = false;
             return base.HandleEvent(E);
         }
         public override bool HandleEvent(CommandEvent E)
@@ -316,9 +346,10 @@ namespace XRL.World.Parts
             {
                 if (!ParentObject.IsRealityDistortionUsable())
                     RealityStabilized.ShowGenericInterdictMessage(ParentObject);
-                else
+                else if (!Transformed)
                     Cast();
-
+                else
+                    UI.Popup.Show("You are already in batform!");
             }
             return base.HandleEvent(E);
         }
@@ -331,13 +362,8 @@ namespace XRL.World.Parts
                 ExpendBlood();
                 if (RealityCheck(ParentObject.CurrentCell))
                 {
-                    if (!Transformed)
-                    {
-                        ParentObject.ApplyEffect(new BatformFX());
-                        Transformed = true;
-                    }
-                    else
-                        UI.Popup.Show("You are already in batform!");
+                    ParentObject.ApplyEffect(new BatformFX());
+                    _Transformed = true;
                 }
             }
         }

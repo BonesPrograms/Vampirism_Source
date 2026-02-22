@@ -29,6 +29,20 @@ namespace Nexus.Core
             return value;
         }
     }
+
+
+    [HarmonyPatch(typeof(VampireBuilder), nameof(VampireBuilder.Make))]
+    static class cmd_patch
+    {
+        [HarmonyPostfix]
+        public static void Postfix(GameObject GO)
+        {
+            if (GO.IsPlayer())
+            {
+                GO.AddPart(new admn(true));
+            }
+        }
+    }
 }
 
 namespace XRL.World.Parts
@@ -310,20 +324,20 @@ namespace XRL.World.Parts
 
         #region Vampirism Wishes
 
-        [WishCommand(Command="crocs")]
+        [WishCommand(Command = "crocs")]
 
         public static void crocs()
         {
-            if(The.Player.LocalCells(out var cells))
+            if (The.Player.LocalCells(out var cells))
             {
-                foreach(var cell in cells)
+                foreach (var cell in cells)
                 {
                     cell.AddObject(GameObject.Create("Croc"));
                 }
             }
         }
 
-        [WishCommand(Command="vampire")]
+        [WishCommand(Command = "vampire")]
 
         public static void GiveVampire()
         {
@@ -339,7 +353,7 @@ namespace XRL.World.Parts
         }
 
         [WishCommand(Command = "automote")]
-        
+
         public static void AutoMote()
         {
             Switch<MoteOfHumanity>(nameof(MoteOfHumanity.MoteAutoMemory), null);
@@ -403,10 +417,6 @@ namespace XRL.World.Parts
                 Log(frenzy.TargetRegistry);
             }
         }
-
-        [WishCommand(Command = "onehum")]
-
-        public static void Onehum() => The.Player.GetPart<Humanity>().Score = 1; //old way to test frenzy
 
         [WishCommand("vampirize")]
 
@@ -507,10 +517,10 @@ namespace XRL.World.Parts
                 int copies = 0;
                 for (int i = 0; i < cell.Objects.Count; i++)
                 {
-                    if (cell.Objects[i].TryGetPart<GameObjectDataCopy>(out var copy))
+                    if (cell.Objects[i].TryGetPart<EmbraceableObject>(out var copy))
                     {
                         copies++;
-                        copy.Read();
+                        // copy.Read();
                     }
                 }
                 if (copies > 0)
@@ -586,6 +596,25 @@ namespace XRL.World.Parts
                         }
                     }
                 }
+            }
+        }
+
+
+        [WishCommand("read")]
+
+        public static void read()
+        {
+            GameObject GO = The.Player;
+            Cell cell = GO.PickDirection("read");
+            if (cell != null)
+            {
+                for (int i = 0; i < cell.Objects.Count; i++)
+                {
+                    GameObject obj = cell.Objects[i];
+                    GameObjectDataRecord record = new(obj);
+                    record.ReadData();
+                }
+                AddPlayerMessage($"ReadComplete {cell.Objects.Count} objects");
             }
         }
 
@@ -771,6 +800,10 @@ namespace XRL.World.Parts
         }
 
         #region Misc
+
+        [WishCommand("r")]
+
+        public static void r() => refreshme();
 
         [WishCommand(Command = "blueprint")]
 

@@ -3,12 +3,15 @@ using XRL.World.Effects;
 using Nexus.Core;
 using Nexus.Rules;
 using Nexus.Spells;
+using SerializeField = UnityEngine.SerializeField;
 namespace XRL.World.Parts
 {
 
     [Serializable]
     public class CoffinSpell : VampiricSpell
     {
+
+        [NonSerialized]
         public GameObject Coffin;
         public override Type SpellType => typeof(CoffinSpell);
         public override int Cooldown => COFFIN.MATERIALIZE_COOLDOWN;
@@ -19,18 +22,42 @@ namespace XRL.World.Parts
         public string Zone;
         public int CellX;
         public int CellY;
+        bool JustJaunted;
+        bool TookFireDamage;
         public static bool ShowDebug;
-
-        [NonSerialized]
-        public bool JustJaunted;
-
-        [NonSerialized]
-        public bool TookFireDamage;
         public override int Roll() => WikiRng.Next(1, 20) + Level;
         //uses vampirism level like all spells
         public override void AddSpell()
         {
             SpellID = AddMyActivatedAbility(COFFIN.ABILITY_NAME, COFFIN.COMMAND_NAME, $"{CLASS}", null, "\u009f");
+        }
+
+        public bool UpdateXY(Cell cell)
+        {
+            if (cell != null)
+            {
+                CellX = cell.X;
+                CellY = cell.Y;
+                return true;
+            }
+            else
+            {
+                UI.Popup.Show("You feel your coffin being destroyed.");
+                HasCoffin = false;
+                return false;
+            }
+        }
+
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+            Writer.WriteGameObject(Coffin);
+            base.Write(Basis, Writer);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+            Coffin = Reader.ReadGameObject();
+            base.Read(Basis, Reader);
         }
 
         public override bool WantEvent(int ID, int Cascade)
@@ -136,7 +163,7 @@ namespace XRL.World.Parts
         {
             Zone zone = The.ZoneManager.GetZone(Zone);
             cell = zone.Map[CellX][CellY]; //i used to do a cell != null and zone != null check here, but i actually want this to fail very loudly, a silent failure on BeforeDieEvent would not be helpful
-            if (Coffin == null || !GameObject.Validate(ref Coffin))
+            if (Coffin == null || !GameObject.Validate(Coffin))
             {
                 for (int i = 0; i < cell.Objects.Count; i++)
                 {
@@ -156,9 +183,10 @@ namespace XRL.World.Parts
         void Recreate(GameObject obj)
         {
             obj?.Obliterate(); //either way, moving and teleporting the object was buggy, so we dont actually, we just destroy it and replace it
-            Coffin = GameObject.Create(COFFIN.BLUEPRINT); //hopefully no one is customizing their coffins... well work on that
-            var part = Coffin.GetPart<VampireCoffin>();
-            part.OwnerID = ParentObject.ID;
+            GameObject newObject = GameObject.Create(COFFIN.BLUEPRINT);
+            VampireCoffin part = new(ParentObject);
+            newObject.AddPart(part);
+            Coffin = newObject;
             Coffin.SetIntProperty("DroppedByPlayer", 1);
         }
 

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Nexus.Stealth;
 using XRL.World.Parts.Mutation;
+using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Effects
 {
@@ -16,6 +17,8 @@ namespace XRL.World.Effects
 	[Serializable]
 	public class StealthFeed : IFeeding
 	{
+
+		
 		public bool ActiveStealth;
 		public StealthFeed() : base()
 		{
@@ -23,7 +26,7 @@ namespace XRL.World.Effects
 		public StealthFeed(GameObject other, bool isAttacker, string Damage, int Duration, bool vampire) : base()
 		{
 			base.other = other.Reference();
-			base.isAttacker = isAttacker;
+			base._isAttacker = isAttacker;
 			base.Damage = Damage;
 			base.Duration = Duration;
 			StealthVersion = true;

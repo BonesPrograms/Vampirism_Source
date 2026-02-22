@@ -9,6 +9,7 @@ using Nexus.Core;
 using Nexus.Attack;
 using Nexus.Rules;
 using System.Collections.Generic;
+using Qud.API;
 
 
 namespace XRL.World.Parts.Mutation
@@ -29,11 +30,10 @@ namespace XRL.World.Parts.Mutation
 		public override bool UseVariantName => false;
 		public bool GameOver = default;
 		public int bloodycounter = default;
-		[NonSerialized]
-		public bool Immune = default;
-
-		[NonSerialized]
-		public bool Rotschrek = default;
+		public bool Rotschrek => _Rotschrek;
+		bool Immune = default;
+		bool _Rotschrek = default;
+		//bool AlreadyBurnedWithSilver = default;
 		public override void Register(GameObject Object, IEventRegistrar Registrar)
 		{
 			Registrar.Register("LungedTarget");
@@ -73,13 +73,8 @@ namespace XRL.World.Parts.Mutation
 				return Rotschrek || Immune;
 			if (ID == EnteringZoneEvent.ID)
 				return ParentObject.HasStringProperty(FLAGS.OLD_SAVE) && ParentObject.IsPlayer();
-			if (The.Game.Turns > 0) //will fire and go crazy if you spawn with silver items in your inventory or torches
-			{
-				if (ID == EquipperEquippedEvent.ID)
-					return true;
-				if (ID == TookEvent.ID)
-					return true;
-			}
+			if (ID == EquipperEquippedEvent.ID || ID == TookEvent.ID)
+				return The.Game.Turns > 0;//will fire and go crazy if you spawn with silver items in your inventory or torches
 			return base.WantEvent(ID, cascade);
 		}
 
@@ -142,34 +137,42 @@ namespace XRL.World.Parts.Mutation
 				{                                                       //in tandem with the VampirismStartGame mutator that deletes torches
 					var Torch = E.Item.GetPart<TorchProperties>();      //just a mess of null errors
 					if (!Torch.IsUnlightableBecauseOfLiquidCovering())
-						FakeDropTorch(E.Item);
+						FakeDropRotschrek(E.Item);
+					E.RequestInterfaceExit();
 					return false;
 				}
 			}
 			if (E.Item.IsSilver() && Options.GetOptionBool(OPTIONS.SILVER))
 			{
-				SilverAilment(E.Item);
+				Popup.Show(nameof(EquipperEquippedEvent));
+				E.Item.ForceUnequip(true);
+				//	SilverAilment(E.Item);
+				E.RequestInterfaceExit();
 				return false;
 			}
 			return base.HandleEvent(E);
 		}
-
 		public override bool HandleEvent(TookEvent E)
 		{
 			if (E.Item.IsSilver() && Options.GetOptionBool(OPTIONS.SILVER))
 			{
+				Popup.Show(nameof(TookEvent));
 				SilverAilment(E.Item);
+				E.RequestInterfaceExit();
 				return false;
 			}
 			if (CheckFireOption() && FireyObject(E.Item))
 			{
 				Panic(E.Item, true);
+				E.RequestInterfaceExit();
 				return false;
 			}
 			return base.HandleEvent(E);
 		}
-
-
+		//if you place a vampire inbetween the two torches infront of elder irudads house, he is locked in a permanent state of terror if he already has terrified                  /
+		//because terrified removes the old one if you try to apply a new one and it just cycles between the two and hes unable to move anywhere cause every empty adjacent cell
+		// borders a flame object
+		//however if its the player it doesnt matter because you can move yourself a bit so rotschrek can chain on the player
 		public override bool HandleEvent(BeginTakeActionEvent E)
 		{
 			if (CheckNightbeast() && IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false))
@@ -179,11 +182,8 @@ namespace XRL.World.Parts.Mutation
 			}
 			if (!Immune && CheckFireOption() && ParentObject.LocalCells(out var cells))
 			{
-				if (ParentObject.IsPlayer() || !Rotschrek) //if you place a vampire inbetween the two torches infront of elder irudads house, he is locked in a permanent state of terror if he already has terrified  
-					SearchForFire(cells);                  //because terrified removes the old one if you try to apply a new one and it just cycles between the two and hes unable to move anywhere cause every empty adjacent cell
-				 											// borders a flame object
-															//however if its the player it doesnt matter because you can move yourself a bit so rotschrek can chain on the player
-
+				if (ParentObject.IsPlayer() || !Rotschrek)
+					SearchForFire(cells);
 			}
 			return base.HandleEvent(E);
 		}
@@ -195,13 +195,10 @@ namespace XRL.World.Parts.Mutation
 		#region [Debuff] Silver Ailment 
 		void SilverAilment(GameObject obj)
 		{
-			UI.Popup.Show("{{y|IT BURNS!!!}}");
-			obj.ForceUnequip(true);
-			ParentObject.Inventory.RemoveObjectFromInventory(obj);
-			ParentObject.CurrentCell.AddObject(obj);
+			UI.Popup.Show("{{Y|IT BURNS!!!}}");
+			FakeDrop(obj, obj.Blueprint, false);
 			ParentObject.TakeDamage(WikiRng.Next(1, 10), obj, null);
 		}
-
 		#endregion
 
 		#region [Debuff] Rotschrek 
@@ -209,7 +206,7 @@ namespace XRL.World.Parts.Mutation
 		public override bool HandleEvent(EffectRemovedEvent E)
 		{
 			if (E.Effect.GetType() == typeof(Terrified)) //tried to match by effect.Object, but it always shows up null
-				Rotschrek = false;
+				_Rotschrek = false;
 			else if (E.Effect.GetType() == typeof(Blaze_Tonic))
 				Immune = false;
 			return base.HandleEvent(E);
@@ -282,7 +279,7 @@ namespace XRL.World.Parts.Mutation
 
 		void Panic(GameObject FireSource, bool showmessage)
 		{
-			Rotschrek = true;
+			_Rotschrek = true;
 			Capabilities.AutoAct.Interrupt();
 			if (showmessage)
 			{
@@ -297,32 +294,19 @@ namespace XRL.World.Parts.Mutation
 				ParentObject.ApplyEffect(new Terrified(WikiRng.Next(5, 10), FireSource, false));
 		}
 
-		public void FakeDropTorch(GameObject Torch)
+		public void FakeDropRotschrek(GameObject Item)
 		{
-			if (ParentObject.CurrentCell != null)
-			{
-				Torch.Obliterate();
-				ReplaceTorch();
-			}
+			TryLight(FakeDrop(Item, "Torch"));
 		}
-
-		void ReplaceTorch()
+		void TryLight(GameObject Object)
 		{
-			GameObject replacement = GameObject.Create("Torch");
-			ParentObject.CurrentCell.AddObject(replacement);
-			DidXToY("drop", replacement, null, null, null, null, null, null, UseFullNames: false, IndefiniteSubject: false, IndefiniteObject: true);
-			TryLight(replacement);
-		}
-
-		void TryLight(GameObject replacement)
-		{
-			var Part = replacement.GetPart<TorchProperties>();
+			var Part = Object.GetPart<TorchProperties>();
 			Part.Light();
 			if (!Part.IsUnlightableBecauseOfLiquidCovering() && !Part.IsUnlightableBecauseOfSubmersion())
 			{
 				if (ParentObject.IsPlayer())
 					Popup.Show("{{R|ROTSCHREK!!!}}");
-				Panic(replacement, false);
+				Panic(Object, false);
 			}
 			else
 				Part.Extinguish();
@@ -330,7 +314,48 @@ namespace XRL.World.Parts.Mutation
 
 		#endregion
 
-		#region Structural
+
+		// public void ForceDrop(GameObject Object)
+		// {
+		// //	EquipmentAPI.DropObject(Object);
+		// 	//	DidXToY("drop", Object, null, null, null, null, null, null, UseFullNames: false, IndefiniteSubject: false, IndefiniteObject: true);
+		// 	//ParentObject.CurrentCell.AddObject(Object);
+		// }
+
+		//FAKEDROP EXPLANATION:
+		//the reason we do this so funky is because for some reason, the torch was not considered valid, after being removed from inventory and forceunequipped, we could not add it to the players cell
+		//this does not occur with silver ailment, which actually places the original object on the ground, only torches seem to be invalid
+
+		//furthermore: when working with silver ailment, i found that using EquipmentAPI.DropObject, ForceUnequip, RemoveObjectFromInventory (any variation of these) would fire the TookEvent
+		//at least 2-3 times when equipping, before actually firing the EquipperEquippedEvent (??? it doesnt haoppen in FakeDrop but for some reason the EquippedEvent-TookEvent chain fires it repeatedly)
+		//this resulted in multiple silver ailment stacks
+		//because i could not find any silver mods on the workshop, and all silver items are default blueprints, i figured it wouldnt be an issue to destroy and replace
+		//considering that vampires cannot have silver anyways, it is unlikely it will destroy your favorite nugget that you painted with smiley faces
+
+		//because I did not feel like doing an entire DeepCopy for this, though if it ever came down to it...
+
+		//- Did a lot of experimenting with EquipmentAPI.DropObject, ForceUnequip, Unequip and Remove, RemoveFromInv (then add to cell), and the end result was the TookEvent firing 2-3 times in a row if done thru EquippedEvent, but these
+		//fire before equippedevent even fires
+
+		#region Structural/Helpers
+
+		GameObject FakeDrop(GameObject Item, string blueprint, bool accessInv = true)
+		{
+			Item.Obliterate();
+			if (accessInv)
+			{
+				Item.ForceUnequip(true);
+				ParentObject.Inventory.RemoveObjectFromInventory(Item);
+			}
+			return ReplaceObject(blueprint);
+		}
+		GameObject ReplaceObject(string blueprint)
+		{
+			GameObject replacement = GameObject.Create(blueprint);
+			ParentObject.CurrentCell.AddObject(replacement);
+			DidXToY("drop", replacement, null, null, null, null, null, null, UseFullNames: false, IndefiniteSubject: false, IndefiniteObject: true);
+			return replacement;
+		}
 		bool Prerequisites()
 		{
 			if (!HasFangs())

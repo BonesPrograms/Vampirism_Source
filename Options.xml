@@ -23,14 +23,7 @@
   </option>
   <option
   ID="enablevampiricpowers"
-  DisplayText="Enable blood magic update (requires save/load). This option prevents Vampires from obtaining Beguiling."
-  Category="Vampirism"
-  Type="Checkbox"
-  Default="Yes">
-  </option>
-  <option
-  ID="SilverAilment"
-  DisplayText="Vampires are allergic to silver and cannot pick it up."
+  DisplayText="Blood Magic - Enable blood magic update (requires save/load)."
   Category="Vampirism"
   Type="Checkbox"
   Default="Yes">
@@ -38,17 +31,10 @@
   <option
   ID="CoffinAutoWin"
   Requires="enablevampiricpowers==Yes"
-  DisplayText="As long as you are not on cooldown, you will always return to your coffin on death (except for fire damage)."
+  DisplayText="Coffin - As long as you are not on cooldown, you will always return to your coffin on death (excepting a few cases - see wiki)."
   Category="Vampirism"
   Type="Checkbox"
   Default="No">
-  </option>
-  <option 
-    ID="vampBloodNerf"
-    DisplayText="(Compatibility) Enable changes to vampire's bleeding liquid (should not be necessary to disable anymore but, incase you need it)"
-    Category="Vampirism"
-    Type="Checkbox"
-    Default="Yes">
   </option>
   <option
     ID="hunterMode"
@@ -58,18 +44,18 @@
     Default="No">
   </option>
   <option
-  ID="UnderDougsHum"
-  DisplayText="UnderDoug's Humanity - no longer lose humanity for killing companions."
-  Category="Vampirism"
-  Type="Checkbox"
-  Default="No">
-  </option>
-  <option
   ID="NightbeastMode"
   DisplayText="Night Beast mode - you fear the sun and acquire darkvision. Player only. (Experimental - if you get lost on the overworld map during the day, you might get softlocked)."
   Category="Vampirism"
   Type="Checkbox"
   Default="No">
+  </option>
+    <option
+  ID="SilverAilment"
+  DisplayText="Silver Ailment - Vampires are allergic to silver and cannot pick it up."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="Yes">
   </option>
   <option
   ID="FearOfFire"
@@ -86,18 +72,25 @@
   Type="Checkbox"
   Default="Yes">
   </option>
-  <option
-    ID="BloodAutoget"
-    Requires="hunterMode==No"
-    DisplayText="Enable blood autocollect."
-    Category="Vampirism"
-    Type="Checkbox"
-    Default="Yes">
+    <option
+  ID="UnderDougsHum"
+  DisplayText="UnderDoug's Humanity - no longer lose humanity for killing companions."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="No">
   </option>
   <option
     ID="StartingBloodPack"
     Requires="hunterMode==No"
     DisplayText="Enable starting blood pack on spawn."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+    ID="BloodAutoget"
+    Requires="hunterMode==No"
+    DisplayText="Enable blood autocollect."
     Category="Vampirism"
     Type="Checkbox"
     Default="Yes">
@@ -125,5 +118,12 @@
   Category="Vampirism"
   Type="Checkbox"
   Default="Yes">
+  </option>
+  <option 
+    ID="vampBloodNerf"
+    DisplayText="(Compatibility) Enable changes to vampire's bleeding liquid (should not be necessary to disable anymore but, incase you need it)"
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
   </option>
 </options>

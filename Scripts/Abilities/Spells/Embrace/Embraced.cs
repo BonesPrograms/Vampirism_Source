@@ -4,6 +4,7 @@ using Nexus.Rules;
 using Nexus.Core;
 using Nexus.Spells;
 using XRL.World.Parts.Mutation;
+using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Effects
 
@@ -11,11 +12,12 @@ namespace XRL.World.Effects
     [Serializable]
     public class Embracing : IScribedEffect
     {
+        public GameObjectReference Embracer;
         public bool FailedEmbrace;
-
         public int Level;
-        public Embracing(int time, int level)
+        public Embracing(GameObject Embracer, int time, int level)
         {
+            this.Embracer = Embracer.Reference();
             base.Duration = time;
             this.Level = level;
         }
@@ -24,18 +26,31 @@ namespace XRL.World.Effects
         {
             return true;
         }
-
         public override bool WantEvent(int ID, int Cascade)
         {
-            if (ID == SingletonEvent<EndTurnEvent>.ID || ID == TookDamageEvent.ID || ID == DeathEvent.ID)
+            if (ID == SingletonEvent<EndTurnEvent>.ID || ID == TookDamageEvent.ID || ID == DeathEvent.ID || ID == BeforeDieEvent.ID)
                 return true;
             return base.WantEvent(ID, Cascade);
         }
 
+        public override bool HandleEvent(BeforeDieEvent E)
+        {
+            if (E.Dying == Object && !FailedEmbrace)
+            {
+                Object.hitpoints = 1;
+                return false;
+            }
+            return base.HandleEvent(E);
+        }
+
         public override bool HandleEvent(DeathEvent E)
         {
-            BurnToAshes(E.Dying);
-            return false;
+            if (E.Dying == Object)
+            {
+                BurnToAshes(E.Dying);
+                return false;
+            }
+            return base.HandleEvent(E);
         }
 
         public override bool HandleEvent(TookDamageEvent E)
@@ -45,6 +60,11 @@ namespace XRL.World.Effects
                 Message($"Fire disrupts the embracing of {Object.t()}!");
                 FailedEmbrace = true;
                 Duration = 0;
+            }
+            if (E.Object == Object && !E.Damage.Attributes.Contains("Fire"))
+            {
+                E.Damage.Amount = 0;
+                return false;
             }
             return base.HandleEvent(E);
         }
@@ -71,6 +91,8 @@ namespace XRL.World.Effects
             if (!FailedEmbrace)
             {
                 Object.RequireMutation<Vampirism>(Level);
+                Fledgling part = new(Embracer?.Object, false);
+                Object.AddPart(part);
                 Object.ApplyEffect(new Embraced());
                 Object.ApplyEffect(new Pale(999));
                 Message($"{Object.t()} rises from the dead!");
@@ -81,7 +103,7 @@ namespace XRL.World.Effects
 
         void BurnToAshes(GameObject Object)
         {
-            Object.CurrentCell.AddObject("Ashes");
+            Object.CurrentCell?.AddObject(GameObject.Create("Ashes"));
             Message($"{Object.t()} burns to ashes!");
             Object.Obliterate();
         }

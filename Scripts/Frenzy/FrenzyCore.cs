@@ -107,7 +107,7 @@ namespace Nexus.Frenzy
         void AssembleAI(GameObject Target)
         {
             Source.ParentObject.ApplyEffect(new FrenzyAI(9999, Source, Target, Source.GameOver));
-            Source.frenzied = true;
+            Source.Frenzied = true;
             Source.ParentObject.ApplyEffect(new Running(WikiRng.Next(10,20)));
         }
 

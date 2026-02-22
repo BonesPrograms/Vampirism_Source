@@ -2,6 +2,7 @@ using System;
 using XRL.Core;
 using Nexus.Properties;
 using Nexus.Core;
+using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Effects
 {
@@ -12,6 +13,7 @@ namespace XRL.World.Effects
 	[Serializable]
 	public class CombatFeed : IFeeding
 	{
+		
 		public bool Frenzy;
 		public CombatFeed() : base()
 		{

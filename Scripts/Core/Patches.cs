@@ -35,7 +35,7 @@ namespace Nexus.Patches
             if (__result == true && E.Command == "TorchLight" && Options.GetOptionBool(OPTIONS.FIRE) && Options.GetOptionBool(OPTIONS.TORCH) && Core.QudExtensions.IsVampire(E.Actor, out var v))
             {
                 __result = false;
-                v.FakeDropTorch(__instance.ParentObject);
+                v.FakeDropRotschrek(__instance.ParentObject);
             }
         }
     }

@@ -2,38 +2,41 @@ using System;
 using Nexus.Rules;
 using Nexus.Properties;
 using XRL.World.Effects;
-using XRL.World.Parts.Mutation;
+
 using Nexus.Core;
 using XRL.Messages;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+
+using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Parts
 {
 
-    // [Serializable]
-    // public class EmbraceableObjectCopy : IPart
-    // {
-    //     [NonSerialized]
-    //     public GameObject Copy; //figure out how to make this work
-    //     public EmbraceableObjectCopy(GameObject Object)
-    //     {
-    //         Copy = Object.DeepCopy();
-    //         Copy.MakeInactive();
-    //     }
-    //     public override void Write(GameObject Basis, SerializationWriter Writer)
-    //     {
-    //         Writer.WriteGameObject(Copy);
-    //         base.Write(Basis, Writer);
-    //     }
+    [Serializable]
+    public class EmbraceableObject : IPart
+    {
+        [NonSerialized]
+        public GameObject Object; 
+        public EmbraceableObject()
+        {
+            
+        }
 
-    //     public override void Read(GameObject Basis, SerializationReader Reader)
-    //     {
-    //         Copy = Reader.ReadGameObject();
-    //         base.Read(Basis, Reader);
-    //     }
-    // }
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+            Writer.WriteGameObject(Object);
+            base.Write(Basis, Writer);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+            Object = Reader.ReadGameObject();
+            base.Read(Basis, Reader);
+        }
+        public EmbraceableObject(GameObject Object)
+        {
+            this.Object = Object.DeepCopy();
+        }
+    }
 
     [Serializable]
     public class EmbraceSpell : VampiricSpell
@@ -112,226 +115,20 @@ namespace XRL.World.Parts
         }
         void Embrace(GameObject Object)
         {
-            // MessageQueue.Suppress = true;
-            // var copy = Object.GetPart<EmbraceableObjectCopy>();
-            // GameObject obj = copy.Copy;
-            // obj.MakeActive();
-            // Object.CurrentCell.AddObject(obj);
-            // int time = WikiRng.Next(50, 100);
-            // obj.ApplyEffect(new Asleep(time, true, false, false, true));
-            // obj.ApplyEffect(new Embracing(time, Level));
-            // Object.Obliterate();
-            // MessageQueue.Suppress = false;
+            MessageQueue.Suppress = true;
+            var copy = Object.GetPart<EmbraceableObject>();
+            GameObject obj = copy.Object;
+            obj.MakeActive();
+            Object.CurrentCell.AddObject(obj);
+            int time = WikiRng.Next(50, 100);
+            obj.ApplyEffect(new Asleep(time, true, false, false, true));
+            obj.ApplyEffect(new Embracing(ParentObject, time, Level));
+            obj.hitpoints = 2;
+            Object.Obliterate();
+            MessageQueue.Suppress = false;
         }
 
 
-    }
-
-
-
-    //plan: we will requirepart and mutation by string name and .Name
-    // we will recreate them from the blueprint then require everything onto the new object
-    //dismember limbs that shant be there etc
-    //look into DeepCopy to see what we need to copy
-    //but first TEST SERIALIZING with only the mutations list for now
-    // or partslist thats easy
-    //IDEA was to make the arrays not public so that they dont throw deserialize errors
-    //we prob wont create an instance from a blueprint, well create an instance of their blueprint to match things like physics and  render and displayname stuff maybe idk. lots of parts to add lowkey.
-
-    // final note: in scan, have it show object level specifically. additionally will need to see mutations w/ levels and skills and cybernetics etc for our copier. 
-    // thank god there is a mutation lsit i can past that to one of my loggers. will need otherstuff like bodyparts too - anything listed in Copy. new wish "CheckCopy"
-
-    //NEW ARRAY IDEA:
-    //should we tag relations as well? opinions of the player? yes a list of Opinions to the player at least would be valid
-
-    //OTHER ARRAY IDEA:
-    //SKILLS string
-
-    //best idea: look into DeepCopy and base it off that kinda...
-    [Serializable]
-
-    public class GameObjectDataCopy : IPart
-    {
-        public string DisplayName = default;
-        public bool HadMutations = default;
-        public bool HadCybernetics = default;
-        public int Level = default;
-        public string Blueprint = default;
-
-        [NonSerialized]
-        public (string, string)[] CyberneticAndBodypart = new (string, string)[0];
-
-        [NonSerialized]
-        public (string, string)[] StringProperties = new (string, string)[0];
-
-        [NonSerialized]
-        public (string, long)[] LongProperties = new (string, long)[0];
-
-        [NonSerialized]
-        public (string, int)[] IntProperties = new (string, int)[0];
-
-        [NonSerialized]
-        public (string, int)[] StatLevels = new (string, int)[0];
-
-        [NonSerialized]
-        public (string, int)[] MutationsWithLevels = new (string, int)[0]; //cap = mutations.count
-
-        [NonSerialized]
-        public (string, bool)[] BodyParts = new (string, bool)[0]; //i could just only store dismembered bodyparts and match them and dismember them instead of storing all bodyparts
-
-        [NonSerialized]
-        public string[] IParts = new string[0];
-
-        public override void Write(GameObject Basis, SerializationWriter Writer)
-        {
-            Write(Writer, CyberneticAndBodypart);
-            Write(Writer, StringProperties);
-            Write(Writer, LongProperties);
-            Write(Writer, IntProperties);
-            Write(Writer, StatLevels);
-            Write(Writer, MutationsWithLevels);
-            Write(Writer, BodyParts);
-            Write(Writer, IParts);
-            base.Write(Basis, Writer);
-        }
-
-        public override void Read(GameObject Basis, SerializationReader Reader)
-        {
-            Read<ValueTuple<string, string>>(Reader, CyberneticAndBodypart);
-            Read<ValueTuple<string, string>>(Reader, StringProperties);
-            Read<ValueTuple<string, long>>(Reader, LongProperties);
-            Read<ValueTuple<string, int>>(Reader, IntProperties);
-            Read<ValueTuple<string, int>>(Reader, StatLevels);
-            Read<ValueTuple<string, int>>(Reader, MutationsWithLevels);
-            Read<ValueTuple<string, bool>>(Reader, BodyParts);
-            Read<string>(Reader, IParts);
-            base.Read(Basis, Reader);
-        }
-
-        void Write(SerializationWriter Writer, IList array)
-        {
-            // Writer.Write(array.Count);
-            for (int i = 0; i < array.Count; i++)
-                Writer.WriteObject(array[i]);
-        }
-
-        void Read<T>(SerializationReader Reader, IList array) //future note: i couldve done IList<T> and not had to write out all of those explicit casts
-        {
-            // Reader.ReadInt32();
-            for (int i = 0; i < array.Count; i++)
-            {
-                array[i] = (T)Reader.ReadObject();
-            }
-
-        }
-
-        public (string, IList)[] Arrays => new (string, IList)[]
-        {
-                 (nameof(MutationsWithLevels), MutationsWithLevels),
-                 (nameof(IParts), IParts),
-                 (nameof(CyberneticAndBodypart), CyberneticAndBodypart),
-                 (nameof(StringProperties), StringProperties),
-                 (nameof(IntProperties), IntProperties),
-                 (nameof(LongProperties), LongProperties),
-                 (nameof(StatLevels), StatLevels),
-                 (nameof(BodyParts), BodyParts)
-        };
-
-        public (string, object)[] SimpleFields => new (string, object)[]
-        {
-            (nameof(HadMutations), HadMutations),
-            (nameof(HadCybernetics), HadCybernetics),
-            (nameof(Level), Level),
-            (nameof(Blueprint), Blueprint),
-            (nameof(DisplayName), DisplayName)
-        };
-
-        public GameObjectDataCopy(GameObject Object)
-        {
-            Copy(Object);
-        }
-        public void Read()
-        {
-            MetricsManager.LogInfo($"\nREADING INFO ON {ParentObject.DisplayName}, {ParentObject}, {ParentObject.ID} START");
-            ReadArrays();
-            MetricsManager.LogInfo("\n ARRAYS FINISHED");
-            Read(SimpleFields);
-            MetricsManager.LogInfo($"\nREADING INFO ON {ParentObject.DisplayName}, {ParentObject}, {ParentObject.ID} END");
-        }
-        public void ReadArrays()
-        {
-            (string, IList)[] Arrays = this.Arrays;
-            for (int i = 0; i < Arrays.Length; i++)
-            {
-                MetricsManager.LogInfo($"\n{Arrays[i].Item1} START");
-                CastArray(Arrays[i].Item2);
-                MetricsManager.LogInfo($"\n{Arrays[i].Item1} END");
-            }
-        }
-        static void CastArray(IList obj)
-        {
-            switch (obj)
-            {
-                case (string, long)[] array0:
-                    Read(array0);
-                    break;
-                case (string, int)[] array1:
-                    Read(array1);
-                    break;
-                case (string, bool)[] array2:
-                    Read(array2);
-                    break;
-                case (string, string)[] array3:
-                    Read(array3);
-                    break;
-                case string[] array4:
-                    Read(array4);
-                    break;
-            }
-        }
-        static void Read<T1, T2>((T1, T2)[] array)
-        {
-            for (int i = 0; i < array.Length; i++)
-                MetricsManager.LogInfo($"{array[i].Item1}, {array[i].Item2}");
-        }
-        static void Read<T>(T[] array)
-        {
-            for (int i = 0; i < array.Length; i++)
-                MetricsManager.LogInfo($"{array[i]}");
-        }
-        void Copy(GameObject Object)
-        {
-            CopyMutations(Object);
-            CopyIParts(Object);
-            Blueprint = Object.Blueprint;
-            Level = Object.Level;
-            DisplayName = Object.DisplayName;
-        }
-
-        void CopyIParts(GameObject Object)
-        {
-            IParts = new string[Object.PartsList.Count];
-            for (int i = 0; i < Object.PartsList.Count; i++)
-            {
-                IParts[i] = Object.PartsList[i].Name;
-            }
-        }
-
-        void CopyMutations(GameObject Object)
-        {
-            Mutations m = Object.GetPart<Mutations>();
-            if (m != null && m.MutationList.Count > 0)
-            {
-                MutationsWithLevels = new (string, int)[m.MutationList.Count];
-                for (int i = 0; i < m.MutationList.Count; i++)
-                {
-                    MutationsWithLevels[i].Item1 = m.MutationList[i].Name;
-                    MutationsWithLevels[i].Item2 = m.MutationList[i].Level;
-                }
-                HadMutations = true;
-
-            }
-        }
     }
 
 }

@@ -40,7 +40,6 @@
 
 	<object Name="VampireCoffin" Inherits="Bed">
 		 <part Name="Render" DisplayName="coffin" ColorString="&amp;K" DetailColor="w" Tile="vampirism/coffin.png" Occluding="false" RenderIfDark="true" />
-		<part Name="VampireCoffin"/>
 		 <tag Name="OverlayColor" Value="&amp;G^k" />
 		<removepart Name="Bed"/>
 		<part Name="Description" Short="The resting place for the dead, and those who've awoken from the dead." />

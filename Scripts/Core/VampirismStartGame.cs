@@ -27,7 +27,7 @@ public class VampirismStartGame : IPlayerMutator
         {
             if (objects[i].Blueprint == "Torch")
             {
-                objects[i].Obliterate();
+                objects[i].ForceUnequip(true);
                 return;
             }
         }

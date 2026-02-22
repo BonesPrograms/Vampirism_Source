@@ -7,6 +7,7 @@ using Nexus.Core;
 using Nexus.Rules;
 using XRL.UI;
 using Nexus.Stealth;
+using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Parts
 {
@@ -21,8 +22,10 @@ namespace XRL.World.Parts
         public static GameObject Player => _Player?.Object; //this is used for two major purposes: accessing the players humanity and checking hostility
                                                             //if you try to access by the.player (static) then you will get whatever
         [GameBasedStaticCache(false)]                       //gameobject they are currently dominating
-        static GameObjectReference _Player;                    //instead of the gameobject that is "really" them 
-        public bool finished;                                   //meaning: we cant find the humanity part, and innocence becomes relative to whatever gameobject the player is currently dominating
+        static GameObjectReference _Player;     
+        
+                //instead of the gameobject that is "really" them 
+       public  bool finished;                                   //meaning: we cant find the humanity part, and innocence becomes relative to whatever gameobject the player is currently dominating
         public override bool WantEvent(int ID, int cascade)     //so you could dominate a snapjaw, and load a zone with snapjaws, and then come back as the original player
         {                                                       //start feeding on them and then lose humanity because they have the innocent flag
             if (!finished && ID == SingletonEvent<BeforeTakeActionEvent>.ID) //(for various reasons, checking hostility on death doesnt work)
@@ -103,7 +106,7 @@ namespace XRL.World.Parts
             {
                 obj.SetIntProperty(FLAGS.EMBRACE.LEVEL_ON_DEATH, Dying.Level);
                 obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.TRUE);
-                GameObjectDataCopy copy = new(Dying);
+                EmbraceableObject copy = new(Dying);
                 obj.AddPart(copy);
                 
             }

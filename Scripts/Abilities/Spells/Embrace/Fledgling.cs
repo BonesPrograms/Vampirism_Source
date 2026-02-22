@@ -1,18 +1,19 @@
 
 using System;
+using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Parts
 {
     [Serializable]
     public class Fledgling : IScribedPart
     {
-        public GameObject Sire;
-        public bool HatesSire;
-        public long TimeOfSiring = The.Game.Turns;
 
+        public string SireID;
+       public  long TimeOfSiring;
+        public bool HatesSire;
         public bool IsChildeOf(GameObject Target)
         {
-            return Target == Sire;
+            return Target.ID == SireID;
         }
 
         public Fledgling() //dont forget to sync vamp levels for fun
@@ -22,7 +23,8 @@ namespace XRL.World.Parts
 
         public Fledgling(GameObject Sire, bool HatesSire) : this()
         {
-            this.Sire = Sire;
+            SireID = Sire.ID;
+            TimeOfSiring = The.Game.Turns;
             this.HatesSire = HatesSire;
         }
     }

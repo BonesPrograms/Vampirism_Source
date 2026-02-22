@@ -139,22 +139,23 @@ namespace Nexus.Stealth
                 }
             }
         }
-        public void AddEffectToWitnesses<T>(T obj, uint AoE = default) where T : Effect, new()
-        {
-            InternalAddEffect<T>(obj, AoE);
-        }
+        // public void AddEffectToWitnesses<T>(T obj, uint AoE = default) where T : Effect, new()
+        // {
+        //     InternalAddEffect<T>(obj, AoE);
+        // }
 
         //these methods accept custom mod effects, however
         //you will have to assign default values to your fields/in your default constructor
         //because it can only use the default constructor for mod effects
-        public void AddEffectToWitnessesAndExposer<T>(T obj, uint AoE = default) where T : Effect, new()
-        {
-            if (CopyEffect.TryCopy(obj, out T effect))
-            {
-                Exposer?.ApplyEffect(effect);
-                InternalAddEffect<T>(obj, AoE);
-            }
-        }
+
+        // public void AddEffectToWitnessesAndExposer<T>(T obj, uint AoE = default) where T : Effect, new()
+        // {
+        //     if (CopyEffect.TryCopy(obj, out T effect))
+        //     {
+        //         Exposer?.ApplyEffect(effect);
+        //         InternalAddEffect<T>(obj, AoE);
+        //     }
+        // }
 
         public void AddOpinionToWitnessesAndExposer<T>(uint AoE = default) where T : IOpinionSubject, new()
         {
@@ -234,16 +235,16 @@ namespace Nexus.Stealth
             }
         }
 
-        void InternalAddEffect<T>(T obj, uint AoE) where T : Effect, new()
-        {
-            AoE = this.AoE(AoE);
-            for (int i = 0; i < Witnesses.Count; i++)
-            {
-                GameObject gameObject = Witnesses[i];
-                if (Validated(gameObject, AoE) && CopyEffect.TryCopy(obj, out T effect))
-                    gameObject.ApplyEffect(effect);
-            }
+        // void InternalAddEffect<T>(T obj, uint AoE) where T : Effect, new()
+        // {
+        //     AoE = this.AoE(AoE);
+        //     for (int i = 0; i < Witnesses.Count; i++)
+        //     {
+        //         GameObject gameObject = Witnesses[i];
+        //         if (Validated(gameObject, AoE) && CopyEffect.TryCopy(obj, out T effect))
+        //             gameObject.ApplyEffect(effect);
+        //     }
 
-        }
+        // }
     }
 }

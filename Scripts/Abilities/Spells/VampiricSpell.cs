@@ -9,6 +9,7 @@ using XRL.World.Parts.Mutation;
 using XRL.World.Parts;
 using XRL.World;
 using XRL.UI;
+using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Parts
 {
@@ -18,6 +19,7 @@ namespace XRL.World.Parts
     {
         public const string CLASS = "Vampiric Spell";
         public Guid SpellID = Guid.Empty;
+
         public abstract Type SpellType
         {
             get;

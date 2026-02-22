@@ -15,14 +15,10 @@ namespace XRL.World.Effects
     public class FrenzyAI : Effect
     {
         public GameObject Target;
-
-        [System.NonSerialized]
         public readonly TheBeast Source;
         readonly Action Action;
         public bool InRange => base.Object.DistanceTo(Target) <= 1;
         public readonly bool gameover;
-        //    bool activated;
-        //   int feedtime;
         public FrenzyAI() => DisplayName = "frenzyAI";
         public FrenzyAI(int Duration, TheBeast Source, GameObject Target, bool gameover)
             : this()
@@ -108,8 +104,8 @@ namespace XRL.World.Effects
         {
             base.Object.RemoveEffect<Running>();
             CheckBloodAndCooldown();
-            Source.frenzied = false;
-            base.Object.SetStringProperty(FLAGS.FRENZY, FLAGS.FALSE);
+            Source.Frenzied = false;
+            Source.ParentObject.SetStringProperty(FLAGS.FRENZY, FLAGS.FALSE);
         }
 
         void CheckBloodAndCooldown()

@@ -10,6 +10,8 @@ using XRL.World.Parts.Mutation;
 using Nexus.Frenzy;
 using Nexus.Spells;
 
+using SerializeField = UnityEngine.SerializeField;
+
 namespace XRL.World.Parts
 {
 
@@ -21,23 +23,21 @@ namespace XRL.World.Parts
 	public class TheBeast : IPart
 	{
 
+		public Dictionary<GameObject, int> TargetRegistry = new();
 		public FrenzyCore Core => _Core ??= new FrenzyCore(this, new Search(this));
 		public Vampirism Base => _Base ??= ParentObject.GetPart<Vampirism>();
-		public Dictionary<GameObject, int> TargetRegistry = new();
+		FrenzyCore _Core;
+		Vampirism _Base;
 		public bool GameOver;
 		public bool Wassail;
-		public bool frenzied; //to prevent stacked frenzying effects 
+		public bool Frenzied;
 		public const int FLAG_AVOID = 150; //arbitrary value assigned to targets to prevent them from being re-targetted
 		public bool HasFangs() => Base.HasFangs();
 		public bool Incap() => ParentObject.Incap(true);
 		public bool CantFrenzy()
 		{
-			return Base.Rotschrek || frenzied || !HasFangs() || Incap() || ParentObject.CheckFlag(FLAGS.FEED) || SpellCore.SunlightInterference(ParentObject);
+			return Base.Rotschrek || Frenzied || !HasFangs() || Incap() || ParentObject.CheckFlag(FLAGS.FEED) || SpellCore.SunlightInterference(ParentObject);
 		}
-
-
-		FrenzyCore _Core;
-		Vampirism _Base;
 		public override void Register(GameObject Object, IEventRegistrar Registrar)
 		{
 			Registrar.Register(Events.GAMEOVER);
@@ -86,7 +86,7 @@ namespace XRL.World.Parts
 		{
 			if (!CantFrenzy())
 				Core.FrenzyChances();
-			if (GameOver && TargetRegistry.Count != 0 && !frenzied)
+			if (GameOver && TargetRegistry.Count != 0 && !Frenzied)
 				Timer();
 			return base.HandleEvent(E);
 		}

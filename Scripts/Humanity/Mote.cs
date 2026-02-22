@@ -23,7 +23,7 @@ namespace XRL.World.Parts
 
             public override bool HandleEvent(EndTurnEvent E)
         {
-            if (ParentObject?.CurrentCell != null && ParentObject.InInventory == null && ParentObject.Equipped == null && WikiRng.Next(1, 2) == 2)
+            if (ParentObject?.CurrentCell != null && ParentObject.InInventory == null && ParentObject.Holder == null && WikiRng.Next(1, 2) == 2)
                 ParentObject.Move(Directions.GetRandomDirection(), true, false, true, false, false, true, null, null, true, null, null, null, true, true, null, null);
             return base.HandleEvent(E);
         }

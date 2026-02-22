@@ -44,7 +44,7 @@ namespace Nexus.Wish
         {
             if (Security(false))
             {
-                The.Player.GetPart<Humanity>().Score = 0;
+                The.Player.GetPart<Humanity>().SetZero();
                 The.Player.SetStringProperty(FLAGS.GO, FLAGS.TRUE);
                 The.Player.PassTurn();
             }

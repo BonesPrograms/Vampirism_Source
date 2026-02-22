@@ -1,5 +1,6 @@
 using System;
 using Nexus.Spells;
+using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Parts
 {
@@ -7,7 +8,18 @@ namespace XRL.World.Parts
     [Serializable]
     public class VampireCoffin : Bed
     {
+
         public string OwnerID;
+
+        public VampireCoffin()
+        {
+            
+        }
+
+        public VampireCoffin(GameObject Object)
+        {
+            OwnerID = Object.ID;
+        }
         public override bool WantEvent(int ID, int Cascade)
         {
             if (ID == TookDamageEvent.ID || ID == InventoryActionEvent.ID || ID == CommandSmartUseEvent.ID || ID == PooledEvent<IdleQueryEvent>.ID)
@@ -55,9 +67,8 @@ namespace XRL.World.Parts
             var part = obj?.GetPart<CoffinSpell>();
             if (part != null)
             {
-                part.CellX = ParentObject.CurrentCell.X;
-                part.CellY = ParentObject.CurrentCell.Y;
-                return;
+                if (part.UpdateXY(ParentObject.CurrentCell))
+                    return;
             }
             ParentObject.Obliterate();
         }
