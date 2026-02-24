@@ -517,10 +517,10 @@ namespace XRL.World.Parts
                 int copies = 0;
                 for (int i = 0; i < cell.Objects.Count; i++)
                 {
-                    if (cell.Objects[i].TryGetPart<EmbraceableObject>(out var copy))
+                    if (cell.Objects[i].TryGetPart<GameObjectDataRecord>(out var copy))
                     {
                         copies++;
-                        // copy.Read();
+                        copy.ReadData();
                     }
                 }
                 if (copies > 0)

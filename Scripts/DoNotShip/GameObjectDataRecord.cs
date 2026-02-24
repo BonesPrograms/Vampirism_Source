@@ -1,8 +1,7 @@
-
-using System.Collections;
 using System;
-using XRL.Collections;
 using System.Linq;
+using XRL.World.Parts.Mutation;
+using XRL.World.Parts.Skill;
 
 namespace XRL.World.Parts
 {
@@ -38,9 +37,7 @@ namespace XRL.World.Parts
         public int BaseHP = default;
         public bool HadMutations = false;
         public bool HadCybernetics = false;
-
         public bool IsAlive = false;
-
         public bool IsOrganic = false;
 
         [NonSerialized]
@@ -67,7 +64,11 @@ namespace XRL.World.Parts
         [NonSerialized]
         public string[] Effects = new string[0];
 
-        public (string, IList)[] Arrays => new (string, IList)[]
+        [NonSerialized]
+
+        public string[] Skills = new string[0];
+
+        public (string, object)[] Arrays => new (string, object)[]
         {
             (nameof(MutationsWithLevels), MutationsWithLevels),
             (nameof(IParts), IParts),
@@ -76,7 +77,8 @@ namespace XRL.World.Parts
             (nameof(IntProperties), IntProperties),
             (nameof(StatLevels), StatLevels),
             (nameof(BodyParts), BodyParts),
-            (nameof(Effects), Effects)
+            (nameof(Effects), Effects),
+            (nameof(Skills), Skills)
         };
 
         public (string, object)[] SimpleFields => new (string, object)[]
@@ -112,6 +114,7 @@ namespace XRL.World.Parts
             Write(Writer, BodyParts);
             Write(Writer, IParts);
             Write(Writer, Effects);
+            Write(Writer, Skills);
             base.Write(Basis, Writer);
         }
 
@@ -125,6 +128,7 @@ namespace XRL.World.Parts
             BodyParts = Read<(string, bool)>(Reader);
             IParts = Read<string>(Reader);
             Effects = Read<string>(Reader);
+            Skills = Read<string>(Reader);
             base.Read(Basis, Reader);
         }
 
@@ -147,26 +151,27 @@ namespace XRL.World.Parts
         }
         public void ReadData()
         {
-            MetricsManager.LogInfo($"\nREADING INFO ON {ParentObject.DisplayName}, {ParentObject}, {ParentObject.ID} START");
+            MetricsManager.LogInfo($"\nREADING INFO ON {DisplayName}, {Blueprint}, {ID} START");
             Read(SimpleFields);
             MetricsManager.LogInfo("\n ARRAYS STARTED");
-            ReadArrays();
-            MetricsManager.LogInfo($"\nREADING INFO ON {ParentObject.DisplayName}, {ParentObject}, {ParentObject.ID} END");
+            ReadArrays(Arrays);
+            MetricsManager.LogInfo($"\nREADING INFO ON {DisplayName}, {Blueprint}, {ID} END");
         }
-        public void ReadArrays()
+        void ReadArrays((string, object)[] arrays)
         {
-            (string, IList)[] Arrays = this.Arrays;
-            for (int i = 0; i < Arrays.Length; i++)
+            for (int i = 0; i < arrays.Length; i++)
             {
-                MetricsManager.LogInfo($"\n{Arrays[i].Item1} START");
-                CastArray(Arrays[i].Item2);
-                MetricsManager.LogInfo($"\n{Arrays[i].Item1} END");
+                MetricsManager.LogInfo($"\n{arrays[i].Item1} START");
+                CastArray(arrays[i].Item2);
+                MetricsManager.LogInfo($"\n{arrays[i].Item1} END");
             }
         }
         void Record(GameObject Object)
         {
             RecordMutations(Object);
             RecordIParts(Object);
+            RecordSkills(Object);
+            RecordStats(Object);
             RecordFX(Object);
             RecordStringProperties(Object);
             RecordIntProperties(Object);
@@ -179,15 +184,48 @@ namespace XRL.World.Parts
             ID = Object.ID;
         }
 
-        void RecordIParts(GameObject Object)
+        void RecordStats(GameObject Object)
         {
-            IParts = new string[Object.PartsList.Count];
-            for (int i = 0; i < Object.PartsList.Count; i++)
+            if (Object.Statistics != null)
             {
-                IParts[i] = Object.PartsList[i].Name;
+                StatLevels = new (string, int)[Object.Statistics.Count];
+                var stats = Object.Statistics.ToArray();
+                for (int i = 0; i < stats.Length; i++)
+                {
+                    StatLevels[i].Item1 = stats[i].Key;
+                    StatLevels[i].Item2 = stats[i].Value.Value;
+                }
             }
         }
+        void RecordSkills(GameObject Object)
+        {
+            var skills = Object.GetPart<Skills>();
+            if (skills != null)
+            {
+                Skills = new string[skills.SkillList.Count];
+                for (int i = 0; i < skills.SkillList.Count; i++)
+                {
+                    Skills[i] = skills.SkillList[i].Name;
+                }
+            }
 
+        }
+
+        void RecordIParts(GameObject Object)
+        {
+            IParts = new string[GetSize(Object)];
+            int index = 0;
+            for (int i = 0; i < Object.PartsList.Count; i++)
+            {
+                if (CheckType(Object.PartsList[i]))
+                {
+                    IParts[index] = Object.PartsList[i].Name;
+                    index++;
+                }
+                if (index >= IParts.Length)
+                    break;
+            }
+        }
         void RecordIntProperties(GameObject Object)
         {
             IntProperties = new (string, int)[Object.IntProperty.Count];
@@ -214,10 +252,9 @@ namespace XRL.World.Parts
 
         void RecordFX(GameObject Object)
         {
-            Rack<Effect> fx = Object.Effects;
-            Effects = new string[fx.Count];
-            for (int i = 0; i < fx.Count; i++)
-                Effects[i] = fx[i].GetType().Name;
+            Effects = new string[Object.Effects.Count];
+            for (int i = 0; i < Object.Effects.Count; i++)
+                Effects[i] = Object.Effects[i].ClassName;
         }
 
         void RecordMutations(GameObject Object)
@@ -236,28 +273,6 @@ namespace XRL.World.Parts
             }
         }
 
-        static void CastArray(IList obj)
-        {
-            switch (obj)
-            {
-                case (string, long)[] array0:
-                    Read(array0);
-                    break;
-                case (string, int)[] array1:
-                    Read(array1);
-                    break;
-                case (string, bool)[] array2:
-                    Read(array2);
-                    break;
-                case (string, string)[] array3:
-                    Read(array3);
-                    break;
-                case string[] array4:
-                    Read(array4);
-                    break;
-            }
-        }
-
         static void Read<T1, T2>((T1, T2)[] array)
         {
             for (int i = 0; i < array.Length; i++)
@@ -268,5 +283,38 @@ namespace XRL.World.Parts
             for (int i = 0; i < array.Length; i++)
                 MetricsManager.LogInfo($"{array[i]}");
         }
+
+        static void CastArray(object obj)
+        {
+            switch (obj)
+            {
+                case (string, int)[] stringIntArray:
+                    Read(stringIntArray);
+                    break;
+                case (string, bool)[] stringBoolArray:
+                    Read(stringBoolArray);
+                    break;
+                case (string, string)[] stringStringArray:
+                    Read(stringStringArray);
+                    break;
+                case string[] stringArray:
+                    Read(stringArray);
+                    break;
+            }
+        }
+
+
+        static int GetSize(GameObject Object)
+        {
+            int size = 0;
+            for (int i = 0; i < Object.PartsList.Count; i++)
+            {
+                if (CheckType(Object.PartsList[i]))
+                    size++;
+            }
+            return size;
+        }
+
+        static bool CheckType(IPart part) => part is not BaseMutation or BaseSkill;
     }
 }

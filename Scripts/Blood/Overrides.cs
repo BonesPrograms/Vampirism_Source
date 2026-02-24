@@ -12,13 +12,12 @@ namespace Nexus.Blood
     static class Overrides
     {
         const int _WATER = 35000;
-
         static readonly string[] strings = { "You vomit!", "You vomit {{R sequence|blood!}}" };
         public static void Water(ref int Water) => Water = _WATER;
         public static void Vomit(GameObject Object)
         {
             StringBuilder MessageHolder = new();
-            if (Object?.IsPlayer() ?? false)
+            if (Object.IsPlayer())
                 Popup.Show("You vomit {{R sequence|blood!}}");
             bool ExitInterface = false;
             InduceVomitingEvent.Send(Object, ref ExitInterface, MessageHolder);
@@ -27,7 +26,7 @@ namespace Nexus.Blood
         public static void VomitEventHandler(GameObject Object, StringBuilder MessageHolder)
         {
             ShowStrings(Object, MessageHolder);
-            if (Object?.CurrentCell is not null && !Object.OnWorldMap())
+            if (Object.CurrentCell != null && !Object.OnWorldMap())
             {
                 FindVomitPool(Object.CurrentCell);
                 CreateVomitObjects(Object);

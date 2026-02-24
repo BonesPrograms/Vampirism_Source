@@ -532,15 +532,13 @@ namespace Nexus.Core
 		//you should ensure your dictionary has a count > 0 before using this. it does not check on its own because i expect you to send in something like a Min() which requires you to check before using anyways
 		public static KeyValuePair<TKey, TValue> PickFirst<TKey, TValue>(this IDictionary<TKey, TValue> obj, TValue value) where TValue : IEquatable<TValue> //similar to LINQ First, get first keyvalue == value
 		{
-			if (obj.Count > 1)
+			foreach (var pair in obj)
 			{
-				foreach (var pair in obj)
-				{
-					if (pair.Value.Equals(value))
-						return pair;
-				}
+				if (pair.Value.Equals(value))
+					return pair;
 			}
-			return obj.Single(); //also expect at least one object to have the value youre looking for
+			return default; //expect at least one object to have the value youre looking for
+
 		}
 		public static TKey[] KeyArray<TKey, TValue>(this IDictionary<TKey, TValue> source)
 		{
@@ -549,7 +547,7 @@ namespace Nexus.Core
 
 		public static void Reset<TKey, TValue>(this IDictionary<TKey, TValue> source, TValue value = default) where TValue : struct
 		{
-			foreach (var obj in source.KeyArray())
+			foreach (var obj in source.Keys)
 				source[obj] = value;
 		}
 		#endregion

@@ -54,7 +54,7 @@ namespace XRL.World.Parts
                         break;
                     case "AddWater": //makes it so that you can get dehydrated
                         object obj = E.GetParameter("Amount");
-                        if (obj is int integer && integer < 0)
+                        if (obj is int integer && integer < 0 && ParentObject.IsPlayer())
                             Blood += integer;
                         break;
                 }
@@ -87,7 +87,7 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(BeginTakeActionEvent E)
         {
-            if (AntiPuke && Blood >= VITAE.SIP_PUKE_WARN || Blood >= VITAE.FEED_PUKE_WARN || Blood >= VITAE.GHOUL_PUKE_WARN)
+            if (AntiPuke && (Blood >= VITAE.SIP_PUKE_WARN || Blood >= VITAE.FEED_PUKE_WARN || Blood >= VITAE.GHOUL_PUKE_WARN))
                 Blood = 1;
             Metab.Cycle();
             if (!Options.GetOptionBool(OPTIONS.HUNTER) && !ParentObject.CheckFlag(FLAGS.FRENZY, FLAGS.FEED) && !ParentObject.Incap(false) && !ParentObject.IsInBatForm())
