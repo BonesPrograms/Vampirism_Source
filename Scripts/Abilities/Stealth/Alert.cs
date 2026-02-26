@@ -109,7 +109,7 @@ namespace Nexus.Stealth
         {
             if (Target != null)
             {
-                Witnesses.SafeAdd(Target);
+                Witnesses.SafeAddReference(Target);
             }
             return Target;
         }
@@ -223,7 +223,7 @@ namespace Nexus.Stealth
                 if (distances.Count > 1)
                 {
                     int min = distances.Values.Min();
-                    return distances.PickFirst(min).Key;
+                    return distances.PickFirstEqualTo(min).Key;
                 }
                 else
                     return distances.Single().Key;

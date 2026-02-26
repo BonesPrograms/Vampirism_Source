@@ -6,8 +6,8 @@ using XRL.World.Parts.Mutation;
 using XRL.Core;
 using XRL.World.Parts;
 using System.Collections.Generic;
-using XRL.World.Anatomy;
-using SerializeField = UnityEngine.SerializeField;
+using XRL.Collections;
+using System.Linq;
 
 namespace XRL.World.Effects
 {
@@ -17,58 +17,67 @@ namespace XRL.World.Effects
     {
         public const string COMMAND_NAME = "cmdTrueformBat";
         public override Type SpellType => typeof(BatformFX);
+        public bool AlreadyHadWings;
+        public bool WasLessThanTen;
+        public string OldTile;
+        public string OldDisplayName;
+        public string OldColorString;
+        public string OldRenderString;
+        public string OriginalBlueprint;
+        public string OldAnatomy = default;
+        public string LastDescriptionShort = default;
+        public int CurrentWingLevel = default;
+        public int OriginalFactionFeeling = default;
+        public int OriginalCapOverride = default;
+        public int XPTrack = default;
 
-        
-       public  bool AlreadyHadWings;
+        [NonSerialized]
+        public List<GameObject> OriginallyEquippedObjects = new();
 
-        
-       public  bool WasLessThanTen;
-
-        
-       public  string OldTile;
-
-        
-       public  string OldDisplayName;
-
-        
-       public  string OldColorString;
-
-        
-       public  string OldRenderString;
-
-        
-       public  string OriginalBlueprint;
-
-        
-      public   string OldAnatomy = default;
-
-        
-       public  string LastDescriptionShort = default;
-
-        
-       public  int CurrentWingLevel = default;
-
-        
-       public  int OriginalFactionFeeling = default;
-
-        
-      public   int OriginalCapOverride = default;
-
-        
-       public  List<GameObject> OriginallyEquippedObjects;
+        [NonSerialized]
+        public GameObject OldBody;
         public BatformFX()
         {
             DisplayName = "";
             Duration = 9999;
         }
 
+        public BatformFX(GameObject Object) : this()
+        {
+            OldBody = Object;
+        }
+
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+            Writer.Write(OriginallyEquippedObjects.Count);
+            for (int i = 0; i < OriginallyEquippedObjects.Count; i++)
+                Writer.WriteGameObject(OriginallyEquippedObjects[i]);
+            Writer.WriteGameObject(OldBody);
+            base.Write(Basis, Writer);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+            int length = Reader.ReadInt32();
+            for (int i = 0; i < length; i++)
+                OriginallyEquippedObjects.Add(Reader.ReadGameObject());
+            OldBody = Reader.ReadGameObject();
+            base.Read(Basis, Reader);
+        }
+
         public override bool WantEvent(int ID, int cascade)
         {
             if (ID == BeforeRenderEvent.ID && !UI.Options.GetOptionBool(OPTIONS.NIGHTBEAST)) //because nightbeast already does this for you
                 return true;
-            if (ID == CommandEvent.ID)
+            if (ID == CommandEvent.ID || ID == AwardedXPEvent.ID)
                 return true;
             return base.WantEvent(ID, cascade);
+        }
+
+        public override bool HandleEvent(AwardXPEvent E)
+        {
+            XPTrack += E.Amount;
+            return base.HandleEvent(E);
         }
         public override bool HandleEvent(BeforeRenderEvent E)
         {
@@ -114,37 +123,37 @@ namespace XRL.World.Effects
 
         void Transform()
         {
-            OriginallyEquippedObjects = UnequipAndGet();
-            SaveLook();
-            ChangeLook();
-            ChangeWings();
-            ChangeBody();
-            ChangeDescription();
-            ChangeBlueprint();
-            AutoEquip();
-            CommandEvent.Send(base.Object, Wings.COMMAND_NAME);
+            //  OriginallyEquippedObjects = UnequipAndGet();
+            //       SaveLook();
+            //   ChangeBody();
+            //    ChangeBlueprint();
+            //    ChangeLook();
+            //     ChangeWings();
+            //     ChangeDescription();
+            //      AutoEquip();
+            //  CommandEvent.Send(base.Object, Wings.COMMAND_NAME);
             Suppress(false);
             AddPlayerMessage("You assume the form of a bat.");
-            base.Object.ParticleBlip("&K-", 10, 0L);
-            base.Object.Brain.AddFactionFeeling(BATFORM.FACTION, 100);
+            //  Object.ParticleBlip("&K-", 10, 0L);
+            //    Object.Brain.AddFactionFeeling(BATFORM.FACTION, 100);
         }
         public void Revert()
         {
-            Unequip();
-            RevertLook();
-            RevertWings();
-            RevertBody();
-            RevertDescription();
-            RevertBlueprint();
-            TryReEquip();
+            //    Unequip();
+            //   RevertBlueprint();
+            RevertBodyAlt();
+            //    RevertWings();
+            //    RevertDescription();
+            //   RevertLook();
+            //    TryReEquip();
             Suppress(false);
+            Metamorphosis.TransferInventory(Object, OldBody, false);
             AddPlayerMessage("You revert to your true form.");
-            base.Object.ParticleBlip("&K-", 10, 0L);
-            base.Object.Brain.SubtractFactionFeeling(BATFORM.FACTION, 100);
+            Object.ParticleBlip("&K-", 10, 0L);
+            //    base.Object.Brain.SubtractFactionFeeling(BATFORM.FACTION, 100);
         }
 
         #region Reversion
-
         void RevertWings()
         {
             if (!AlreadyHadWings)
@@ -167,7 +176,8 @@ namespace XRL.World.Effects
 
         void RevertBody()
         {
-            base.Object.Body.Anatomy = OldAnatomy;
+            // base.Object.Body.Anatomy = OldAnatomy;
+            Object = OldBody;
         }
 
         void RevertDescription()
@@ -189,16 +199,16 @@ namespace XRL.World.Effects
         #region Transformation
         void ChangeWings()
         {
-            if (base.Object.TryGetPart<Wings>(out var Wings))
-            {
-                HadWings(Wings);
-            }
-            else
-            {
-                AlreadyHadWings = false;
-                var wings = base.Object.AddMutation<Wings>(10);
-                wings.CapOverride = 10;
-            }
+            //     if (base.Object.TryGetPart<Wings>(out var Wings))
+            //     {
+            //       HadWings(Wings);
+            //    }
+            //    else
+            //     {
+            AlreadyHadWings = false;
+            var wings = Object.AddMutation<Wings>(10);
+            wings.CapOverride = 10;
+            //     }
         }
 
         void HadWings(Wings Wings)
@@ -215,10 +225,10 @@ namespace XRL.World.Effects
         void ChangeLook()
         {
 
-            base.Object.DisplayName = "vampiric bat";
-            base.Object.Render.Tile = "Assets_Content_Textures_Creatures_sw_bat.bmp";
-            base.Object.Render.ColorString = "K";
-            base.Object.Render.RenderString = "b";
+            Object.DisplayName = "vampiric bat";
+            Object.Render.Tile = "Assets_Content_Textures_Creatures_sw_bat.bmp";
+            Object.Render.ColorString = "K";
+            Object.Render.RenderString = "b";
         }
 
         void SaveLook()
@@ -231,8 +241,19 @@ namespace XRL.World.Effects
 
         void ChangeBody()
         {
-            OldAnatomy = base.Object.Body?.Anatomy;
-            base.Object.Body.Anatomy = "Quadruped";
+            OldAnatomy = base.Object.Body.Anatomy;
+            Object.Body.Anatomy = "Quadruped";
+        }
+
+        void RevertBodyAlt()
+        {
+            var cell = Object.CurrentCell;
+            cell.RemoveObject(Object);
+            cell.AddObject(OldBody);
+            XRLCore.Core.Game.Player.Body = OldBody;
+            Object.MakeInactive();
+            OldBody.MakeActive();
+            OldBody.AwardXP(XPTrack);
         }
 
         void ChangeBlueprint()
@@ -245,7 +266,7 @@ namespace XRL.World.Effects
         {
             if (VerifyObject())
             {
-                var Description = base.Object.GetPart<Description>();
+                var Description = Object.GetPart<Description>();
                 LastDescriptionShort = Description.Short;
                 Description.Short = "It sheaths itself in filmy wings.";
             }
@@ -278,14 +299,15 @@ namespace XRL.World.Effects
                 GameObject obj = OriginallyEquippedObjects[i];
                 if (VerifyHasObject(obj))
                 {
-                    Object.AutoEquip(obj);
+                    if (UI.Popup.ShowYesNo($"{obj == null} obj == null, {Object == null} Object == null, {GameObject.Validate(ref obj)} validate obj ") == XRL.UI.DialogResult.Yes)
+                        Object.AutoEquip(obj);
                 }
             }
         }
         List<GameObject> UnequipAndGet()
         {
-            List<GameObject> equipped = new(12);
-            Object.ForeachEquippedObject(delegate (GameObject obj)
+            List<GameObject> equipped = new();
+            Object.SafeForeachEquippedObject(delegate (GameObject obj)
             {
                 equipped.Add(obj);
                 obj.ForceUnequip(true);
@@ -296,7 +318,7 @@ namespace XRL.World.Effects
         bool VerifyObject()
         {
             DeathHandler.Security();
-            return base.Object != DeathHandler.Player; //so that we do not reset your description, only npc body descriptions
+            return Object != DeathHandler.Player; //so that we do not reset your description, only npc body descriptions
         }
 
         static void Suppress(bool value)
@@ -312,15 +334,15 @@ namespace XRL.World.Parts
     [Serializable]
     public class BatformSpell : VampiricSpell //the original version used metamorphosis to turn you into a literal bat, but your party would not sync and i didnt feel like trying to fix that
     {                                           //because the alternative is easier: fake transformation as you see in this type. there are also tons of other issues like mutations and stats not easily being synced so this is optimal
-        public override Type SpellType => typeof(BatformSpell);
         public override int Cooldown => BATFORM.COOLDOWN;
-        public bool Transformed => _Transformed;
-
-        
-        bool _Transformed = false;
+        public bool Transformed => ParentObject.Blueprint == "Bat";
+        static readonly string[] Stats =
+        {
+            "Strength", "Ego", "Agility", "Toughness", "Intelligence", "Willpower", "Level"
+        };
         public override bool WantEvent(int ID, int Cascade)
         {
-            if (ID == EffectRemovedEvent.ID && Transformed)
+            if (ID == EffectRemovedEvent.ID)
                 return true;
             return base.WantEvent(ID, Cascade);
         }
@@ -332,13 +354,6 @@ namespace XRL.World.Parts
         public override void AddSpell()
         {
             SpellID = AddMyActivatedAbility(BATFORM.ABILITY_NAME, BATFORM.COMMAND_NAME, $"{CLASS}", null, "\u009f");
-        }
-
-        public override bool HandleEvent(EffectRemovedEvent E)
-        {
-            if (E.Effect.GetType() == typeof(BatformFX))
-                _Transformed = false;
-            return base.HandleEvent(E);
         }
         public override bool HandleEvent(CommandEvent E)
         {
@@ -362,10 +377,63 @@ namespace XRL.World.Parts
                 ExpendBlood();
                 if (RealityCheck(ParentObject.CurrentCell))
                 {
-                    ParentObject.ApplyEffect(new BatformFX());
-                    _Transformed = true;
+                    ChangeBody();
                 }
             }
+        }
+
+        //            extract.ForEachIndexAssign(i => (mutations[i].Name, mutations[i].Level));
+        static (string, int)[] GetMutations(List<BaseMutation> mutations)
+        {
+            var extract = new (string, int)[mutations.Count]; //originally i was going to restrict this to only mental mutations which is why this method exists
+            extract.AssignEach(delegate (int i) { (string, int) tuple = new() { Item1 = mutations[i].Name, Item2 = mutations[i].Level }; return tuple; });
+            return extract;
+        }
+        static Effect[] GetFX(Rack<Effect> fx, GameObject bat)
+        {
+            Effect[] effects = new Effect[fx.Count];
+            effects.AssignEach(delegate (int i) { return fx[i].DeepCopy(bat); });
+            return effects;
+        }
+        static void SyncStats(GameObject bat, Dictionary<string, Statistic> stats) => Stats.ForEach(delegate (string stat) { bat.Statistics[stat] = new Statistic(stats[stat]); });
+        static void SyncFX(GameObject bat, Effect[] fx) => fx.ForEach(delegate (Effect e) { bat.ApplyEffect(e); });
+        static void SyncMutations(Mutations part, (string, int)[] mutations) => mutations.ForEach(delegate ((string, int) m) { part.AddMutation(m.Item1, m.Item2); });
+        static void MakeBat(GameObject bat, GameObject obj)
+        {
+            UI.Popup.Suppress = true;
+            SyncStats(bat, obj.Statistics);
+            // SyncFX(bat, GetFX(bat.Effects, obj));
+            SyncMutations(bat.RequirePart<Mutations>(), GetMutations(obj.GetPart<Mutations>().MutationList));
+            SyncBlood(obj.GetIntProperty(Nexus.Properties.FLAGS.BLOOD_VALUE), bat.GetPart<Vitae>());
+            UI.Popup.Suppress = false;
+        }
+
+        static void SyncBlood(int bloodValue, Vitae v)
+        {
+            v.Blood = bloodValue;
+        }
+
+        static void SyncCooldowns(ActivatedAbilities abilities)
+        {
+            GameObject obj = new();
+            // abilities.
+        }
+        static void ChangeBody()
+        {
+            GameObject obj = The.Player;
+            GameObject bat = GameObject.Create("Bat");
+            Metamorphosis.TransferInventory(obj, bat);
+            bat.ApplyEffect(new BatformFX(obj));
+            Cell cell = obj.CurrentCell;
+            XRLCore.Core.Game.ActionManager.RemoveActiveObject(obj);
+            XRLCore.Core.Game.ActionManager.AddActiveObject(bat);
+            cell.RemoveObject(obj);
+            cell.AddObject(bat);
+            obj.MakeInactive();
+            bat.MakeActive();
+            XRLCore.Core.Game.Player.Body = bat;
+            MakeBat(bat, obj);
+
         }
 
     }

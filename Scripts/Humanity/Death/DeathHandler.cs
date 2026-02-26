@@ -22,10 +22,10 @@ namespace XRL.World.Parts
         public static GameObject Player => _Player?.Object; //this is used for two major purposes: accessing the players humanity and checking hostility
                                                             //if you try to access by the.player (static) then you will get whatever
         [GameBasedStaticCache(false)]                       //gameobject they are currently dominating
-        static GameObjectReference _Player;     
-        
-                //instead of the gameobject that is "really" them 
-       public  bool finished;                                   //meaning: we cant find the humanity part, and innocence becomes relative to whatever gameobject the player is currently dominating
+        static GameObjectReference _Player;
+
+        //instead of the gameobject that is "really" them 
+        public bool finished;                                   //meaning: we cant find the humanity part, and innocence becomes relative to whatever gameobject the player is currently dominating
         public override bool WantEvent(int ID, int cascade)     //so you could dominate a snapjaw, and load a zone with snapjaws, and then come back as the original player
         {                                                       //start feeding on them and then lose humanity because they have the innocent flag
             if (!finished && ID == SingletonEvent<BeforeTakeActionEvent>.ID) //(for various reasons, checking hostility on death doesnt work)
@@ -71,7 +71,7 @@ namespace XRL.World.Parts
         }
         static void CreateDeathsInstance(GameObject Killer, GameObject Dying)
         {
-            if (Options.GetOptionBool(Nexus.Rules.OPTIONS.HUMANITY) && Security() && Player.PropertyEquals(FLAGS.GO, FLAGS.FALSE) && !Dying.HasStringProperty(FLAGS.DEAD))
+            if (Options.GetOptionBool(Nexus.Rules.OPTIONS.HUMANITY) && Security() && !Player.CheckFlag(FLAGS.GO) && !Dying.HasStringProperty(FLAGS.DEAD))
             {
                 bool friendly = Dying.IsFriendly(The.Player);
                 if (Options.GetOptionBool(Nexus.Rules.OPTIONS.DOUG) && friendly && !Dying.IsGhoulOf(The.Player) && !Dying.IsBeguiledBy(The.Player))
@@ -108,7 +108,7 @@ namespace XRL.World.Parts
                 obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.TRUE);
                 EmbraceableObject copy = new(Dying);
                 obj.AddPart(copy);
-                
+
             }
             else if (obj.Blueprint == corpse.BurntCorpseBlueprint || obj.Blueprint == corpse.VaporizedCorpseBlueprint)
                 obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.FALSE);
@@ -151,7 +151,25 @@ namespace XRL.World.Parts
             while (TrueDominator.HasEffect<Dominated>())
             {
                 Dominated d = TrueDominator.GetEffect<Dominated>();
-                TrueDominator = d.Dominator;
+                if (d != null)
+                    TrueDominator = d.Dominator;
+                else
+                {
+                    // Credits to _Cell for this 
+                    Vehicle vehiclePart = TrueDominator.GetPart<Vehicle>();
+                    if (vehiclePart != null && vehiclePart.Pilot != null)
+                    {
+                        TrueDominator = vehiclePart.Pilot;
+                        MetricsManager.LogInfo("!!Found vehicle pilot!");
+                    }
+                    else
+                    {
+
+                        MetricsManager.LogModError(XRL.ModManager.GetMod("vampirism"), "LoopDominator() failed to find the source player body. DeathHandler will not fire.");
+                        return false;
+                    }
+
+                }
             }
             _Player = TrueDominator.Reference();
             return Player.HasPart<Vampirism>();

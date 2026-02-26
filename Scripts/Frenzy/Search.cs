@@ -19,7 +19,7 @@ namespace Nexus.Frenzy
         {
             Sift();
             Register();                                                                     //make sure not to invoke min early or else you will get enumerator errors when everyoens dead with wassail
-            Object = Source.TargetRegistry.AnyIsnt(TheBeast.FLAG_AVOID) ? Source.TargetRegistry.PickFirst(Source.TargetRegistry.Values.Min()).Key : null;
+            Object = Source.TargetRegistry.AnyDoesntEqual(TheBeast.FLAG_AVOID) ? Source.TargetRegistry.PickFirstEqualTo(Source.TargetRegistry.Values.Min()).Key : null;
             return Object != null;
         }
 

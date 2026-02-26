@@ -475,9 +475,9 @@ namespace XRL.World.Parts
         {
             if (The.Player.CmdTarget("badliquid", out var pick))
             {
-                var BadLiquids = new Nexus.Bite.Bite().BadLiquids.ExtractPrimaryElements();
+                var BadLiquids = new Nexus.Bite.Bite().BadLiquids;
                 int range = WikiRng.Next(0, BadLiquids.Length - 1);
-                string liquid = BadLiquids[range];
+                string liquid = BadLiquids[range].Item1;
                 pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
                 admn.msg($"badliquified {pick} {liquid} {range}");
             }
@@ -886,7 +886,7 @@ namespace XRL.World.Parts
 
         static string[] mutations = new string[]
         {
-            "Domination", "Beguiling", "Phasing", "Sunder Mind"
+            nameof(Domination), nameof(Beguiling), nameof(Phasing)
         };
 
         [WishCommand(Command = "mod")]
@@ -894,15 +894,13 @@ namespace XRL.World.Parts
         {
             Popup.Suppress = true;
             Mutations m = The.Player.RequirePart<Mutations>();
-            //getstat.setvalue?
             for (int i = 0; i < mutations.Length; i++)
             {
                 m.AddMutation(mutations[i]);
             }
-            GameObject g = The.Player;
             for (int i = 0; i < stats.Length; i++)
             {
-                g.AddBaseStat(stats[i], 100);
+                The.Player.AddBaseStat(stats[i], 100);
             }
             The.Player.AddSkill<ShortBlades_Bloodletter>();
             The.Player.AddSkill<Physic_AmputateLimb>();

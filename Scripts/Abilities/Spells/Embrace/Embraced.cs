@@ -15,6 +15,11 @@ namespace XRL.World.Effects
         public GameObjectReference Embracer;
         public bool FailedEmbrace;
         public int Level;
+
+        public Embracing()
+        {
+
+        }
         public Embracing(GameObject Embracer, int time, int level)
         {
             this.Embracer = Embracer.Reference();
@@ -28,7 +33,7 @@ namespace XRL.World.Effects
         }
         public override bool WantEvent(int ID, int Cascade)
         {
-            if (ID == SingletonEvent<EndTurnEvent>.ID || ID == TookDamageEvent.ID || ID == DeathEvent.ID || ID == BeforeDieEvent.ID)
+            if (ID == SingletonEvent<EndTurnEvent>.ID || ID == BeforeTookDamageEvent.ID || ID == DeathEvent.ID || ID == BeforeDieEvent.ID)
                 return true;
             return base.WantEvent(ID, Cascade);
         }
@@ -53,7 +58,7 @@ namespace XRL.World.Effects
             return base.HandleEvent(E);
         }
 
-        public override bool HandleEvent(TookDamageEvent E)
+        public override bool HandleEvent(BeforeTookDamageEvent E)
         {
             if (E.Object == Object && E.Damage.Attributes.Contains("Fire") && UI.Options.GetOptionBool(OPTIONS.FIRE))
             {
@@ -95,6 +100,7 @@ namespace XRL.World.Effects
                 Object.AddPart(part);
                 Object.ApplyEffect(new Embraced());
                 Object.ApplyEffect(new Pale(999));
+                Object.Heal(Object.baseHitpoints / 2);
                 Message($"{Object.t()} rises from the dead!");
             }
             else

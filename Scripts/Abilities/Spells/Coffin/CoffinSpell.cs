@@ -13,7 +13,6 @@ namespace XRL.World.Parts
 
         [NonSerialized]
         public GameObject Coffin;
-        public override Type SpellType => typeof(CoffinSpell);
         public override int Cooldown => COFFIN.MATERIALIZE_COOLDOWN;
         public int JauntCooldown;
         public int Timer;
@@ -62,7 +61,7 @@ namespace XRL.World.Parts
 
         public override bool WantEvent(int ID, int Cascade)
         {
-            if ((ID == BeforeDieEvent.ID || ID == TookDamageEvent.ID) && !CoolingOff && HasCoffin)
+            if ((ID == BeforeDieEvent.ID || ID == BeforeTookDamageEvent.ID) && !CoolingOff && HasCoffin)
                 return true;
             if (ID == SingletonEvent<BeginTakeActionEvent>.ID && (JustJaunted || CoolingOff || HasCoffin))
                 return true;
@@ -102,7 +101,7 @@ namespace XRL.World.Parts
         {
             if (E.Dying == ParentObject && !TookFireDamage && !SpellCore.SunlightInterference(ParentObject))
             {
-                if (Roll() > COFFIN.SAVING_THROW_DC || UI.Options.GetOptionBool(OPTIONS.COFFIN))
+                if ((Roll() >= COFFIN.SAVING_THROW_DC) || UI.Options.GetOptionBool(OPTIONS.COFFIN))
                 {
                     if (RealityCheck(ParentObject.CurrentCell))
                     {
@@ -119,7 +118,7 @@ namespace XRL.World.Parts
             }
             return base.HandleEvent(E);
         }
-        public override bool HandleEvent(TookDamageEvent E)
+        public override bool HandleEvent(BeforeTookDamageEvent E)
         {
             if (E.Object == ParentObject && UI.Options.GetOptionBool(OPTIONS.FIRE))
             {
@@ -163,7 +162,7 @@ namespace XRL.World.Parts
         {
             Zone zone = The.ZoneManager.GetZone(Zone);
             cell = zone.Map[CellX][CellY]; //i used to do a cell != null and zone != null check here, but i actually want this to fail very loudly, a silent failure on BeforeDieEvent would not be helpful
-            if (Coffin == null || !GameObject.Validate(Coffin))
+            if (Coffin == null || !GameObject.Validate(ref Coffin))
             {
                 for (int i = 0; i < cell.Objects.Count; i++)
                 {

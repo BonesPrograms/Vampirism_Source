@@ -85,18 +85,14 @@ namespace Nexus.Bite
 
         public Ending LiquidEnding((string, bool)[] BadLiquids)
         {
-            Ending[] endings = new Ending[BadLiquids.CountElementsEqualTo(true)];
+            Ending[] endings = new Ending[BadLiquids.CountElements(true)];
             int index = 0;
-            for (int i = 0; i < BadLiquids.Length; i++)
+            BadLiquids.IfEach(ref index, endings.Length, delegate((string, bool) obj, int i)
             {
-                if (BadLiquids[i].Item2)
-                {
+               if(obj.Item2)
                     endings[index] = Cycle(i);
-                    index++;
-                }
-                if (index >= endings.Length)
-                    break;
-            }
+                return obj.Item2;
+            });
             return Result(endings);
         }
 
@@ -114,50 +110,5 @@ namespace Nexus.Bite
             _ => default
         };
 
-        
-        // public Ending LiquidEnding((string, bool)[] BadLiquids) //caves of qud certainly is a complex liquid simulation... luckily were just dealing with a micro part of it
-        // {
-        //     Ending[] array = new Ending[BadLiquids.CapacityByValue(true)];
-        //     int index = 0;
-        //     if (BadLiquids[0].Item2)
-        //     {
-        //         array[index] = SludgeLiquid();
-        //         index++;
-        //     }
-        //     if (BadLiquids[1].Item2)
-        //     {
-        //         array[index] = OozeLiquid();
-        //         index++;
-        //     }
-        //     if (BadLiquids[2].Item2)
-        //     {
-        //         array[index] = GooLiquid();
-        //         index++;
-        //     }
-        //     if (BadLiquids[3].Item2)
-        //     {
-        //         array[index] = OilLiquid();
-        //         index++;
-        //     }
-        //     if (BadLiquids[4].Item2)
-        //     {
-        //         array[index] = AcidLiquid();
-        //         index++;
-        //     }
-        //     if (BadLiquids[5].Item2)
-        //     {
-        //         array[index] = SlimeLiquid();
-        //         index++;
-        //     }
-        //     if (BadLiquids[6].Item2)
-        //     {
-        //         array[index] = GrossLiquid();
-        //         index++;
-        //     }
-        //     if (BadLiquids[7].Item2)
-        //         array[index] = AsphaltLiquid();
-        //     return Result(array);
-        //     //liquid features are based on the same type of result youd get by drinking them, but sometimes with less damage
-        // }
     }
 }

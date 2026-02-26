@@ -12,7 +12,6 @@ namespace XRL.World.Parts
     [Serializable]
     public class GhoulSpell : VampiricSpell
     {
-        public override Type SpellType => typeof(GhoulSpell);
         public override int Cooldown =>  GHOUL.COOLDOWN;
         public Effect Ghoul;
         public Dictionary<GameObject, EnthralledGhoul> Ghouls = new();

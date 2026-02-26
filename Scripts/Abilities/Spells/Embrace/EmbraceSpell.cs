@@ -41,7 +41,6 @@ namespace XRL.World.Parts
     [Serializable]
     public class EmbraceSpell : VampiricSpell
     {
-        public override Type SpellType => typeof(EmbraceSpell);
         public override int Cooldown => EMBRACE.COOLDOWN;
         public override void CollectStats(Templates.StatCollector stats)
         {

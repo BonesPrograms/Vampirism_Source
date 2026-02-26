@@ -9,6 +9,7 @@ namespace XRL.World.Parts
     public class VampireCoffin : Bed
     {
 
+        GameObject _Cache;
         public string OwnerID;
 
         public VampireCoffin()
@@ -22,7 +23,7 @@ namespace XRL.World.Parts
         }
         public override bool WantEvent(int ID, int Cascade)
         {
-            if (ID == TookDamageEvent.ID || ID == InventoryActionEvent.ID || ID == CommandSmartUseEvent.ID || ID == PooledEvent<IdleQueryEvent>.ID)
+            if (ID == BeforeTookDamageEvent.ID || ID == InventoryActionEvent.ID || ID == CommandSmartUseEvent.ID || ID == PooledEvent<IdleQueryEvent>.ID)
                 return true;
             return base.WantEvent(ID, Cascade);
         }
@@ -46,7 +47,7 @@ namespace XRL.World.Parts
                 return Failed(E.Actor.IsPlayer());
             return base.HandleEvent(E);
         }
-        public override bool HandleEvent(TookDamageEvent E)
+        public override bool HandleEvent(BeforeTookDamageEvent E)
         {
             Cell cell = ParentObject.CurrentZone?.GetEmptyCells()?.GetRandomElement();
             if (cell != null && !E.Damage.Attributes.Contains("Fire") && SpellCore.RealityCheck(cell, ParentObject, VampiricSpell.CLASS, this))
@@ -63,8 +64,8 @@ namespace XRL.World.Parts
 
         void UpdateXY()
         {
-            GameObject obj = GameObject.FindByID(OwnerID);
-            var part = obj?.GetPart<CoffinSpell>();
+            _Cache ??= GameObject.FindByID(OwnerID);
+            var part = _Cache?.GetPart<CoffinSpell>();
             if (part != null)
             {
                 if (part.UpdateXY(ParentObject.CurrentCell))

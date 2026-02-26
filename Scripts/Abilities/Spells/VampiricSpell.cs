@@ -19,11 +19,6 @@ namespace XRL.World.Parts
     {
         public const string CLASS = "Vampiric Spell";
         public Guid SpellID = Guid.Empty;
-
-        public abstract Type SpellType
-        {
-            get;
-        }
         public abstract int Cooldown
         {
             get;
@@ -53,7 +48,7 @@ namespace XRL.World.Parts
         public bool RealityCheck(Cell cell) => SpellCore.RealityCheck(cell, ParentObject, CLASS, this);
         public void ExpendBlood(bool DontPopup, string text) => SpellCore.ExpendBlood(DontPopup, text, ParentObject, Cost);
         public void ExpendBlood() => SpellCore.ExpendBlood(ParentObject, Cost);
-        public bool Cast(string ToDo) => SpellCore.Cast(ToDo, ParentObject, this, SpellID, Cooldown, Cost, CLASS, SpellType);
+        public bool Cast(string ToDo) => SpellCore.Cast(ToDo, ParentObject, this, SpellID, Cooldown, Cost, CLASS, Name);
     }
 }
 
@@ -78,7 +73,7 @@ namespace XRL.World.Effects
         }
         public bool RealityCheck(Cell cell) => SpellCore.RealityCheck(cell, Object, CLASS, this);
         public void ExpendBlood() => SpellCore.ExpendBlood(Object, Cost);
-        public bool Cast(string ToDo) => SpellCore.Cast(ToDo, Object, this, ID, Cooldown, Cost, CLASS, SpellType);
+        public bool Cast(string ToDo) => SpellCore.Cast(ToDo, Object, this, ID, Cooldown, Cost, CLASS, ClassName);
     }
 }
 
@@ -105,7 +100,7 @@ namespace Nexus.Spells
             }
             return false;
         }
-        public static bool Cast<T>(string ToDo, GameObject ParentObject, T part, Guid SpellID, int Cooldown, int Cost, string CLASS, Type SpellType) where T : IComponent<GameObject>
+        public static bool Cast<T>(string ToDo, GameObject ParentObject, T part, Guid SpellID, int Cooldown, int Cost, string CLASS, string Name) where T : IComponent<GameObject>
         {
             if (SunlightInterference(ParentObject))
             {
@@ -115,7 +110,7 @@ namespace Nexus.Spells
             {
                 IComponent<GameObject>.AddPlayerMessage("You invoke {{R|blood magic}}.");
                 ParentObject.SmallTeleportSwirl(null, "&R");
-                ParentObject.UseEnergy(1000, $"{CLASS} {SpellType}");
+                ParentObject.UseEnergy(1000, $"{CLASS} {Name}");
                 part.CooldownMyActivatedAbility(SpellID, Cooldown);
                 return true;
             }
