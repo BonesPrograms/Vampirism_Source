@@ -233,20 +233,16 @@ namespace XRL.World.Parts.Mutation
 			return base.HandleEvent(E);
 		}
 		void SearchForFire(List<Cell> cells)
+		 => cells.ForEach(cell => cell.Objects.IfEachBreak(obj =>
 		{
-			for (int i = 0; i < cells.Count; i++)
+			if (FireyObject(obj))
 			{
-				for (int x = 0; x < cells[i].Objects.Count; x++)
-				{
-					GameObject obj = cells[i].Objects[x];
-					if (FireyObject(obj))//|| HoldingFlamingObject(obj))
-					{
-						Panic(obj, true);
-						return;
-					}
-				}
+				Panic(obj, true);
+				return true;
 			}
-		}
+			return false;
+		}));
+
 
 		bool FireyObject(GameObject obj)
 		{

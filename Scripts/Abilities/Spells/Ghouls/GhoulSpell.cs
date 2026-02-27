@@ -143,7 +143,7 @@ namespace XRL.World.Parts
         {
             foreach (var ghoul in Ghouls.KeyArray())
             {
-                if ((!ghoul?.HasHitpoints() ?? true) || !ghoul.HasEffect(Ghouls[ghoul]))
+                if ((!ghoul?.HasHitpoints() ?? true) || !ghoul.HasEffect<EnthralledGhoul>())
                     Ghouls.Remove(ghoul);
             }
         }
