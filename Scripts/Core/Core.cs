@@ -406,13 +406,8 @@ namespace Nexus.Core
 		public static void Mapper(this Zone zone, Action<Cell> action)
 		{
 			for (int y = 0; y < zone.Height; y++)
-			{
 				for (int x = 0; x < zone.Width; x++)
-				{
-					var cell = zone.Map[x][y];
-					action(cell);
-				}
-			}
+					action(zone.Map[x][y]);
 		}
 		public static int ObjectCount(this Zone zone, Func<GameObject, bool> expr)
 		{
