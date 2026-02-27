@@ -121,15 +121,7 @@ namespace Nexus.Core
 			return value;
 		}
 
-		/// <summary>
-		/// Evaluates alliance, love, and player control.
-		/// </summary>
-		public static bool IsFriendly(this GameObject who, GameObject toWho)
-		{
-			if (toWho != null)
-				return who.IsAlliedTowards(toWho) || who.IsInLoveWith(toWho) || who.InSamePartyAs(toWho) || (toWho.IsPlayer() && (who.IsPlayerControlled() || who.IsPlayerLed()));
-			return false;
-		}
+
 		/// <summary>
 		/// Evaluates if the vampire is in a condition wherein they are incapable of activating Feed. Special evaluation for when frenzy is active.
 		/// </summary>
@@ -172,6 +164,16 @@ namespace Nexus.Core
 		}
 
 
+		/// <summary>
+		/// Evaluates alliance, love, and player control.
+		/// </summary>
+		public static bool IsFriendly(this GameObject who, GameObject toWho)
+		{
+			if (toWho != null)
+				return who.IsAlliedTowards(toWho) || who.IsInLoveWith(toWho) || who.InSamePartyAs(toWho) || (toWho.IsPlayer() && (who.IsPlayerControlled() || who.IsPlayerLed()));
+			return false;
+		}
+
 		public static bool IsSilver(this GameObject Object)
 		{
 			return Object.Blueprint.Contains("silver", StringComparison.OrdinalIgnoreCase);
@@ -210,11 +212,7 @@ namespace Nexus.Core
 			var e = Object.GetEffect<Beguiled>();
 			return Target != null && e?.Beguiler == Target;
 		}
-		public static bool LocalCells(this GameObject Player, out List<Cell> cells)
-		{
-			cells = Player.CurrentCell?.GetLocalAdjacentCells();
-			return cells != null;
-		}
+
 
 		#endregion
 
@@ -398,6 +396,12 @@ namespace Nexus.Core
 			zone.ForEachCombatObject(x => { if (expr(x)) list.Add(x); });
 			return list;
 		}
+		public static int ObjectCount(this Zone zone, Func<GameObject, bool> expr)
+		{
+			int count = 0;
+			zone.ForEachCombatObject(x => { if (expr(x)) count++; });
+			return count;
+		}
 		public static void ForEachCombatObject(this Zone zone, Action<GameObject> action)
 		{
 			void func(GameObject x) { if (x.IsCombatObject()) action(x); }
@@ -409,17 +413,12 @@ namespace Nexus.Core
 				for (int x = 0; x < zone.Width; x++)
 					action(zone.Map[x][y]);
 		}
-		public static int ObjectCount(this Zone zone, Func<GameObject, bool> expr)
+		public static bool LocalCells(this GameObject Player, out List<Cell> cells)
 		{
-			int count = 0;
-			zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) count += x.ObjectCount(expr); });
-			return count;
+			cells = Player.CurrentCell?.GetLocalAdjacentCells();
+			return cells != null;
 		}
 
-		public static int ObjectCount(this Cell Cell, Func<GameObject, bool> expr)
-		{
-			return Cell.Objects.ObjectCount(expr);
-		}
 		#endregion
 
 		#region Faction/Stat
