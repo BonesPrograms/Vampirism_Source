@@ -386,13 +386,13 @@ namespace XRL.World.Parts
         static (string, int)[] GetMutations(List<BaseMutation> mutations)
         {
             var extract = new (string, int)[mutations.Count]; //originally i was going to restrict this to only mental mutations which is why this method exists
-            extract.AssignEach(delegate (int i) { (string, int) tuple = new() { Item1 = mutations[i].Name, Item2 = mutations[i].Level }; return tuple; });
+            extract.AssignEachIndexed(delegate (int i) { (string, int) tuple = new() { Item1 = mutations[i].Name, Item2 = mutations[i].Level }; return tuple; });
             return extract;
         }
         static Effect[] GetFX(Rack<Effect> fx, GameObject bat)
         {
             Effect[] effects = new Effect[fx.Count];
-            effects.AssignEach(delegate (int i) { return fx[i].DeepCopy(bat); });
+            effects.AssignEachIndexed(delegate (int i) { return fx[i].DeepCopy(bat); });
             return effects;
         }
         static void SyncStats(GameObject bat, Dictionary<string, Statistic> stats) => Stats.ForEach(delegate (string stat) { bat.Statistics[stat] = new Statistic(stats[stat]); });

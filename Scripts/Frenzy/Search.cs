@@ -4,6 +4,7 @@ using XRL.World.Parts;
 using XRL.World.Parts.Mutation;
 using System.Linq;
 using Nexus.Core;
+using static XRL.World.Cell;
 
 namespace Nexus.Frenzy
 {
@@ -25,11 +26,15 @@ namespace Nexus.Frenzy
 
         void Sift()
         {
-            foreach (var obj in Source.TargetRegistry.KeyArray())
+            var array = Source.TargetRegistry.KeyArray();
+            array.ForEach(delegate (GameObject obj)
             {
                 if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(Source.ParentObject)) //serious bug here (OR DOWN IN THE BADKEY CHECK IN REGISTER()) (they were doing the same evaluation)
-                    Source.TargetRegistry.Remove(obj); //it was prematurely removing objects due to one of these two checks : !InSameZone or Target.CurrentCell.CombatTarget(ParentObject) == null so if that object was a badtarget you would get softlocked attacking them over and over
-            }                                           // i realized we dont really need either of them so its fine
+                    Source.TargetRegistry.Remove(obj);
+            });
+
+            //it was prematurely removing objects due to one of these two checks : !InSameZone or Target.CurrentCell.CombatTarget(ParentObject) == null so if that object was a badtarget you would get softlocked attacking them over and over
+            // i realized we dont really need either of them so its fine
         }                                                //if anyone ends up biting a phase spider wrongly, i will fix it then
                                                          //this caused too much headache for me to worry about right now I FIXED IT
 
@@ -48,38 +53,25 @@ namespace Nexus.Frenzy
 
         public void Register()
         {
-            Zone zone = Source.ParentObject.CurrentZone;
-            for (int y = 0; y < zone.Height; y++)
-            {
-                for (int x = 0; x < zone.Width; x++)
-                {
-                    Cell cell = zone.Map[x][y];
-                    if (cell.HasObjectWithPart(nameof(Combat)))
-                        Register(cell);
-                }
-            }
+            Source.ParentObject.CurrentZone.Mapper(delegate (Cell cell) { if (cell.HasObjectWithPart(nameof(Combat))) Register(cell.Objects); });
         }
 
-        public void Register(Cell cell)
-        {
-            for (int i = 0; i < cell.Objects.Count; i++)
+        public void Register(ObjectRack objects)
+         => objects.ForEach(delegate (GameObject obj)
             {
-                GameObject obj = cell.Objects[i];
                 if (BadKey(obj))
                 {
                     if (!obj?.HasHitpoints() ?? true)
                         Source.TargetRegistry.Remove(obj);
-                    continue;
                 }
-
-                if (ValidForRegistration(obj))
+                else if (ValidForRegistration(obj))
                 {
                     Source.TargetRegistry[obj] = obj.DistanceTo(Source.ParentObject);
                 }
                 else
-                    Source.TargetRegistry.Remove(obj);
-            }
-        }
+                   Source.TargetRegistry.Remove(obj);
+            });
+        
         public bool BadKey(GameObject Actor)
         {
             Source.TargetRegistry.TryGetValue(Actor, out int value);

@@ -59,12 +59,7 @@ namespace Nexus.Update
 
         static void UpdateProperties(GameObject GO)
         {
-            for (int i = 0; i < VampireBuilder.StringProperties.Length; i++)
-            {
-                string key = VampireBuilder.StringProperties[i].Item1;
-                if (GO.Property[key] == FLAGS.TRUE_LEGACY)
-                    GO.Property[key] = FLAGS.TRUE;
-            }
+            VampireBuilder.StringProperties.ForEach(x => { if (GO.Property[x.Item1] == FLAGS.TRUE_LEGACY) GO.Property[x.Item1] = FLAGS.TRUE; });
         }
         public static void Spells(GameObject GO)
         {

@@ -159,7 +159,7 @@ namespace Nexus.Bite
         void LiquidCheck(GameObject Target)
         {
             if (Target.TryGetEffect(out LiquidCovered L))
-                BadLiquids.AssignEach(delegate (string obj) { return L.Liquid.ContainsLiquid(obj);});
+                BadLiquids.CheckEach(delegate (string obj) { return L.Liquid.ContainsLiquid(obj);});
             else
                 BadLiquids.Reset(); // only one that needs manual resetting
                                     //other arrays are always scanned every bite
@@ -174,7 +174,7 @@ namespace Nexus.Bite
         }
         static void CheckEffects(GameObject Target, (Type, bool)[] source)
         {
-            source.AssignEach(delegate (Type obj) { return Target.HasEffect(obj); });
+            source.CheckEach(delegate (Type obj) { return Target.HasEffect(obj); });
         }
 
     }

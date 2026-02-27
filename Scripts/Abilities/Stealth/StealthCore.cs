@@ -5,6 +5,8 @@ using Nexus.Core;
 using XRL.World.Effects;
 using XRL.World.Parts;
 using XRL;
+using System;
+using XRL.Collections;
 
 namespace Nexus.Stealth
 {
@@ -17,36 +19,21 @@ namespace Nexus.Stealth
         public static GameObject Player => The.Player;
 
         [GameBasedStaticCache]
-        public static Zone Zone;
-
-        [GameBasedStaticCache]
         public static LightLevel? LightLevel;
 
         [GameBasedStaticCache]
         static int _TrueCount = 0;
         public static int TrueCount => _TrueCount;
         static GameObject[] KeyArray => Nightbeast.KeyArray;
-        public static void ScanEnvironment() //this method runs on zone/gameload, it puts every valid sentient into a dictionary and then the dictionary takes over
-        {                                           //objects created after this point will add themselves to the dictionary in the WitnessCreatedListener part, if they are valid
-            for (int y = 0; y < Zone.Height; y++)
-            {
-                for (int x = 0; x < Zone.Width; x++)
-                {
-                    Cell cell = Zone.Map[x][y];
-                    if (cell.HasObjectWithPart(nameof(Brain)))
-                        for (int i = 0; i < cell.Objects.Count; i++)
-                        {
-                            CheckValidity(cell.Objects[i]);
-                        }
-                }
-            }
+        public static void ScanEnvironment(Zone zone)
+        {
+            zone.Mapper(delegate (Cell cell) { if (cell.HasObjectWithPart(nameof(Brain))) cell.Objects.ForEach(x => CheckValidity(x)); });
         }
         public static void Stealth()
         {
             _TrueCount = default;
-            for (int i = 0; i < KeyArray.Length; i++)
+            KeyArray.ForEach(delegate (GameObject obj)
             {
-                GameObject obj = KeyArray[i];
                 if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(The.Player))
                 {
                     Nightbeast.Witnesses.Remove(obj);
@@ -58,7 +45,7 @@ namespace Nexus.Stealth
                     if (check)
                         _TrueCount++; //the count is re-iterated every single turn
                 }
-            }
+            });
             if (Nightbeast.Witnesses.Count != KeyArray.Length)
             {
                 Nightbeast.UpdateKeys();
@@ -82,7 +69,7 @@ namespace Nexus.Stealth
         /// 
         public static bool ActiveWitness(GameObject obj)
         {
-            return !obj.Unaware(false) && !Shrouded(obj) && !IsFriendly(obj) && obj.HasHitpoints() && CheckEffect(obj.Effects);
+            return !obj.Unaware(false) && !Shrouded(obj) && !IsFriendly(obj) && obj.HasHitpoints() && !InDominationChain(obj.Effects);
         }
 
         public static bool IsFriendly(GameObject who)
@@ -131,30 +118,15 @@ namespace Nexus.Stealth
         /// </summary>
         /// 
 
-        static bool CheckEffect(XRL.Collections.Rack<Effect> effects)
+        static bool InDominationChain(Rack<Effect> effects)
+         => effects.IfEachReturn(delegate (Effect e)
         {
-            for (int i = 0; i < effects.Count; i++)
-            {
-                System.Type type = effects[i].GetType();
-                if (type == typeof(Dominated) || type == typeof(Dominating))
-                    return false;
-            }
-            return true;
-        }
+            Type type = e.GetType();
+            return type == typeof(Dominated) || type == typeof(Dominating);
+        });
 
-        static bool CheckTags(GameObjectBlueprint Blueprint)
-        {
 
-            if (Blueprint?.Tags != null)
-            {
-                foreach (var data in Blueprint.Tags)
-                {
-                    if (CheckPair(data))
-                        return true;
-                }
-            }
-            return false;
-        }
+        static bool CheckTags(GameObjectBlueprint Blueprint) => Blueprint.Tags?.IfEachReturn(x => CheckPair(x)) ?? false;
 
         static bool CheckPair(KeyValuePair<string, string> data)
         {
@@ -175,15 +147,12 @@ namespace Nexus.Stealth
         }
 
         static bool CheckParts(PartRack rack)
-        {
-            for (int i = 0; i < rack.Count; i++)
-            {
-                System.Type Type = rack[i].GetType();
-                if (Type == typeof(Harvestable) || Type == typeof(PlantProperties) || Type == typeof(FungusProperties))
-                    return true;
-            }
-            return false;
-        }
+         => rack.IfEachReturn(delegate (IPart part)
+         {
+             Type type = part.GetType();
+             return type == typeof(Harvestable) || type == typeof(PlantProperties) || type == typeof(FungusProperties);
+         });
+
 
         /// <summary>
         /// Simple method that evaluates if you are detectable via lighting. Light levels in a cell are relative to what the player can see only,

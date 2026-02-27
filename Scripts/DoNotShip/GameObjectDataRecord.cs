@@ -200,7 +200,7 @@ namespace XRL.World.Parts
             if (m != null && m.MutationList.Count > 0)
             {
                 MutationsWithLevels = new (string, int)[m.MutationList.Count];
-                MutationsWithLevels.AssignEach(delegate (int i) { (string, int) tuple = new() { Item1 = m.MutationList[i].Name, Item2 = m.MutationList[i].Level }; return tuple; });
+                MutationsWithLevels.AssignEachIndexed(delegate (int i) { (string, int) tuple = new() { Item1 = m.MutationList[i].Name, Item2 = m.MutationList[i].Level }; return tuple; });
                 HadMutations = true;
 
             }
@@ -220,7 +220,7 @@ namespace XRL.World.Parts
         {
             IParts = new string[GetSize(parts)];
             int index = 0;
-            parts.IfEach(ref index, IParts.Length, delegate (IPart obj)
+            parts.IfEachCount(ref index, IParts.Length, delegate (IPart obj)
             {
                 if (!CheckType(obj))
                 {
@@ -234,7 +234,7 @@ namespace XRL.World.Parts
         static string[] GetTypeNames<T>(IList<T> list)
         {
             string[] array = new string[list.Count];
-            array.AssignEach(delegate (int i) { return list[i].GetType().Name; });
+            array.AssignEachIndexed(delegate (int i) { return list[i].GetType().Name; });
             return array;
         }
 

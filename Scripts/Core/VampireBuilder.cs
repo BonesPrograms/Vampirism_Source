@@ -96,8 +96,7 @@ namespace Nexus.Core
         }
         static void RequireParts(GameObject GO)
         {
-            for (int i = 0; i < IParts.Length; i++)
-                GO.RequirePart(IParts[i]);
+            IParts.ForEach(x => GO.RequirePart(x));
             GO.ApplyEffect(new HumanityUI(9999));
             if (XRL.UI.Options.GetOptionBool(OPTIONS.SPELLS) && GO.IsPlayer())
                 RequireSpells(GO);
@@ -107,16 +106,13 @@ namespace Nexus.Core
 
         static void SetVampireProperties(GameObject GO)
         {
-            for (int i = 0; i < StringProperties.Length; i++)
-                GO.SetStringProperty(StringProperties[i].Item1, StringProperties[i].Item2);
-            for (int i = 0; i < IntProperties.Length; i++)
-                GO.SetIntProperty(IntProperties[i].Item1, IntProperties[i].Item2);
+            StringProperties.ForEach(x => GO.SetStringProperty(x.Item1, x.Item2));
+            IntProperties.ForEach(x => GO.SetIntProperty(x.Item1, x.Item2));
         }
 
         static void RemoveParts(GameObject GO)
         {
-            for (int i = 0; i < IParts.Length; i++)
-                GO.RemovePart(IParts[i]);
+            IParts.ForEach(x => GO.RemovePart(x));
             GO.RemoveEffect<HumanityUI>();
             GO.RemoveEffect<Bloodlust>();
             if (GO.TryGetStringProperty(FLAGS.SPELLS, out var spells) && spells == FLAGS.TRUE)
@@ -126,31 +122,23 @@ namespace Nexus.Core
         public static void RequireSpells(GameObject GO)
         {
             XRL.UI.Popup.Suppress = true;
-            for (int i = 0; i < VampiricSpells.Length; i++)
-                if (GO.RequiresPart<VampiricSpell>(VampiricSpells[i], out var obj))
-                    obj.AddSpell();
+            VampiricSpells.ForEach(delegate (Type type) { if (GO.RequiresPart<VampiricSpell>(type, out var obj)) obj.AddSpell(); });
             GO.SetStringProperty(FLAGS.SPELLS, FLAGS.TRUE);
-             XRL.UI.Popup.Suppress = false;
+            XRL.UI.Popup.Suppress = false;
         }
 
 
         public static void RemoveSpells(GameObject GO)
         {
-            for (int i = 0; i < VampiricSpells.Length; i++)
-            {
-                var obj = GO.GetPart<VampiricSpell>(VampiricSpells[i]);
-                obj?.RemoveSpell();
-            }
+            VampiricSpells.ForEach(x => GO.GetPart<VampiricSpell>(x)?.RemoveSpell());
             GO.SetStringProperty(FLAGS.SPELLS, FLAGS.FALSE);
 
         }
 
         static void RemoveVampireProperties(GameObject GO)
         {
-            for (int i = 0; i < StringProperties.Length; i++)
-                GO.RemoveStringProperty(StringProperties[i].Item1);
-            for (int i = 0; i < IntProperties.Length; i++)
-                GO.RemoveIntProperty(IntProperties[i].Item1);
+            StringProperties.ForEach(x => GO.RemoveStringProperty(x.Item1));
+            IntProperties.ForEach(x => GO.RemoveIntProperty(x.Item1));
         }
 
         //will need to write reset code that changes the corpse back to its original code

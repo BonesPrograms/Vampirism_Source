@@ -95,9 +95,8 @@ namespace XRL.World.Parts
 		static void Reactivate(Zone zone) //system relies on pinging the zone on load (or receiving new objects when one is created) and then strictly sifts through its own dictionary from then on for evaluation
 		{
 			_Witnesses = new();
-			StealthCore.Zone = zone;
 			StealthCore.LightLevel = The.Player.CurrentCell?.GetLight();
-			StealthCore.ScanEnvironment();
+			StealthCore.ScanEnvironment(zone);
 			UpdateKeys();
 			NeedsReactivate = false;
 		}

@@ -3,6 +3,8 @@ using XRL.World;
 using System.Collections.Generic;
 using Nexus.Core;
 using XRL;
+using XRL.Collections;
+using static XRL.World.Cell;
 
 namespace Nexus.Blood
 {
@@ -45,42 +47,38 @@ namespace Nexus.Blood
         }
         static void ValidateCache()
         {
-            int value = 0;
-            for (int i = 0; i < Player.Inventory.Objects.Count; i++)
-            {
-                GameObject obj = Player.Inventory.Objects[i];
-                if (obj != null && CheckTag(obj.GetBlueprint()))
-                    value++;
-            }
+            var inventory = Player.Inventory.Objects;
+            int value = inventory.ObjectCount(delegate (GameObject obj) { return obj != null && CheckTag(obj.GetBlueprint()); });
             if (value != ContainerCache.Length) //reduces our need to reset or re-instance the containers list over and over, which i expect to not change often
+                MakeCache(inventory, value);
+        }
+
+        static void MakeCache(List<GameObject> inventory, int value)
+        {
+            ContainerCache = new GameObject[value];
+            int index = 0;
+            inventory.IfEachCount(ref index, value, delegate (GameObject obj)
             {
-                ContainerCache = new GameObject[value];
-                int index = 0;
-                for (int i = 0; i < Player.Inventory.Objects.Count; i++)
+                if (obj != null && CheckTag(obj.GetBlueprint()))
                 {
-                    GameObject obj = Player.Inventory.Objects[i];
-                    if (obj != null && CheckTag(obj.GetBlueprint()))
-                    {
-                        ContainerCache[index] = obj;
-                        index++;
-                    }
-                    if (index >= ContainerCache.Length)
-                        break;
+                    ContainerCache[index] = obj;
+                    return true;
                 }
-            }
+                return false;
+            });
         }
 
         static bool CheckTag(GameObjectBlueprint blueprint)
         {
             bool hidden = false;
             bool container = false;
-            foreach (var obj in blueprint.Tags)
+            blueprint.Tags.ForEach(delegate (KeyValuePair<string, string> obj)
             {
                 if (obj.Key == "HiddenInInventory")
                     hidden = true;
                 if (obj.Key == Container)
                     container = true;
-            }
+            });
             return container && !hidden;
         }
 
@@ -125,19 +123,18 @@ namespace Nexus.Blood
         // }
         static void AddBlood()
         {
-
-            for (int i = 0; i < ContainerCache.Length; i++)
+            ContainerCache.IfEachBreak(delegate (GameObject obj)
             {
                 if (PureBlood.Count > 0)
                 {
-                    GameObject container = ContainerCache[i];
-                    LiquidVolume Part = container?.GetPart<LiquidVolume>();
+                    LiquidVolume Part = obj?.GetPart<LiquidVolume>();
                     if (Part != null && !Part.Sealed && Part.Volume < MAX)
-                        CheckForStoredLiquids(Part, container);
+                        CheckForStoredLiquids(Part, obj);
+                    return false;
                 }
                 else
-                    break;
-            }
+                    return true;
+            });
         }
 
         static void CheckForStoredLiquids(LiquidVolume Part, GameObject Waterskin)
@@ -145,7 +142,7 @@ namespace Nexus.Blood
             if ((Part.ContainsLiquid(Blood) && Part.IsPureLiquid()) || Part.Volume == 0)
             {
                 LiquidVolume Pool = PureBlood.GetRandomElement();
-                if (Pool.Volume > 0)    
+                if (Pool.Volume > 0)
                 {
                     bool math = Math(Pool, Part, out int deduction);
                     if (math && deduction > 0)
@@ -210,23 +207,26 @@ namespace Nexus.Blood
 
             if (Player.LocalCells(out var cells))
             {
-                for (int i = 0; i < cells.Count; i++)
-                    if (cells[i].HasObjectWithPart(nameof(LiquidVolume)))
-                        DealWithLiquid(cells[i]);
+                cells.ForEach(delegate (Cell cell)
+                {
+                    if (cell.HasObjectWithPart(nameof(LiquidVolume)))
+                        DealWithLiquid(cell.Objects);
+                });
             }
         }
 
-        static void DealWithLiquid(Cell cell)
+        static void DealWithLiquid(ObjectRack objects)
         {
-            for (int i = 0; i < cell.Objects.Count; i++)
+            objects.ForEach(delegate (GameObject liquidSource)
             {
-                GameObject liquidSource = cell.Objects[i];
                 if (liquidSource.TryGetPart<LiquidVolume>(out var part) && !liquidSource.HasTag(Container) && part.ContainsLiquid(Blood) && part.IsPureLiquid() && $"{liquidSource}" != "FangBloodDrop")
                 {
                     PureBlood ??= new();
                     PureBlood.Add(part);
                 }
-            }
+
+            });
+
         }
 
     }
