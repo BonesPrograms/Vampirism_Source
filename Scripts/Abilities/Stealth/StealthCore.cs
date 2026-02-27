@@ -33,7 +33,7 @@ namespace Nexus.Stealth
         public static void Stealth()
         {
             _TrueCount = default;
-            KeyArray.ForEach(delegate (GameObject obj)
+            static void func(GameObject obj)
             {
                 if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(The.Player))
                 {
@@ -46,7 +46,8 @@ namespace Nexus.Stealth
                     if (check)
                         _TrueCount++; //the count is re-iterated every single turn
                 }
-            });
+            }
+            KeyArray.ForEach(func);
             if (Nightbeast.Witnesses.Count != KeyArray.Length)
             {
                 Nightbeast.UpdateKeys();
