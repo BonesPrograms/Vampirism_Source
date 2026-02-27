@@ -401,30 +401,30 @@ namespace Nexus.Core
 		public static void ForEachCombatObject(this Zone zone, Action<GameObject> action)
 		{
 			void func(GameObject x) { if (x.IsCombatObject()) action(x); }
-
+			zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) x.Objects.ForEach(func); });
+		}
+		public static void Mapper(this Zone zone, Action<Cell> action)
+		{
 			for (int y = 0; y < zone.Height; y++)
 			{
 				for (int x = 0; x < zone.Width; x++)
 				{
 					var cell = zone.Map[x][y];
-					if (cell.HasObjectWithPart(nameof(Combat)))
-						cell.Objects.ForEach(func);
+					action(cell);
 				}
 			}
 		}
+		public static int ObjectCount(this Zone zone, Func<GameObject, bool> expr)
+		{
+			int count = 0;
+			zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) count += x.ObjectCount(expr); });
+			return count;
+		}
 
-
-		// public static int ObjectCount(this Zone zone, Func<GameObject, bool> expr)
-		// {
-		// 	int count = 0;
-		// 	zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) count += x.ObjectCount(expr); });
-		// 	return count;
-		// }
-
-		// public static int ObjectCount(this Cell Cell, Func<GameObject, bool> expr)
-		// {
-		// 	return Cell.Objects.ObjectCount(expr);
-		// }
+		public static int ObjectCount(this Cell Cell, Func<GameObject, bool> expr)
+		{
+			return Cell.Objects.ObjectCount(expr);
+		}
 		#endregion
 
 		#region Faction/Stat

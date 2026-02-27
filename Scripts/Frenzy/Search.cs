@@ -53,9 +53,9 @@ namespace Nexus.Frenzy
 
         public void Register()
         {
-            Source.ParentObject.CurrentZone.ForEachCombatObject(_registerDelegate);
+            Source.ParentObject.CurrentZone.ForEachCombatObject(registerDelegate);
         }
-        void _registerDelegate(GameObject obj)
+        void registerDelegate(GameObject obj)
         {
             if (BadKey(obj))
             {

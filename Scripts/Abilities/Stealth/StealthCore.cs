@@ -32,11 +32,11 @@ namespace Nexus.Stealth
         public static void Stealth()
         {
             _TrueCount = default;
-            KeyArray.ForEach(_stealthDelegate);
+            KeyArray.ForEach(stealthDelegate);
             if (Nightbeast.Witnesses.Count != KeyArray.Length)
                 Nightbeast.UpdateKeys();
         }
-        static void _stealthDelegate(GameObject obj)
+        static void stealthDelegate(GameObject obj)
         {
             if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(The.Player))
             {
