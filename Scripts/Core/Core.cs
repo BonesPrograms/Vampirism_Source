@@ -392,10 +392,10 @@ namespace Nexus.Core
 		#endregion
 
 		#region Zone/Cell
-
 		public static void SetPeopleWho(this Zone zone, Action<GameObject> set)
 		{
-			zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) x.SetPeopleWho(set); });
+			void func(GameObject x) {set(x);}
+			zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) x.Objects.ForEach(func); });
 		}
 
 		public static void SetPeopleWho(this Cell cell, Action<GameObject> set)
@@ -406,19 +406,20 @@ namespace Nexus.Core
 		public static List<GameObject> ListPeopleWho(this Zone zone, Func<GameObject, bool> expr)
 		{
 			List<GameObject> list = new();
-			zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) x.AddPeopleWho(expr, list); });
+            void func(GameObject x) { if (expr(x)) list.Add(x); }
+            zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) x.Objects.ForEach(func); });
 			return list;
 		}
 
-		public static void AddPeopleWho(this Cell cell, Func<GameObject, bool> expr, List<GameObject> list)
+		public static void ListPeopleWho(this Cell cell, Func<GameObject, bool> expr, List<GameObject> list)
 		{
 			cell.Objects.ForEach(x => { if (expr(x)) list.Add(x); });
 
 		}
-		public static int ObjectCount(this Zone Zone, Func<GameObject, bool> expr)
+		public static int ObjectCount(this Zone zone, Func<GameObject, bool> expr)
 		{
 			int count = 0;
-			Zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) count += x.ObjectCount(expr); });
+			zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) count += x.ObjectCount(expr); });
 			return count;
 		}
 
@@ -474,8 +475,6 @@ namespace Nexus.Core
 		#endregion
 
 		#region Serialization
-
-
 
 		public static T[] ReadPrimitiveArray<T>(this SerializationReader Reader)
 		{
@@ -589,15 +588,11 @@ namespace Nexus.Core
 		}
 
 		#endregion
-
-
 	}
 
 
 	public static class Extensions
 	{
-
-
 		#region IList
 
 		/// <summary>
@@ -613,13 +608,11 @@ namespace Nexus.Core
 			obj.Add(add);
 		}
 
-
 		public static void AssignEach<T>(this IList<T> objs, Func<T> expr)
 		{
 			for (int i = 0; i < objs.Count; i++)
 				objs[i] = expr();
 		}
-
 
 		public static void AssignEachIndexed<T>(this IList<T> objs, Func<int, T> expr)
 		{

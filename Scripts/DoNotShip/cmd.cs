@@ -383,7 +383,6 @@ namespace XRL.World.Parts
         public static void Staticstealth()
         {
             AddPlayerMessage($"{StealthCore.Player.DisplayName}");
-            AddPlayerMessage($"{StealthCore.Zone}");
 
         }
 
