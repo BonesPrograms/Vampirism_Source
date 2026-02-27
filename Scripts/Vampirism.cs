@@ -419,11 +419,7 @@ namespace XRL.World.Parts.Mutation
 		}
 		static void Update(Zone zone)
 		{
-			zone.SetPeopleWho(x =>
-			{
-				if (x.IsVampire() && !x.IsPlayer())
-					Nexus.Update.Update.DoUpdate(x);
-			});
+			zone.ForEachCombatObject(x => { if (x.IsVampire() && !x.IsPlayer()) Nexus.Update.Update.DoUpdate(x); });
 			zone.SetZoneProperty(FLAGS.MOD.VERSION_TAG, MOD.VERSION);
 		}
 		#endregion

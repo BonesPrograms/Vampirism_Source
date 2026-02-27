@@ -27,30 +27,27 @@ namespace Nexus.Stealth
         static GameObject[] KeyArray => Nightbeast.KeyArray;
         public static void ScanEnvironment(Zone zone)
         {
-            static void func(GameObject x) { CheckValidity(x); }
-            zone.Mapper(delegate (Cell cell) { if (cell.HasObjectWithPart(nameof(Brain))) cell.Objects.ForEach(func); });
+            zone.ForEachCombatObject(x => CheckValidity(x));
         }
         public static void Stealth()
         {
             _TrueCount = default;
-            static void func(GameObject obj)
-            {
-                if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(The.Player))
-                {
-                    Nightbeast.Witnesses.Remove(obj);
-                }
-                else
-                {
-                    bool check = NearbySentient(obj) && ActiveWitness(obj); //but this can change actively!
-                    Nightbeast.Witnesses[obj] = check;
-                    if (check)
-                        _TrueCount++; //the count is re-iterated every single turn
-                }
-            }
-            KeyArray.ForEach(func);
+            KeyArray.ForEach(_stealthDelegate);
             if (Nightbeast.Witnesses.Count != KeyArray.Length)
-            {
                 Nightbeast.UpdateKeys();
+        }
+        static void _stealthDelegate(GameObject obj)
+        {
+            if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(The.Player))
+            {
+                Nightbeast.Witnesses.Remove(obj);
+            }
+            else
+            {
+                bool check = NearbySentient(obj) && ActiveWitness(obj); //but this can change actively!
+                Nightbeast.Witnesses[obj] = check;
+                if (check)
+                    _TrueCount++; //the count is re-iterated every single turn
             }
         }
 

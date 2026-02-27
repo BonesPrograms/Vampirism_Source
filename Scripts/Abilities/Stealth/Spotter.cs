@@ -56,7 +56,7 @@ namespace Nexus.Stealth
         static string DefaultMessage(GameObject Spotter) => $"You try to sneak attack, but {Spotter.t()} spots you from a distance!";
         public static List<GameObject> GiveDefaultList(GameObject Source)
         {
-            return Source.CurrentZone.ListPeopleWho(x => StealthCore.ValidSentient(x) && !x.Unaware(false));
+            return Source.CurrentZone.ListCombatObjects(x => StealthCore.ValidSentient(x) && !x.Unaware(false));
         }
         public Spot Check<T>(string message = default) where T : IOpinionSubject, new()
         {

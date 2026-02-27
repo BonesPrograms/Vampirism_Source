@@ -392,51 +392,39 @@ namespace Nexus.Core
 		#endregion
 
 		#region Zone/Cell
-		public static void SetPeopleWho(this Zone zone, Action<GameObject> set)
-		{
-			void func(GameObject x) {set(x);}
-			zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) x.Objects.ForEach(func); });
-		}
-
-		public static void SetPeopleWho(this Cell cell, Action<GameObject> set)
-		{
-			cell.Objects.ForEach(x => set(x));
-		}
-
-		public static List<GameObject> ListPeopleWho(this Zone zone, Func<GameObject, bool> expr)
+		public static List<GameObject> ListCombatObjects(this Zone zone, Func<GameObject, bool> expr)
 		{
 			List<GameObject> list = new();
-            void func(GameObject x) { if (expr(x)) list.Add(x); }
-            zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) x.Objects.ForEach(func); });
+			zone.ForEachCombatObject(x => { if (expr(x)) list.Add(x); });
 			return list;
 		}
-
-		public static void ListPeopleWho(this Cell cell, Func<GameObject, bool> expr, List<GameObject> list)
+		public static void ForEachCombatObject(this Zone zone, Action<GameObject> action)
 		{
-			cell.Objects.ForEach(x => { if (expr(x)) list.Add(x); });
+			void func(GameObject x) { if (x.IsCombatObject()) action(x); }
 
-		}
-		public static int ObjectCount(this Zone zone, Func<GameObject, bool> expr)
-		{
-			int count = 0;
-			zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) count += x.ObjectCount(expr); });
-			return count;
-		}
-
-		public static int ObjectCount(this Cell Cell, Func<GameObject, bool> expr)
-		{
-			return Cell.Objects.ObjectCount(expr);
-		}
-
-		public static void Mapper(this Zone zone, Action<Cell> action)
-		{
 			for (int y = 0; y < zone.Height; y++)
 			{
 				for (int x = 0; x < zone.Width; x++)
-					action(zone.Map[x][y]);
+				{
+					var cell = zone.Map[x][y];
+					if (cell.HasObjectWithPart(nameof(Combat)))
+						cell.Objects.ForEach(func);
+				}
 			}
 		}
 
+
+		// public static int ObjectCount(this Zone zone, Func<GameObject, bool> expr)
+		// {
+		// 	int count = 0;
+		// 	zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) count += x.ObjectCount(expr); });
+		// 	return count;
+		// }
+
+		// public static int ObjectCount(this Cell Cell, Func<GameObject, bool> expr)
+		// {
+		// 	return Cell.Objects.ObjectCount(expr);
+		// }
 		#endregion
 
 		#region Faction/Stat

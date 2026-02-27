@@ -53,25 +53,22 @@ namespace Nexus.Frenzy
 
         public void Register()
         {
-            Source.ParentObject.CurrentZone.Mapper(delegate (Cell cell) { if (cell.HasObjectWithPart(nameof(Combat))) Register(cell.Objects); });
+            Source.ParentObject.CurrentZone.ForEachCombatObject(_registerDelegate);
         }
-
-        public void Register(ObjectRack objects)
-         => objects.ForEach(delegate (GameObject obj)
+        void _registerDelegate(GameObject obj)
+        {
+            if (BadKey(obj))
             {
-                if (BadKey(obj))
-                {
-                    if (!obj?.HasHitpoints() ?? true)
-                        Source.TargetRegistry.Remove(obj);
-                }
-                else if (ValidForRegistration(obj))
-                {
-                    Source.TargetRegistry[obj] = obj.DistanceTo(Source.ParentObject);
-                }
-                else
-                   Source.TargetRegistry.Remove(obj);
-            });
-        
+                if (!obj?.HasHitpoints() ?? true)
+                    Source.TargetRegistry.Remove(obj);
+            }
+            else if (ValidForRegistration(obj))
+            {
+                Source.TargetRegistry[obj] = obj.DistanceTo(Source.ParentObject);
+            }
+            else
+                Source.TargetRegistry.Remove(obj);
+        }
         public bool BadKey(GameObject Actor)
         {
             Source.TargetRegistry.TryGetValue(Actor, out int value);

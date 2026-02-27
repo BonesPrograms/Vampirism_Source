@@ -373,7 +373,7 @@ namespace XRL.World.Parts
 
         public static void FindSpotter()
         {
-            List<GameObject> spotters = The.Player.CurrentZone.ListPeopleWho(x => x.HasEffect<Spotter>());
+            List<GameObject> spotters = The.Player.CurrentZone.ListCombatObjects(x => x.HasEffect<Spotter>());
             for (int i = 0; i < spotters.Count; i++)
                 msg($"{spotters[i]}");
         }
