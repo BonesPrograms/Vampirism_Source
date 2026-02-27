@@ -418,22 +418,13 @@ namespace Nexus.Core
 		public static int ObjectCount(this Zone Zone, Func<GameObject, bool> expr)
 		{
 			int count = 0;
-			for (int y = 0; y < Zone.Height; y++)
-			{
-				for (int x = 0; x < Zone.Width; x++)
-				{
-					Cell cell = Zone.Map[x][y];
-					if (cell.HasObjectWithPart(nameof(Combat)))
-						count += cell.ObjectCount(expr);
-				}
-			}
+			Zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) count += x.ObjectCount(expr); });
 			return count;
 		}
 
 		public static int ObjectCount(this Cell Cell, Func<GameObject, bool> expr)
 		{
-			int count = Cell.Objects.ObjectCount(expr);
-			return count;
+			return Cell.Objects.ObjectCount(expr);
 		}
 
 		public static void Mapper(this Zone zone, Action<Cell> action)
