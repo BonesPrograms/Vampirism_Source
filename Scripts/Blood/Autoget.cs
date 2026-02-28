@@ -24,7 +24,7 @@ namespace Nexus.Blood
         const int MAX = 64;
         const string Container = "WaterContainer";
         const string Blood = "blood";
-
+        static bool FoundBlood => PureBlood?.Count > 0;
         public static void Empty()
         {
             PureBlood = null;
@@ -36,12 +36,8 @@ namespace Nexus.Blood
             if (ContainerCache.Length > 0)
             {
                 FindBlood();
-                if (PureBlood != null)
-                {
+                if (FoundBlood)
                     AddBlood();
-                    PureBlood = null;
-                    //    SecretlyRearrangeBlood();
-                }
             }
         }
         static void ValidateCache()
@@ -106,7 +102,7 @@ namespace Nexus.Blood
         // }
         static void AddBlood()
         {
-            ContainerCache.TakeWhile(x => PureBlood.Count > 0).Select(x => x?.GetPart<LiquidVolume>()).Where(x => x != null && !x.Sealed && x.Volume < MAX).ForEach(x => CheckForStoredLiquids(x, x.ParentObject));
+            ContainerCache.TakeWhile(x => FoundBlood).Select(x => x?.GetPart<LiquidVolume>()).Where(x => x != null && !x.Sealed && x.Volume < MAX).ForEach(x => CheckForStoredLiquids(x, x.ParentObject));
         }
 
         static void CheckForStoredLiquids(LiquidVolume Part, GameObject Waterskin)
@@ -185,8 +181,7 @@ namespace Nexus.Blood
         static void DealWithLiquid(IEnumerable<GameObject> objects)
         {
             var foundBlood = objects.Select(x => x.GetPart<LiquidVolume>()).Where(x => x != null && x.ContainsLiquid(Blood) && x.IsPureLiquid() && !x.ParentObject.HasTag(Container) && x.ParentObject.Blueprint != "FangBloodDrop");
-            PureBlood ??= new();
-            PureBlood.UnionWith(foundBlood);
+            PureBlood = new(foundBlood);
         }
 
     }
