@@ -17,7 +17,7 @@ namespace Nexus.Blood
         static GameObject Player => The.Player;
 
         [GameBasedStaticCache(false)]
-        static HashSet<LiquidVolume> PureBlood;
+        static List<LiquidVolume> PureBlood;
 
         [GameBasedStaticCache(false, true)]
         static GameObject[] ContainerCache = new GameObject[0];
