@@ -3,8 +3,7 @@ using XRL.World;
 using System.Collections.Generic;
 using Nexus.Core;
 using XRL;
-using XRL.Collections;
-using static XRL.World.Cell;
+using System.Linq;
 
 namespace Nexus.Blood
 {
@@ -48,31 +47,15 @@ namespace Nexus.Blood
         static void ValidateCache()
         {
             var inventory = Player.Inventory.Objects;
-            int value = inventory.ObjectCount(delegate (GameObject obj) { return obj != null && CheckTag(obj.GetBlueprint()); });
-            if (value != ContainerCache.Length) //reduces our need to reset or re-instance the containers list over and over, which i expect to not change often
-                MakeCache(inventory, value);
+            if (inventory.Count(cacheDelegate) != ContainerCache.Length) //reduces our need to reset or re-instance the containers list over and over, which i expect to not change often
+                ContainerCache = inventory.Where(cacheDelegate).ToArray();
         }
-
-        static void MakeCache(List<GameObject> inventory, int value)
-        {
-            ContainerCache = new GameObject[value];
-            int index = 0;
-            inventory.IfEachCount(ref index, value, delegate (GameObject obj)
-            {
-                if (obj != null && CheckTag(obj.GetBlueprint()))
-                {
-                    ContainerCache[index] = obj;
-                    return true;
-                }
-                return false;
-            });
-        }
-
+        static bool cacheDelegate(GameObject x) => x != null && CheckTag(x.GetBlueprint());
         static bool CheckTag(GameObjectBlueprint blueprint)
         {
             bool hidden = false;
             bool container = false;
-            blueprint.Tags.ForEach(delegate (KeyValuePair<string, string> obj)
+            blueprint.Tags.ForEach(obj =>
             {
                 if (obj.Key == "HiddenInInventory")
                     hidden = true;
@@ -123,18 +106,7 @@ namespace Nexus.Blood
         // }
         static void AddBlood()
         {
-            ContainerCache.IfEachBreak(delegate (GameObject obj)
-            {
-                if (PureBlood.Count > 0)
-                {
-                    LiquidVolume Part = obj?.GetPart<LiquidVolume>();
-                    if (Part != null && !Part.Sealed && Part.Volume < MAX)
-                        CheckForStoredLiquids(Part, obj);
-                    return false;
-                }
-                else
-                    return true;
-            });
+            ContainerCache.TakeWhile(x => PureBlood.Count > 0).Select(x => x?.GetPart<LiquidVolume>()).Where(x => x != null && !x.Sealed && x.Volume < MAX).ForEach(x => CheckForStoredLiquids(x, x.ParentObject));
         }
 
         static void CheckForStoredLiquids(LiquidVolume Part, GameObject Waterskin)
@@ -204,29 +176,17 @@ namespace Nexus.Blood
         }
         static void FindBlood()
         {
-
             if (Player.LocalCells(out var cells))
             {
-                cells.ForEach(delegate (Cell cell)
-                {
-                    if (cell.HasObjectWithPart(nameof(LiquidVolume)))
-                        DealWithLiquid(cell.Objects);
-                });
+                var objs = cells.Where(x => x.HasObjectWithPart(nameof(LiquidVolume))).SelectMany(x => x.Objects);
+                DealWithLiquid(objs);
             }
         }
-
-        static void DealWithLiquid(ObjectRack objects)
+        static void DealWithLiquid(IEnumerable<GameObject> objects)
         {
-            objects.ForEach(delegate (GameObject liquidSource)
-            {
-                if (liquidSource.TryGetPart<LiquidVolume>(out var part) && !liquidSource.HasTag(Container) && part.ContainsLiquid(Blood) && part.IsPureLiquid() && $"{liquidSource}" != "FangBloodDrop")
-                {
-                    PureBlood ??= new();
-                    PureBlood.Add(part);
-                }
-
-            });
-
+            var foundBlood = objects.Select(x => x.GetPart<LiquidVolume>()).Where(x => x != null && x.ContainsLiquid(Blood) && x.IsPureLiquid() && !x.ParentObject.HasTag(Container) && x.ParentObject.Blueprint != "FangBloodDrop");
+            PureBlood ??= new();
+            PureBlood.UnionWith(foundBlood);
         }
 
     }

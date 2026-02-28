@@ -32,7 +32,7 @@ namespace Nexus.Bite
         protected VampireBite(GameObject Biter) => this.Biter = Biter;
         protected bool PainTolerance() => Biter.HasEffect<HulkHoney_Tonic>() || Biter.HasPart<Analgesia>();
         protected Ending MakeSave(string text) => Biter.MakeSave("Toughness", 13, null, null, text) ? Ending.SUCCESS : Ending.FAIL;
-        protected Ending Result(Ending[] endresults) => endresults.Length > 0 ? endresults.Max() : Ending.OUT_OF_RANGE;
+        protected Ending Result(IEnumerable<Ending> endresults) => endresults.Count() > 0 ? endresults.Max() : Ending.OUT_OF_RANGE;
         //default enum value is 0. ever since we switched to arrays we use Max() instead. higher numbers take priority and indicate failure.
         //thus if your Max() value is 0 you know something has gone wrong and it wasnt just a normal failure
 

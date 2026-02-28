@@ -20,23 +20,22 @@ namespace Nexus.Frenzy
         {
             Sift();
             Register();                                                                     //make sure not to invoke min early or else you will get enumerator errors when everyoens dead with wassail
-            Object = Source.TargetRegistry.AnyDoesntEqual(TheBeast.FLAG_AVOID) ? Source.TargetRegistry.PickFirstEqualTo(Source.TargetRegistry.Values.Min()).Key : null;
+            Object = Source.TargetRegistry.Any(x => x.Value != TheBeast.FLAG_AVOID) ? Source.TargetRegistry.First(x => x.Value == Source.TargetRegistry.Values.Min()).Key : null;
             return Object != null;
         }
 
         void Sift()
         {
-            var array = Source.TargetRegistry.KeyArray();
-            array.ForEach(delegate (GameObject obj)
-            {
-                if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(Source.ParentObject)) //serious bug here (OR DOWN IN THE BADKEY CHECK IN REGISTER()) (they were doing the same evaluation)
-                    Source.TargetRegistry.Remove(obj);
-            });
+            Source.TargetRegistry.Select(x => x.Key).Where(x => x == null || !x.HasHitpoints() || !x.InSameZone(Source.ParentObject)).ForEach(x => Source.TargetRegistry.Remove(x));
+        }
 
-            //it was prematurely removing objects due to one of these two checks : !InSameZone or Target.CurrentCell.CombatTarget(ParentObject) == null so if that object was a badtarget you would get softlocked attacking them over and over
-            // i realized we dont really need either of them so its fine
-        }                                                //if anyone ends up biting a phase spider wrongly, i will fix it then
-                                                         //this caused too much headache for me to worry about right now I FIXED IT
+
+
+        //serious bug here (OR DOWN IN THE BADKEY CHECK IN REGISTER()) (they were doing the same evaluation)}
+        //it was prematurely removing objects due to one of these two checks : !InSameZone or Target.CurrentCell.CombatTarget(ParentObject) == null so if that object was a badtarget you would get softlocked attacking them over and over
+        // i realized we dont really need either of them so its fine
+        //if anyone ends up biting a phase spider wrongly, i will fix it then
+        //this caused too much headache for me to worry about right now I FIXED IT
 
         bool LightCheck(GameObject tgt, int distance)
         {
@@ -52,9 +51,8 @@ namespace Nexus.Frenzy
         }
 
         public void Register()
-        {
-            Source.ParentObject.CurrentZone.ForEachCombatObject(registerDelegate);
-        }
+         => Source.ParentObject.CurrentZone.ForEachCombatObject(registerDelegate);
+
         void registerDelegate(GameObject obj)
         {
             if (BadKey(obj))

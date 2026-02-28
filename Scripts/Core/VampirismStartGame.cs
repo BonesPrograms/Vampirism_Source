@@ -5,6 +5,7 @@ using Nexus.Rules;
 using Nexus.Core;
 using XRL.World.Parts;
 using System.Collections.Generic;
+using System.Linq;
 
 [PlayerMutator]
 public class VampirismStartGame : IPlayerMutator
@@ -23,14 +24,7 @@ public class VampirismStartGame : IPlayerMutator
 
     static void FindTorch(List<GameObject> objects)
     {
-        for (int i = 0; i < objects.Count; i++)
-        {
-            if (objects[i].Blueprint == "Torch")
-            {
-                objects[i].ForceUnequip(true);
-                return;
-            }
-        }
+        objects.FirstOrDefault(x => x.Blueprint == "Torch")?.ForceUnequip(true);
     }
 
     static void CallStealthReactivation()

@@ -19,9 +19,9 @@ namespace Nexus.Bite
     {
         public bool IsOnFire { get; private set; }
         public bool HasPlasma { get; private set; }
-        public bool HasBadLiquid => BadLiquids.ContainsElement(true);
-        public bool HasDisease => Diseases.ContainsElement(true);
-        public bool IsPoisoned => Poisons.ContainsElement(true);
+        public bool HasBadLiquid => BadLiquids.Any(x => x.Item2 == true);
+        public bool HasDisease => Diseases.Any(x => x.Item2 == true);
+        public bool IsPoisoned => Poisons.Any(x => x.Item2 == true);
         readonly Vampirism Vampirism;
         readonly BiteSimulator Sim;
 
@@ -159,10 +159,19 @@ namespace Nexus.Bite
         void LiquidCheck(GameObject Target)
         {
             if (Target.TryGetEffect(out LiquidCovered L))
-                BadLiquids.CheckEach(delegate (string obj) { return L.Liquid.ContainsLiquid(obj);});
+            {
+                for (int i = 0; i < BadLiquids.Length; i++)
+                {
+                    BadLiquids[i].Item2 = L.Liquid.ContainsLiquid(BadLiquids[i].Item1);
+                }
+            }
             else
-                BadLiquids.Reset(); // only one that needs manual resetting
-                                    //other arrays are always scanned every bite
+            {
+                for (int i = 0; i < BadLiquids.Length; i++)
+                {
+                    BadLiquids[i].Item2 = false;
+                }
+            }
 
         }
 
@@ -174,7 +183,10 @@ namespace Nexus.Bite
         }
         static void CheckEffects(GameObject Target, (Type, bool)[] source)
         {
-            source.CheckEach(delegate (Type obj) { return Target.HasEffect(obj); });
+            for(int i = 0; i < source.Length; i++)
+            {
+                source[i].Item2 = Target.HasEffect(source[i].Item1);
+            }
         }
 
     }

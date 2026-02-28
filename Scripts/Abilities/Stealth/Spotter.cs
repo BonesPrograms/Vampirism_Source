@@ -78,12 +78,7 @@ namespace Nexus.Stealth
         }
         GameObject ReturnSpotter()
         {
-            for (int i = 0; i < PotentialSpotters.Count; i++)
-            {
-                GameObject witness = PotentialSpotters[i];
-                if (witness.canPathTo(Source.CurrentCell))
-                    SpotterRanges.Add(witness, witness.DistanceTo(Source));
-            }
+            PotentialSpotters.ForEach(x => { if (x.canPathTo(Source.CurrentCell)) SpotterRanges[x] = x.DistanceTo(Source); });
             return SpotterRanges.Count == 0 ? null : SpotterRanges.Count == 1 ? OneKey() : ManyKeys();
         }
 
@@ -95,17 +90,17 @@ namespace Nexus.Stealth
         GameObject ManyKeys()
         {
             int minimumvalue = SpotterRanges.Values.Min();
-            package = SpotterRanges.PickFirstEqualTo(minimumvalue);
+            package = SpotterRanges.First(x=>x.Value == minimumvalue);
             return package.Key;
         }
         Spot SpotterFound<T>(GameObject Spotter, string message) where T : IOpinionSubject, new()
         {
-            Spot spot = Spotted(package.Value, package.Key) ? Spot.SPOTTER_IN_DETECTION : Spot.SPOTTER_OUTSIDE_DETECTION; 
-            if (spot == Spot.SPOTTER_IN_DETECTION)                                                                        
-            {                                                                                                     
-                message = message == default ? DefaultMessage(Spotter) : message;                                        
-                XRL.UI.Popup.Show(message);                                                                               
-                Spotter.AddOpinion<T>(Source);                                                                              
+            Spot spot = Spotted(package.Value, package.Key) ? Spot.SPOTTER_IN_DETECTION : Spot.SPOTTER_OUTSIDE_DETECTION;
+            if (spot == Spot.SPOTTER_IN_DETECTION)
+            {
+                message = message == default ? DefaultMessage(Spotter) : message;
+                XRL.UI.Popup.Show(message);
+                Spotter.AddOpinion<T>(Source);
                 Spotter.ApplyEffect(new Spotter(Source, Nexus.Rules.FEED.DURATION));
             }
             else

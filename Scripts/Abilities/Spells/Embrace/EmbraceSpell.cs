@@ -2,6 +2,7 @@ using System;
 using Nexus.Rules;
 using Nexus.Properties;
 using XRL.World.Effects;
+using System.Linq;
 
 using Nexus.Core;
 using XRL.Messages;
@@ -15,10 +16,10 @@ namespace XRL.World.Parts
     public class EmbraceableObject : IPart
     {
         [NonSerialized]
-        public GameObject Object; 
+        public GameObject Object;
         public EmbraceableObject()
         {
-            
+
         }
 
         public override void Write(GameObject Basis, SerializationWriter Writer)
@@ -61,20 +62,11 @@ namespace XRL.World.Parts
         void FindEmbraceableObject()
         {
             Cell cell = ParentObject.PickDirection(EMBRACE.ABILITY_NAME);
-            if (cell != null)
-            {
-                for (int i = 0; i < cell.Objects.Count; i++)
-                {
-                    var Object = cell.Objects[i];
-                    if (Object.TryGetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, out string result))
-                    {
-                        CheckEmbraceableObject(Object, result);
-                        return; //bug here would list EVERY object in the cell. we just take the first object with the flag. i dont really care if corpses are stacked, the player can deal with that
-                    }   //(because the game already has issues with trying to easily/quickly target two objets occupying the same cell)
-                }
-                UI.Popup.Show("There is nothing there to embrace");
-            }
+            bool? value = cell?.Objects?.Any(x => { if (x.TryGetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, out string result)) { CheckEmbraceableObject(x, result); return true; } return false; });
+            if (value == false)
+                UI.Popup.Show("There is nothing there to embrace.");
         }
+
 
         void CheckEmbraceableObject(GameObject Object, string result)
         {

@@ -6,6 +6,7 @@ using Nexus.Rules;
 using XRL.UI;
 using XRL.World.Parts;
 using Nexus.Properties;
+using System.Linq;
 
 [HasCallAfterGameLoaded]
 public static class VampirismUpdater
@@ -59,7 +60,7 @@ namespace Nexus.Update
 
         static void UpdateProperties(GameObject GO)
         {
-            VampireBuilder.StringProperties.ForEach(x => { if (GO.Property[x.Item1] == FLAGS.TRUE_LEGACY) GO.Property[x.Item1] = FLAGS.TRUE; });
+            VampireBuilder.StringProperties.Select(x => x.Item1).Where(x => GO.Property[x] == FLAGS.TRUE_LEGACY).ForEach(x => GO.Property[x] = FLAGS.TRUE);
         }
         public static void Spells(GameObject GO)
         {

@@ -19,10 +19,7 @@ namespace XRL.World.Parts
     {
         public const string CLASS = "Vampiric Spell";
         public Guid SpellID = Guid.Empty;
-        public abstract int Cooldown
-        {
-            get;
-        }
+        public abstract int Cooldown { get; }
         public int Level => ParentObject.GetPart<Vampirism>().Level;
         public virtual int Cost => VITAE.BLOOD_PER_SIP; //default 10k  
         public abstract void AddSpell();

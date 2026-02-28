@@ -30,7 +30,6 @@ namespace Nexus.Stealth
 
         public const string defaultAlertText = "You are caught sneaking around by";
         public const string altAlertText = "You are caught sneaking around!";
-        public uint AoE(uint AoE) => AoE == default ? Nexus.Rules.STEALTH.AI_RADIUS : AoE;
 
         /// <param name="Source"></param>
         /// <param name="Witnesses">It is recommended to use ValidSentients as the base for your list, because it is "validated" (see conditionals in StealthCore)
@@ -93,7 +92,7 @@ namespace Nexus.Stealth
         /// Quick access method to wake up sleepers.
         /// </summary>
         /// <param name="AoE"></param>
-        public void RemoveSleepFromWitnesses(uint AoE = default) => RemoveEffectFromWitness<Asleep>(AoE);
+        public void RemoveSleepFromWitnesses(uint AoE = Rules.STEALTH.AI_RADIUS) => RemoveEffectFromWitness<Asleep>(AoE);
 
         public GameObject Add(GameObjectReference Target)
         {
@@ -127,17 +126,9 @@ namespace Nexus.Stealth
             IsNull = Target is null;
             return Target;
         }
-        public void AddOpinionToWitnesses<T>(uint AoE = default) where T : IOpinionSubject, new()
+        public void AddOpinionToWitnesses<T>(uint AoE = Rules.STEALTH.AI_RADIUS) where T : IOpinionSubject, new()
         {
-            AoE = this.AoE(AoE);
-            for (int i = 0; i < Witnesses.Count; i++)
-            {
-                GameObject obj = Witnesses[i];
-                if (Validated(obj, AoE))
-                {
-                    obj.AddOpinion<T>(Source);
-                }
-            }
+            Witnesses.ForEach(x => { if (Validated(x, AoE)) x.AddOpinion<T>(Source); });
         }
         // public void AddEffectToWitnesses<T>(T obj, uint AoE = default) where T : Effect, new()
         // {
@@ -157,7 +148,7 @@ namespace Nexus.Stealth
         //     }
         // }
 
-        public void AddOpinionToWitnessesAndExposer<T>(uint AoE = default) where T : IOpinionSubject, new()
+        public void AddOpinionToWitnessesAndExposer<T>(uint AoE = Rules.STEALTH.AI_RADIUS) where T : IOpinionSubject, new()
         {
             Exposer?.AddOpinion<T>(Source);
             AddOpinionToWitnesses<T>(AoE);
@@ -180,17 +171,9 @@ namespace Nexus.Stealth
         {
             ProcessList(Target);
         }
-        public void RemoveEffectFromWitness<T>(uint AoE = default) where T : Effect, new()
+        public void RemoveEffectFromWitness<T>(uint AoE = Rules.STEALTH.AI_RADIUS) where T : Effect, new()
         {
-            AoE = this.AoE(AoE);
-            for (int i = 0; i < Witnesses.Count; i++)
-            {
-                GameObject obj = Witnesses[i];
-                if (Validated(obj, AoE) && obj.HasEffect<T>())
-                {
-                    obj.RemoveEffect<T>();
-                }
-            }
+            Witnesses.ForEach(x => { if (Validated(x, AoE) && x.TryGetEffect<T>(out var T)) x.RemoveEffect(T); });
 
         }
         void ProcessList(GameObject Target)
@@ -206,12 +189,7 @@ namespace Nexus.Stealth
         GameObject CreateDictionaryOfRanges(GameObject Target)
         {
             Dictionary<GameObject, int> distances = new();
-            for (int i = 0; i < Witnesses.Count; i++)
-            {
-                GameObject obj = Witnesses[i];
-                if (Source.HasLOSTo(obj, false) && obj != Target)
-                    distances.Add(obj, Source.DistanceTo(obj));
-            }
+            Witnesses.ForEach(x => { if (Source.HasLOSTo(x, false) && x != Source) distances[x] = Source.DistanceTo(x); });
             return ReturnKey(distances);
 
         }
@@ -223,7 +201,7 @@ namespace Nexus.Stealth
                 if (distances.Count > 1)
                 {
                     int min = distances.Values.Min();
-                    return distances.PickFirstEqualTo(min).Key;
+                    return distances.First(x=>x.Value == min).Key;
                 }
                 else
                     return distances.Single().Key;

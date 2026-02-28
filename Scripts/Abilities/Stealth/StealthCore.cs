@@ -7,6 +7,7 @@ using XRL.World.Parts;
 using XRL;
 using System;
 using XRL.Collections;
+using System.Linq;
 
 namespace Nexus.Stealth
 {
@@ -32,25 +33,12 @@ namespace Nexus.Stealth
         public static void Stealth()
         {
             _TrueCount = default;
-            KeyArray.ForEach(stealthDelegate);
+            KeyArray.Where(x => !x?.HasHitpoints() ?? true || !x.InSameZone(The.Player)).ForEach(x => Nightbeast.Witnesses.Remove(x));
             if (Nightbeast.Witnesses.Count != KeyArray.Length)
                 Nightbeast.UpdateKeys();
+            KeyArray.ForEach(x => Nightbeast.Witnesses[x] = NearbySentient(x) && ActiveWitness(x));
+            _TrueCount = Nightbeast.Witnesses.Select(x => x.Value == true).Count();
         }
-        static void stealthDelegate(GameObject obj)
-        {
-            if (!obj?.HasHitpoints() ?? true || !obj.InSameZone(The.Player))
-            {
-                Nightbeast.Witnesses.Remove(obj);
-            }
-            else
-            {
-                bool check = NearbySentient(obj) && ActiveWitness(obj); //but this can change actively!
-                Nightbeast.Witnesses[obj] = check;
-                if (check)
-                    _TrueCount++; //the count is re-iterated every single turn
-            }
-        }
-
         static void CheckValidity(GameObject obj) //zoneload
         {
             if (ValidSentient(obj))
@@ -103,7 +91,7 @@ namespace Nexus.Stealth
           =>
             witness?.Brain != null
             && witness != Player
-            && witness.IsCombatObject()
+            //   && witness.IsCombatObject()
             && !Inanimate(witness); //insamezone check cannot go here because we use this to check nextzone in EZ event and i dont feel like adding a zone parameter
         public static bool Inanimate(GameObject witness)
      =>
@@ -118,14 +106,13 @@ namespace Nexus.Stealth
         /// 
 
         static bool InDominationChain(Rack<Effect> effects)
-         => effects.IfEachReturn(delegate (Effect e)
+         => effects?.Any(x => { var type = x.GetType(); return type == typeof(Dominated) || type == typeof(Dominating); }) ?? false;
+
+
+        static bool CheckTags(GameObjectBlueprint Blueprint)
         {
-            Type type = e.GetType();
-            return type == typeof(Dominated) || type == typeof(Dominating);
-        });
-
-
-        static bool CheckTags(GameObjectBlueprint Blueprint) => Blueprint.Tags?.IfEachReturn(x => CheckPair(x)) ?? false;
+            return Blueprint.Tags?.Any(CheckPair) ?? true;
+        }
 
         static bool CheckPair(KeyValuePair<string, string> data)
         {
@@ -146,11 +133,9 @@ namespace Nexus.Stealth
         }
 
         static bool CheckParts(PartRack rack)
-         => rack.IfEachReturn(delegate (IPart part)
-         {
-             Type type = part.GetType();
-             return type == typeof(Harvestable) || type == typeof(PlantProperties) || type == typeof(FungusProperties);
-         });
+        {
+            return rack.Any(x => { var type = x.GetType(); return type == typeof(Harvestable) || type == typeof(PlantProperties) || type == typeof(FungusProperties); });
+        }
 
 
         /// <summary>

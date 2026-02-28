@@ -278,47 +278,6 @@ namespace Nexus.Core
 			return (T)Object.GetPart(t);
 		}
 
-		public static T[] PartsArrayImplenenting<T>(this GameObject Object, int capacity) where T : class
-		{
-			return Object.PartsList.ObjectsImplementing<T>(capacity);
-		}
-
-		public static T[] PartsArrayDescendedFrom<T>(this GameObject Object, int capacity) where T : IPart
-		{
-			return Object.PartsArrayImplenenting<T>(capacity);
-		}
-
-		public static VampiricSpell[] SpellArray(this GameObject Object)
-		{
-			return Object.PartsArrayDescendedFrom<VampiricSpell>(VampireBuilder.VampiricSpells.Length);
-		}
-		public static List<T> GetPartsAndEffectsImplementing<T>(this GameObject Object, bool GetEffects) where T : class
-		{
-			List<T> objs = Object.GetPartsDescendedFrom<T>();
-			if (GetEffects)
-			{
-				List<T> effects = Object.GetEffectsImplementing<T>();
-				objs.AddRange(effects);
-			}
-			return objs;
-		}
-
-		#endregion
-
-		#region Effect
-		public static List<T> GetEffectsDescendedFrom<T>(this GameObject Object) where T : Effect
-		{
-			return Object.GetEffectsImplementing<T>();
-		}
-		public static List<T> GetEffectsImplementing<T>(this GameObject Object) where T : class
-		{
-			List<T> fxs = new();
-			for (int i = 0; i < Object.Effects.Count; i++)
-				if (Object.Effects[i].Duration > 0 && Object.Effects[i] is T t)
-					fxs.Add(t);
-			return fxs;
-		}
-
 		#endregion
 
 		#region Mutation
@@ -351,18 +310,7 @@ namespace Nexus.Core
 
 		public static T GetMutation<T>(this Mutations mutations) where T : BaseMutation
 		{
-			if (mutations.MutationList != null)
-			{
-				for (int i = 0; i < mutations.MutationList.Count; i++)
-				{
-					var mutation = mutations.MutationList[i];
-					if (mutation.Name == typeof(T).Name)
-					{
-						return (T)mutation;
-					}
-				}
-			}
-			return null;
+			return mutations.MutationList?.FirstOrDefault(x => x.Name == typeof(T).Name) as T;
 		}
 
 		public static bool TryGetMutation<T>(this Mutations mutations, out T obj) where T : BaseMutation
@@ -396,12 +344,6 @@ namespace Nexus.Core
 			zone.ForEachCombatObject(x => { if (expr(x)) list.Add(x); });
 			return list;
 		}
-		public static int ObjectCount(this Zone zone, Func<GameObject, bool> expr)
-		{
-			int count = 0;
-			zone.ForEachCombatObject(x => { if (expr(x)) count++; });
-			return count;
-		}
 		public static void ForEachCombatObject(this Zone zone, Action<GameObject> action)
 		{
 			void func(GameObject x) { if (x.IsCombatObject()) action(x); }
@@ -421,40 +363,40 @@ namespace Nexus.Core
 
 		#endregion
 
-		#region Faction/Stat
+		// #region Faction/Stat
 
-		public static void SubtractFactionFeeling(this Brain Brain, string Faction, int Feeling)
-		{
-			if (Brain.Allegiance.ContainsKey(Faction))
-				Brain.Allegiance[Faction] -= Feeling;
-		}
+		// public static void SubtractFactionFeeling(this Brain Brain, string Faction, int Feeling)
+		// {
+		// 	if (Brain.Allegiance.ContainsKey(Faction))
+		// 		Brain.Allegiance[Faction] -= Feeling;
+		// }
 
 
-		public static void AddFactionFeeling(this Brain Brain, string Faction, int Feeling)
-		{
-			Brain.Allegiance[Faction] += Feeling;
-		}
+		// public static void AddFactionFeeling(this Brain Brain, string Faction, int Feeling)
+		// {
+		// 	Brain.Allegiance[Faction] += Feeling;
+		// }
 
-		public static void SetBaseStat(this GameObject obj, string Name, int Amount)
-		{
-			if (!Name.IsNullOrEmpty() && obj.Statistics != null && obj.Statistics.TryGetValue(Name, out var value))
-			{
-				value.BaseValue = Amount;
-			}
-		}
+		// public static void SetBaseStat(this GameObject obj, string Name, int Amount)
+		// {
+		// 	if (!Name.IsNullOrEmpty() && obj.Statistics != null && obj.Statistics.TryGetValue(Name, out var value))
+		// 	{
+		// 		value.BaseValue = Amount;
+		// 	}
+		// }
 
-		public static bool TryGetFactionMembership(this Brain Brain, string Faction, out int value)
-		{
-			value = default;
-			if (Brain.Allegiance.ContainsKey(Faction))
-			{
-				value = Brain.Allegiance[Faction];
-				return true;
-			}
-			return false;
-		}
+		// public static bool TryGetFactionMembership(this Brain Brain, string Faction, out int value)
+		// {
+		// 	value = default;
+		// 	if (Brain.Allegiance.ContainsKey(Faction))
+		// 	{
+		// 		value = Brain.Allegiance[Faction];
+		// 		return true;
+		// 	}
+		// 	return false;
+		// }
 
-		#endregion
+		// #endregion
 
 		#region Serialization
 
@@ -513,11 +455,6 @@ namespace Nexus.Core
 		{
 			Writer.Write(array.Length);
 			array.ForEach(delegate ((T1, T2) obj) { Writer.WritePrimitive(obj.Item1); Writer.WritePrimitive(obj.Item2); });
-			for (int i = 0; i < array.Length; i++)
-			{
-				Writer.WritePrimitive(array[i].Item1);
-				Writer.WritePrimitive(array[i].Item2);
-			}
 		}
 
 		public static void WritePrimitive<T>(this SerializationWriter Writer, T obj)
@@ -575,7 +512,7 @@ namespace Nexus.Core
 
 	public static class Extensions
 	{
-		#region IList
+		#region IList<T>
 
 		/// <summary>
 		/// For when you dont feel like remaking your code to support a hash set. Don't use on a substantially large list.
@@ -589,143 +526,33 @@ namespace Nexus.Core
 			}
 			obj.Add(add);
 		}
-
 		public static void AssignEach<T>(this IList<T> objs, Func<T> expr)
 		{
 			for (int i = 0; i < objs.Count; i++)
 				objs[i] = expr();
 		}
 
-		public static void AssignEachIndexed<T>(this IList<T> objs, Func<int, T> expr)
-		{
-			for (int index = 0; index < objs.Count; index++)
-				objs[index] = expr(index);
-		}
-		// Indexed iterators are handy for when you are capturing an array and want to interract with objects in both arrays at the same time in one loop
-		public static void IfEachCountIndexed<T>(this IList<T> objs, ref int count, int cap, Func<T, int, bool> expr)
-		{
-			for (int index = 0; index < objs.Count; index++)
-			{
-				if (expr(objs[index], index))
-					count++;
-				if (count >= cap)
-					return;
-			}
-		}
-		//Counting iterators are good for when you're making a smaller array out of a larger array.
-		public static void IfEachCount<T>(this IList<T> objs, ref int count, int cap, Func<T, bool> expr)
-		{
-			for (int i = 0; i < objs.Count; i++)
-			{
-				if (expr(objs[i]))
-					count++;
-				if (count >= cap)
-					return;
-			}
-		}
-		public static void IfEachCount(this IList objs, ref int count, int cap, Func<object, bool> expr) //copy pasted this one specifically for ObjectsImplementing
-		{
-			for (int i = 0; i < objs.Count; i++)
-			{
-				if (expr(objs[i]))
-					count++;
-				if (count >= cap)
-					return;
-			}
-		}
-
-		// public static bool IfEachReturnIndexed<T>(this IList<T> objs, Func<T, int, bool> expr)
-		// {
-		// 	for (int index = 0; index < objs.Count; index++)
-		// 	{
-		// 		if (expr(objs[index], index))
-		// 			return true;
-		// 	}
-		// 	return false;
-		// }
-		public static bool IfEachReturn<T>(this IList<T> objs, Func<T, bool> expr)
-		{
-			for (int i = 0; i < objs.Count; i++)
-			{
-				if (expr(objs[i]))
-					return true;
-			}
-			return false;
-		}
-
-		public static void IfEachBreak<T>(this IList<T> objs, Func<T, bool> expr)
-		{
-			for (int i = 0; i < objs.Count; i++)
-				if (expr(objs[i]))
-					return;
-		}
-
-		public static void ForEach<T>(this IList<T> objs, Action<T> action)
-		{
-			for (int i = 0; i < objs.Count; i++)
-				action(objs[i]);
-		}
-
-		public static int ObjectCount<T>(this IList<T> objs, Func<T, bool> expr)
-		{
-			int count = 0;
-			for (int i = 0; i < objs.Count; i++)
-				if (expr(objs[i]))
-					count++;
-			return count;
-		}
 		#endregion
 
-		#region Type
-		public static T InstanceAs<T>(this Type t) where T : class
-		{
-			return (T)Activator.CreateInstance(t);
-		}
-		#endregion
+		#region IEnumerable<T>
 
-		#region IDictionary
-
-		public static (T1, T2)[] TupleArray<T1, T2>(this IDictionary<T1, T2> dic)
+		public static void ForEach<T>(this IEnumerable<T> objs, Action<T> action)
 		{
-			(T1, T2)[] array = new (T1, T2)[dic.Count];
-			int index = 0;
-			dic.ForEach(delegate (KeyValuePair<T1, T2> obj) { array[index].Item1 = obj.Key; array[index].Item2 = obj.Value; index++; });
-			return array;
-		}
-
-		public static void ForEach<TKey, TValue>(this IDictionary<TKey, TValue> objs, Action<KeyValuePair<TKey, TValue>> action)
-		{
-			foreach (var obj in objs)
+			foreach (T obj in objs)
 				action(obj);
 		}
-		public static bool AnyDoesntEqual<TKey, TValue>(this IDictionary<TKey, TValue> objs, TValue value) where TValue : IEquatable<TValue>
+
+		public static void SafeForEach<T>(this IEnumerable<T> objs, Action<T> action)
 		{
-			return objs.IfEachReturn(x => !x.Value.Equals(value));
+			objs.ToArray().ForEach(action);
 		}
 
-		public static bool IfEachReturn<TKey, TValue>(this IDictionary<TKey, TValue> dic, Func<KeyValuePair<TKey, TValue>, bool> expr)
-		{
-			foreach (var obj in dic)
-			{
-				if (expr(obj))
-					return true;
-			}
-			return false;
-		}
-		public static KeyValuePair<TKey, TValue> PickFirst<TKey, TValue>(this IDictionary<TKey, TValue> dic, Func<KeyValuePair<TKey, TValue>, bool> expr)
-		{
-			foreach (var obj in dic)
-			{
-				if (expr(obj))
-					return obj;
-			}
-			return default;
-		}
+		#endregion
 
-		//you should ensure your dictionary has a count > 0 before using this. it does not check on its own because i expect you to send in something like a Min() which requires you to check before using anyways
-		public static KeyValuePair<TKey, TValue> PickFirstEqualTo<TKey, TValue>(this IDictionary<TKey, TValue> obj, TValue value) where TValue : IEquatable<TValue> //similar to LINQ First, get first keyvalue == value
+		#region IDictionary<TKey,TValue>
+		public static (T1, T2)[] TupleArray<T1, T2>(this IDictionary<T1, T2> dic)
 		{
-			return obj.PickFirst(delegate (KeyValuePair<TKey, TValue> pair) { return pair.Value.Equals(value); });
+			return dic.Select(x=> (x.Key, x.Value)).ToArray();
 		}
 		public static TKey[] KeyArray<TKey, TValue>(this IDictionary<TKey, TValue> source)
 		{
@@ -734,53 +561,10 @@ namespace Nexus.Core
 
 		#endregion
 
-		#region T[]
-		public static void CheckEach<T>(this (T, bool)[] array, Func<T, bool> expr)
+		#region Type
+		public static T InstanceAs<T>(this Type t) where T : class
 		{
-			for (int i = 0; i < array.Length; i++)
-				array[i].Item2 = expr(array[i].Item1);
-		}
-		// public static bool ContainsElement<T>(this T[] array, T value) where T : IEquatable<T>
-		// {
-		// 	return array.IfEachReturn(x => x.Equals(value));
-		// }
-		public static bool ContainsElement<T1, T2>(this (T1, T2)[] array, T2 value) where T2 : IEquatable<T2>
-		{
-			return array.IfEachReturn(x => x.Item2.Equals(value));
-		}
-		public static void Reset<T1, T2>(this (T1, T2)[] array, T2 value = default) where T2 : struct
-		{
-			for (int i = 0; i < array.Length; i++)
-				array[i].Item2 = value;
-		}
-
-		public static int CountElementsEqualTo<T1, T2>(this (T1, T2)[] array, T2 value) where T2 : IEquatable<T2>
-		{
-			return array.ObjectCount(x => x.Item2.Equals(value));
-		}
-
-		public static int CountElementsEqualTo<T>(this T[] array, T value) where T : IEquatable<T>
-		{
-			return array.ObjectCount(x => x.Equals(value));
-		}
-
-		#endregion
-
-		#region IList
-		public static T[] ObjectsImplementing<T>(this IList objects, int capacity) where T : class
-		{
-			T[] array = new T[capacity];
-			int index = 0;
-			objects.IfEachCount(ref index, capacity, delegate (object obj)
-			{
-				if (obj is T t)
-				{
-					array[index] = t;
-					return true;
-				}
-				return false;
-			});
-			return array;
+			return (T)Activator.CreateInstance(t);
 		}
 		#endregion
 

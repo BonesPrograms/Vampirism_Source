@@ -199,8 +199,7 @@ namespace XRL.World.Parts
             Mutations m = Object.GetPart<Mutations>();
             if (m != null && m.MutationList.Count > 0)
             {
-                MutationsWithLevels = new (string, int)[m.MutationList.Count];
-                MutationsWithLevels.AssignEachIndexed(delegate (int i) { (string, int) tuple = new() { Item1 = m.MutationList[i].Name, Item2 = m.MutationList[i].Level }; return tuple; });
+                MutationsWithLevels = m.MutationList.Select(x => (x.Name, x.Level)).ToArray();
                 HadMutations = true;
 
             }
@@ -210,32 +209,18 @@ namespace XRL.World.Parts
         {
             if (Object.Statistics != null)
             {
-                StatLevels = new (string, int)[Object.Statistics.Count];
-                int index = 0;
-                Object.Statistics.ForEach(delegate (KeyValuePair<string, Statistic> obj) { StatLevels[index].Item1 = obj.Key; StatLevels[index].Item2 = obj.Value.Value; index++; });
+                StatLevels = Object.Statistics.Select(x => (x.Key, x.Value.Value)).ToArray();
             }
         }
 
         void RecordIParts(PartRack parts)
         {
-            IParts = new string[GetSize(parts)];
-            int index = 0;
-            parts.IfEachCount(ref index, IParts.Length, delegate (IPart obj)
-            {
-                if (!CheckType(obj))
-                {
-                    IParts[index] = obj.Name;
-                    return true;
-                }
-                return false;
-            });
+            IParts = parts.Where(CheckType).Select(x => x.Name).ToArray();
         }
 
         static string[] GetTypeNames<T>(IList<T> list)
         {
-            string[] array = new string[list.Count];
-            array.AssignEachIndexed(delegate (int i) { return list[i].GetType().Name; });
-            return array;
+            return list.Select(x => x.GetType().Name).ToArray();
         }
 
         static void Read<T>((string, T)[] array)
@@ -265,11 +250,6 @@ namespace XRL.World.Parts
                     break;
             }
         }
-
-        static int GetSize(PartRack rack)
-        {
-            return rack.ObjectCount(delegate (IPart part) { return !CheckType(part); });
-        }
-        static bool CheckType(IPart part) => part is BaseMutation or BaseSkill;
+        static bool CheckType(IPart part) => part is not (BaseMutation or BaseSkill);
     }
 }

@@ -83,9 +83,8 @@ namespace XRL.World.Parts
 
         static void MarkForEmbrace(GameObject Dying, bool isvampire) //only "feedable" targets can become vampires, but deathhandler only exists as a part on feedable objects, so the check is already done
         {                                   //corpse objects whose source object didnt have this part wont have the property at all and thus will not be embraceable
-            for (int i = 0; i < Dying.CurrentCell.Objects.Count; i++)
+            foreach(var obj in Dying.CurrentCell.Objects)
             {
-                GameObject obj = Dying.CurrentCell.Objects[i];
                 if (obj.PropertyEquals("SourceID", Dying.ID))
                 {
                     if (isvampire)

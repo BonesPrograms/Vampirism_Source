@@ -6,6 +6,9 @@ using XRL.UI;
 using XRL.World.Effects;
 using XRL.World.Parts;
 using System.Collections.Generic;
+using static XRL.World.Cell;
+using Nexus.Core;
+using System.Linq;
 
 namespace Nexus.Blood
 {
@@ -59,17 +62,11 @@ namespace Nexus.Blood
             }
         }
 
-        static void FindVomitPool(Cell CurrentCell)
+        static void FindVomitPool(Cell cell)
         {
-            for (int i = CurrentCell.Objects.Count - 1; i >= 0; i--)
-            {
-                GameObject obj = CurrentCell.Objects[i];
-                if ($"{obj}" == "VomitPool")
-                {
-                    CurrentCell.RemoveObject(obj);
-                    return;
-                }
-            }
+            var pool = cell.Objects.FirstOrDefault(x => x.Blueprint == "VomitPool");
+            if (pool != null)
+                cell.RemoveObject(pool);
 
         }
     }

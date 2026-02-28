@@ -4,6 +4,7 @@ using Nexus.Core;
 using Nexus.Rules;
 using Nexus.Spells;
 using SerializeField = UnityEngine.SerializeField;
+using System.Linq;
 namespace XRL.World.Parts
 {
 
@@ -164,18 +165,10 @@ namespace XRL.World.Parts
             cell = zone.Map[CellX][CellY]; //i used to do a cell != null and zone != null check here, but i actually want this to fail very loudly, a silent failure on BeforeDieEvent would not be helpful
             if (Coffin == null || !GameObject.Validate(ref Coffin))
             {
-                cell.Objects.IfEachBreak(delegate (GameObject obj)
-                {
-                    if (obj.TryGetPart<VampireCoffin>(out var part) && part.OwnerID == ParentObject.ID)
-                    {
-                        if (ShowDebug)
-                            UI.Popup.Show($"{obj}, {obj.Blueprint}"); //verified multiple times that the object was synced. sometimes this game gives bugs you never see again and i dont know why
-                        Recreate(obj);
-                        return true;
-                    }
-                    return false;
-
-                });
+                var obj = cell.Objects.FirstOrDefault(x => x.GetPart<VampireCoffin>()?.OwnerID == ParentObject.ID);
+                if (ShowDebug)
+                    UI.Popup.Show($"{obj}, {obj?.Blueprint}");
+                Recreate(obj);
             }
             Recreate(Coffin); //recreate if cell is null or obj is not found in cell
         }

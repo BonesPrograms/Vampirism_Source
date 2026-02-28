@@ -3,6 +3,8 @@ using XRL.UI;
 using XRL.World.Effects;
 using Nexus.Core;
 using XRL.World;
+using System.Linq;
+using AiUnity.Common.Extensions;
 
 namespace Nexus.Bite
 {
@@ -85,28 +87,20 @@ namespace Nexus.Bite
 
         public Ending LiquidEnding((string, bool)[] BadLiquids)
         {
-            Ending[] endings = new Ending[BadLiquids.CountElementsEqualTo(true)];
-            int index = 0;
-            BadLiquids.IfEachCountIndexed(ref index, endings.Length, delegate((string, bool) obj, int i)
-            {
-               if(obj.Item2)
-                    endings[index] = Cycle(i);
-                return obj.Item2;
-            });
-            return Result(endings);
+            return Result(BadLiquids.Select((x, i) => (Data: x, index: i)).Where(x => x.Data.Item2).Select(x => Cycle(x.index)));
         }
 
         Ending Cycle(int i) =>
         i switch
         {
-            0=>SludgeLiquid(),
-            1=>OozeLiquid(),
-            2=>GooLiquid(),
-            3=>OilLiquid(),
-            4=>AcidLiquid(),
-            5=>SlimeLiquid(),
-            6=>GrossLiquid(),
-            7=>AsphaltLiquid(),
+            0 => SludgeLiquid(),
+            1 => OozeLiquid(),
+            2 => GooLiquid(),
+            3 => OilLiquid(),
+            4 => AcidLiquid(),
+            5 => SlimeLiquid(),
+            6 => GrossLiquid(),
+            7 => AsphaltLiquid(),
             _ => default
         };
 

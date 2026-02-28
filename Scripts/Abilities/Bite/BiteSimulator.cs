@@ -73,16 +73,7 @@ namespace Nexus.Bite
 
         public Ending BadEnding(GameObject Target)
         {
-            bool[] flags = Source.Flags;
-            Ending[] endings = new Ending[flags.CountElementsEqualTo(true)];
-            int index = 0;
-            flags.IfEachCountIndexed(ref index, endings.Length, delegate (bool obj, int i)
-            {
-                if(obj)
-                    endings[index] = Cycle(i, Target);
-                return obj;
-            });
-            return Result(endings);
+            return Result(Source.Flags.Select((x, i) => (Data: x, Index: i)).Where(x => x.Data).Select(x => Cycle(x.Index, Target)));
         }
 
         Ending Cycle(int i, GameObject Target) =>

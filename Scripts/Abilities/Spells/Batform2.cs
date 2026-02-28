@@ -2,12 +2,15 @@ using XRL.World.Effects;
 using System;
 using Nexus.Rules;
 using Nexus.Core;
+using Nexus.Properties;
 using XRL.World.Parts.Mutation;
 using XRL.Core;
 using XRL.World.Parts;
 using System.Collections.Generic;
 using XRL.Collections;
 using System.Linq;
+using XRL.World.Parts.Skill;
+using XRL.World.AI;
 
 namespace XRL.World.Effects
 {
@@ -336,7 +339,7 @@ namespace XRL.World.Parts
     {                                           //because the alternative is easier: fake transformation as you see in this type. there are also tons of other issues like mutations and stats not easily being synced so this is optimal
         public override int Cooldown => BATFORM.COOLDOWN;
         public bool Transformed => ParentObject.Blueprint == "Bat";
-        static readonly string[] Stats =
+        static readonly string[] StatNames =
         {
             "Strength", "Ego", "Agility", "Toughness", "Intelligence", "Willpower", "Level"
         };
@@ -353,7 +356,7 @@ namespace XRL.World.Parts
 
         public override void AddSpell()
         {
-            SpellID = AddMyActivatedAbility(BATFORM.ABILITY_NAME, BATFORM.COMMAND_NAME, $"{CLASS}", null, "\u009f");
+            SpellID = AddMyActivatedAbility(BATFORM.ABILITY_NAME, BATFORM.COMMAND_NAME, CLASS, null, "\u009f");
         }
         public override bool HandleEvent(CommandEvent E)
         {
@@ -377,49 +380,136 @@ namespace XRL.World.Parts
                 ExpendBlood();
                 if (RealityCheck(ParentObject.CurrentCell))
                 {
-                    ChangeBody();
+                    Transform();
                 }
             }
         }
 
         //            extract.ForEachIndexAssign(i => (mutations[i].Name, mutations[i].Level));
-        static (string, int)[] GetMutations(List<BaseMutation> mutations)
+        static IEnumerable<(string, int)> GetMutations(List<BaseMutation> mutations)
         {
-            var extract = new (string, int)[mutations.Count]; //originally i was going to restrict this to only mental mutations which is why this method exists
-            extract.AssignEachIndexed(delegate (int i) { (string, int) tuple = new() { Item1 = mutations[i].Name, Item2 = mutations[i].Level }; return tuple; });
-            return extract;
+            return mutations.Select(x => (x.Name, x.Level));
         }
-        static Effect[] GetFX(Rack<Effect> fx, GameObject bat)
+        static IEnumerable<Effect> GetFX(Rack<Effect> fx, GameObject bat)
         {
-            Effect[] effects = new Effect[fx.Count];
-            effects.AssignEachIndexed(delegate (int i) { return fx[i].DeepCopy(bat); });
-            return effects;
+            return fx.Select(x => x.DeepCopy(bat));
         }
-        static void SyncStats(GameObject bat, Dictionary<string, Statistic> stats) => Stats.ForEach(delegate (string stat) { bat.Statistics[stat] = new Statistic(stats[stat]); });
-        static void SyncFX(GameObject bat, Effect[] fx) => fx.ForEach(delegate (Effect e) { bat.ApplyEffect(e); });
-        static void SyncMutations(Mutations part, (string, int)[] mutations) => mutations.ForEach(delegate ((string, int) m) { part.AddMutation(m.Item1, m.Item2); });
+        static void SyncStats(GameObject bat, Dictionary<string, Statistic> playerStats)
+        {
+            StatNames.ForEach(stat => { bat.Statistics[stat] = new Statistic(playerStats[stat]); });
+        }
+        static void SyncFX(GameObject bat, IEnumerable<Effect> fx) => fx.ForEach(delegate (Effect e) { bat.ApplyEffect(e); });
+        static void SyncMutations(Mutations part, IEnumerable<(string, int)> mutations) => mutations.ForEach(m => { part.AddMutation(m.Item1, m.Item2); });
+        static void SyncVampirism(GameObject obj, GameObject bat)
+        {
+            if (!obj.CheckFlag(FLAGS.GO))
+            {
+                SyncHum(bat, obj);
+            }
+            else
+            {
+                SyncGO(bat, obj);
+            }
+            SyncBlood(bat, obj);
+        }
+
+        static void SyncGO(GameObject bat, GameObject obj)
+        {
+            var h = SyncHum(bat, obj);
+            h.GameOver = true;
+            bat.GetPart<TheBeast>().Wassail = obj.GetPart<TheBeast>().Wassail;
+            bat.FireEvent(Nexus.Registry.Events.GAMEOVER);
+        }
+
+        static void SyncBlood(GameObject bat, GameObject obj)
+        {
+            Vitae v = bat.GetPart<Vitae>();
+            if (obj.GetPart<Vitae>().Bloodlusted == true)
+                v.Bloodlusted = true;
+            v.Blood = obj.GetIntProperty(FLAGS.BLOOD_VALUE);
+        }
+
+        static Humanity SyncHum(GameObject bat, GameObject obj)
+        {
+            Humanity h = bat.GetPart<Humanity>();
+            h.Score = obj.GetIntProperty(FLAGS.HUMANITY);
+            h.RegenTimer = obj.GetIntProperty(FLAGS.REGEN);
+            return h;
+        }
         static void MakeBat(GameObject bat, GameObject obj)
         {
-            UI.Popup.Suppress = true;
+
             SyncStats(bat, obj.Statistics);
-            // SyncFX(bat, GetFX(bat.Effects, obj));
+            SyncFX(bat, GetFX(obj.Effects, bat));
             SyncMutations(bat.RequirePart<Mutations>(), GetMutations(obj.GetPart<Mutations>().MutationList));
-            SyncBlood(obj.GetIntProperty(Nexus.Properties.FLAGS.BLOOD_VALUE), bat.GetPart<Vitae>());
-            UI.Popup.Suppress = false;
-        }
+            SyncVampirism(obj, bat);
+            SyncParty(bat, obj);
 
-        static void SyncBlood(int bloodValue, Vitae v)
-        {
-            v.Blood = bloodValue;
         }
-
         static void SyncCooldowns(ActivatedAbilities abilities)
         {
-            GameObject obj = new();
-            // abilities.
         }
-        static void ChangeBody()
+
+        static void SyncParty(GameObject bat, GameObject obj)
         {
+            SyncGhoulPersuadedBeguiled(bat, obj);
+            obj.Brain.PartyMembers.SafeForEach(member =>
+            {
+                var brain = member.Value.Reference.Object.Brain;
+                // if(brain.TryGetOpinions(obj, out var list))
+                // {
+                //     brain.AddOpinion
+                // }
+                // if(brain.IsAlliedTowards(obj))
+                //   brain.SetAlliedLeader<AllyDefault()
+                brain.SetPartyLeader(bat);
+            }); // setpartyleader or becomecompanionof // alliedleader? 
+        }
+
+        // insamepartyas? // brain.partylwader == obj? // isplayerled? // isledyby? //gameobject.findall?
+        static void SyncGhoulPersuadedBeguiled(GameObject bat, GameObject obj)
+        {
+            obj.Brain.PartyMembers.SafeForEach(x =>
+            {
+                var obj = x.Value.Reference.Object;
+                if (obj.TryGetEffect(out Beguiled beguiled))
+                    SyncBeguiled(bat, obj, beguiled);
+                else if (obj.TryGetEffect(out EnthralledGhoul ghoul))
+                    SyncGhoul(bat, obj, ghoul);
+                else if (obj.TryGetEffect(out Proselytized pros))
+                    SyncPersuaded(bat, obj, pros);
+            });
+        }
+
+        static void SyncGhoul(GameObject bat, GameObject obj, EnthralledGhoul ghoul)
+        {
+            ghoul.Master = bat;
+            GhoulSpell.SyncTarget(bat, obj);
+        }
+
+        static void SyncPersuaded(GameObject bat, GameObject obj, Proselytized pros)
+        {
+            pros.Proselytizer = bat;
+            obj.AddOpinion<OpinionProselytize>(bat);
+            obj.SetAlliedLeader<AllyProselytize>(bat);
+            Persuasion_Proselytize.SyncTarget(bat, obj);
+        }
+
+
+        static void SyncBeguiled(GameObject bat, GameObject obj, Beguiled beguiled)
+        {
+            beguiled.Beguiler = bat;
+            beguiled.UnapplyBeguilement();
+            Beguiling.SyncTarget(bat, obj);
+            obj.SetAlliedLeader<AllyBeguile>(bat);
+            beguiled.ApplyBeguilement();
+        }
+
+        static void SyncPrecog()
+        { }
+        static void Transform()
+        {
+            UI.Popup.Suppress = true;
             GameObject obj = The.Player;
             GameObject bat = GameObject.Create("Bat");
             Metamorphosis.TransferInventory(obj, bat);
@@ -433,6 +523,7 @@ namespace XRL.World.Parts
             bat.MakeActive();
             XRLCore.Core.Game.Player.Body = bat;
             MakeBat(bat, obj);
+            UI.Popup.Suppress = false;
 
         }
 
