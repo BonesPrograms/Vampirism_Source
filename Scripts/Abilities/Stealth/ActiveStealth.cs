@@ -19,19 +19,19 @@ namespace Nexus.Stealth
         const int NONE = 0;
         static int ActiveWitnessCount => StealthCore.TrueCount;
 
-		/// <summary>
-		/// Stage one means that there is only one witness.
-		/// </summary>
-		/// 
-		[GameBasedStaticCache]
-		static bool _StealthStage1 = default;
+        /// <summary>
+        /// Stage one means that there is only one witness.
+        /// </summary>
+        /// 
+        [GameBasedStaticCache]
+        static bool _StealthStage1 = default;
 
-		/// <summary>
-		/// Stage two means there are no witnesses.
-		/// </summary>
-		/// 
-		[GameBasedStaticCache]
-		static bool _StealthStage2 = default;
+        /// <summary>
+        /// Stage two means there are no witnesses.
+        /// </summary>
+        /// 
+        [GameBasedStaticCache]
+        static bool _StealthStage2 = default;
 
         public static bool StealthStage1 => _StealthStage1;
 
@@ -74,10 +74,10 @@ namespace Nexus.Stealth
             if (!_StealthStage2)
             {
 
-                    IComponent<GameObject>.AddPlayerMessage(Display(count));
+                IComponent<GameObject>.AddPlayerMessage(Display(count));
                 _StealthStage2 = true;
                 _StealthStage1 = false;
-               Player.SetStringProperty(FLAGS.STEALTH, FLAGS.TRUE);
+                Player.SetStringProperty(FLAGS.STEALTH, FLAGS.TRUE);
             }
         }
 
@@ -96,7 +96,7 @@ namespace Nexus.Stealth
             count switch
             {
                 NONE => "{{B|No witnesses.}}",
-                SINGLE => "{{O|" + Nightbeast.Witnesses.First(x=> x.Value ==true).Key.t() + " is the only witness.}}",
+                SINGLE => "{{O|" + Nightbeast.Witnesses.First(x => x.Value).Key.t() + " is the only witness.}}",
                 _ => "{{R|Witnesses!}}",
             };
 

@@ -12,6 +12,7 @@ using XRL.World.Parts;
 using System.Reflection;
 using HarmonyLib;
 using Nexus.Stealth;
+using System.Linq;
 using XRL;
 
 namespace Nexus.Core
@@ -373,9 +374,8 @@ namespace XRL.World.Parts
 
         public static void FindSpotter()
         {
-            List<GameObject> spotters = The.Player.CurrentZone.ListCombatObjects(x => x.HasEffect<Spotter>());
-            for (int i = 0; i < spotters.Count; i++)
-                msg($"{spotters[i]}");
+            The.Player.CurrentZone.CombatObjects().Where(x => x.HasEffect<Spotter>()).ForEach(x => msg($"{x}"));
+            msg(nameof(FindSpotter));
         }
 
         [WishCommand("staticstealth")]

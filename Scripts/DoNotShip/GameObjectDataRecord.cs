@@ -215,7 +215,7 @@ namespace XRL.World.Parts
 
         void RecordIParts(PartRack parts)
         {
-            IParts = parts.Where(CheckType).Select(x => x.Name).ToArray();
+            IParts = parts.Where(x => x is not (BaseMutation or BaseSkill)).Select(x => x.Name).ToArray();
         }
 
         static string[] GetTypeNames<T>(IList<T> list)
@@ -250,6 +250,5 @@ namespace XRL.World.Parts
                     break;
             }
         }
-        static bool CheckType(IPart part) => part is not (BaseMutation or BaseSkill);
     }
 }

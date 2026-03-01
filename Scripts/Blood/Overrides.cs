@@ -39,8 +39,7 @@ namespace Nexus.Blood
 
         static void ShowStrings(GameObject Object, StringBuilder MessageHolder)
         {
-            bool value = Object.IsPlayer();
-            if (value)
+            if (Object.IsPlayer())
                 MessageHolder.Replace(strings[0], strings[1]);
             else
                 IComponent<GameObject>.AddPlayerMessage($"{Object.t()} vomits" + " {{R|blood!}}");

@@ -18,15 +18,20 @@ namespace Nexus.Frenzy
         public Search(TheBeast Source) => this.Source = Source;
         public bool TryScan(out GameObject Object)
         {
+            Object = null;
             Sift();
-            Register();                                                                     //make sure not to invoke min early or else you will get enumerator errors when everyoens dead with wassail
-            Object = Source.TargetRegistry.Any(x => x.Value != TheBeast.FLAG_AVOID) ? Source.TargetRegistry.First(x => x.Value == Source.TargetRegistry.Values.Min()).Key : null;
+            Register();
+            if (Source.TargetRegistry.Any(x => x.Value != TheBeast.FLAG_AVOID))
+            {
+                int min = Source.TargetRegistry.Values.Min();
+                Object = Source.TargetRegistry.First(x => x.Value == min).Key;
+            }
             return Object != null;
         }
 
         void Sift()
         {
-            Source.TargetRegistry.Keys.Where(x => x == null || !x.HasHitpoints() || !x.InSameZone(Source.ParentObject)).ForEach(x => Source.TargetRegistry.Remove(x));
+            Source.TargetRegistry.Keys.Where(x => x == null || !x.HasHitpoints() || !x.InSameZone(Source.ParentObject)).SafeForEach(x => Source.TargetRegistry.Remove(x));
         }
 
 
@@ -51,7 +56,7 @@ namespace Nexus.Frenzy
         }
 
         public void Register()
-         => Source.ParentObject.CurrentZone.ForEachCombatObject(registerDelegate);
+         => Source.ParentObject.CurrentZone.CombatObjects().ForEach(registerDelegate);
 
         void registerDelegate(GameObject obj)
         {

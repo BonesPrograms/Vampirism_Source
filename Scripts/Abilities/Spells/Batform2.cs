@@ -424,7 +424,7 @@ namespace XRL.World.Parts
         static void SyncBlood(GameObject bat, GameObject obj)
         {
             Vitae v = bat.GetPart<Vitae>();
-            if (obj.GetPart<Vitae>().Bloodlusted == true)
+            if (obj.GetPart<Vitae>().Bloodlusted)
                 v.Bloodlusted = true;
             v.Blood = obj.GetIntProperty(FLAGS.BLOOD_VALUE);
         }

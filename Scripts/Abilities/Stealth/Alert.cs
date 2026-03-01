@@ -85,7 +85,7 @@ namespace Nexus.Stealth
 
         public static List<GameObject> GiveDefaultList(GameObject Source)
         {
-            return Source.CurrentZone.ListCombatObjects(x => StealthCore.ValidSentient(x)); //this does not check for unawareness because it will wake up anyone who is unaware
+            return Source.CurrentZone.CombatObjects().Where(x => StealthCore.ValidSentient(x)).ToList(); //this does not check for unawareness because it will wake up anyone who is unaware
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace Nexus.Stealth
         GameObject CreateDictionaryOfRanges(GameObject Target)
         {
             Dictionary<GameObject, int> distances = new();
-            Witnesses.ForEach(x => { if (Source.HasLOSTo(x, false) && x != Source) distances[x] = Source.DistanceTo(x); });
+            Witnesses.Where(x => Source.HasLOSTo(x, false) && x != Source).ForEach(x => distances[x] = Source.DistanceTo(x));
             return ReturnKey(distances);
 
         }
@@ -197,13 +197,8 @@ namespace Nexus.Stealth
         {
             if (distances.Count != 0)
             {
-                if (distances.Count > 1)
-                {
-                    int min = distances.Values.Min();
-                    return distances.First(x => x.Value == min).Key;
-                }
-                else
-                    return distances.Single().Key;
+                int min = distances.Values.Min();
+                return distances.First(x => x.Value == min).Key;
             }
             else
             {

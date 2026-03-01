@@ -49,9 +49,9 @@ namespace Nexus.Bite
         }
         Ending DiseaseEnding() //this is impossible to succeed on, it is the worst one
         {
-            if (Source.Diseases[0].Item2 == true || Source.Diseases[1].Item2 == true)
+            if (Source.Diseases[0].Item2 || Source.Diseases[1].Item2)
                 Glotrot();
-            else if (Source.Diseases[2].Item2 == true || Source.Diseases[3].Item2 == true)
+            else if (Source.Diseases[2].Item2 || Source.Diseases[3].Item2)
                 Ironshank();
             return Ending.VOMIT;
 

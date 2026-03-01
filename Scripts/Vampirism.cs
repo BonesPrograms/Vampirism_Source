@@ -10,6 +10,7 @@ using Nexus.Attack;
 using Nexus.Rules;
 using System.Collections.Generic;
 using Qud.API;
+using System.Linq;
 
 
 namespace XRL.World.Parts.Mutation
@@ -236,13 +237,11 @@ namespace XRL.World.Parts.Mutation
 		{
 			foreach (var cell in cells)
 			{
-				foreach (var obj in cell.Objects)
+				var obj = cell.Objects.FirstOrDefault(FireyObject);
+				if (obj != null)
 				{
-					if (FireyObject(obj))
-					{
-						Panic(obj, true);
-						return;
-					}
+					Panic(obj, true);
+					return;
 				}
 			}
 		}
@@ -422,7 +421,7 @@ namespace XRL.World.Parts.Mutation
 		}
 		static void Update(Zone zone)
 		{
-			zone.ForEachCombatObject(x => { if (x.IsVampire() && !x.IsPlayer()) Nexus.Update.Update.DoUpdate(x); });
+			zone.CombatObjects(x => x.IsVampire() && !x.IsPlayer()).ForEach(x => Nexus.Update.Update.DoUpdate(x));
 			zone.SetZoneProperty(FLAGS.MOD.VERSION_TAG, MOD.VERSION);
 		}
 		#endregion

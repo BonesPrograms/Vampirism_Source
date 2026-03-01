@@ -8,6 +8,7 @@ using Nexus.Rules;
 using XRL.UI;
 using Nexus.Stealth;
 using SerializeField = UnityEngine.SerializeField;
+using System.Linq;
 
 namespace XRL.World.Parts
 {
@@ -83,20 +84,21 @@ namespace XRL.World.Parts
 
         static void MarkForEmbrace(GameObject Dying, bool isvampire) //only "feedable" targets can become vampires, but deathhandler only exists as a part on feedable objects, so the check is already done
         {                                   //corpse objects whose source object didnt have this part wont have the property at all and thus will not be embraceable
-            foreach(var obj in Dying.CurrentCell.Objects)
-            {
-                if (obj.PropertyEquals("SourceID", Dying.ID))
+            var obj = Dying.CurrentCell.Objects.FirstOrDefault(x => x.PropertyEquals("SourceID", Dying.ID));
+            if (obj != null)
+                DetermineEmbraceability(obj, Dying, isvampire);
+            
+        }
+
+        static void DetermineEmbraceability(GameObject obj, GameObject Dying, bool isvampire)
+        {
+                if (isvampire)
                 {
-                    if (isvampire)
-                    {
-                        AddPlayerMessage($"{Dying.t()} burns to ashes!");
-                        obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.FALSE);
-                    }
-                    else if (Dying.TryGetPart(out Corpse corpse))
-                        CompareBlueprints(Dying, obj, corpse);
-                    return;
+                    AddPlayerMessage($"{Dying.t()} burns to ashes!");
+                    obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.FALSE);
                 }
-            }
+                else if (Dying.TryGetPart(out Corpse corpse))
+                    CompareBlueprints(Dying, obj, corpse);
         }
 
         static void CompareBlueprints(GameObject Dying, GameObject obj, Corpse corpse)

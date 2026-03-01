@@ -56,7 +56,7 @@ namespace Nexus.Stealth
         static string DefaultMessage(GameObject Spotter) => $"You try to sneak attack, but {Spotter.t()} spots you from a distance!";
         public static List<GameObject> GiveDefaultList(GameObject Source)
         {
-            return Source.CurrentZone.ListCombatObjects(x => StealthCore.ValidSentient(x) && !x.Unaware(false));
+            return Source.CurrentZone.CombatObjects().Where(x => StealthCore.ValidSentient(x) && !x.Unaware(false)).ToList();
         }
         public Spot Check<T>(string message = default) where T : IOpinionSubject, new()
         {
@@ -74,23 +74,17 @@ namespace Nexus.Stealth
         public Spot Check<T>(out GameObject Spotter, string message = default) where T : IOpinionSubject, new()
         {
             Spotter = ReturnSpotter();
-            return Spotter is null ? Spot.SPOTTER_IS_NULL : SpotterFound<T>(Spotter, message);
+            return Spotter == null ? Spot.SPOTTER_IS_NULL : SpotterFound<T>(Spotter, message);
         }
         GameObject ReturnSpotter()
         {
-            PotentialSpotters.ForEach(x => { if (x.canPathTo(Source.CurrentCell)) SpotterRanges[x] = x.DistanceTo(Source); });
-            return SpotterRanges.Count == 0 ? null : SpotterRanges.Count == 1 ? OneKey() : ManyKeys();
+            PotentialSpotters.Where(x => x.canPathTo(Source.CurrentCell)).ForEach(x => SpotterRanges[x] = x.DistanceTo(Source));
+            return SpotterRanges.Count == 0 ? null : GetSpotter();
         }
-
-        GameObject OneKey()
-        {
-            package = SpotterRanges.Single();
-            return package.Key;
-        }
-        GameObject ManyKeys()
+        GameObject GetSpotter()
         {
             int minimumvalue = SpotterRanges.Values.Min();
-            package = SpotterRanges.First(x=>x.Value == minimumvalue);
+            package = SpotterRanges.First(x => x.Value == minimumvalue);
             return package.Key;
         }
         Spot SpotterFound<T>(GameObject Spotter, string message) where T : IOpinionSubject, new()

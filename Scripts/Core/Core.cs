@@ -7,6 +7,7 @@ using XRL.UI;
 using XRL.World.Parts.Mutation;
 using System.Linq;
 using System.Collections;
+using static XRL.World.Cell;
 
 namespace Nexus.Core
 {
@@ -48,7 +49,7 @@ namespace Nexus.Core
 		public static bool TryGetZoneProperty(this Zone zone, string property, out string result)
 		{
 			result = zone.GetZoneProperty(property);
-			return !result?.IsNullOrEmpty() ?? false;
+			return !result.IsNullOrEmpty();
 		}
 
 		/// <summary>
@@ -227,28 +228,15 @@ namespace Nexus.Core
 				Object.AddPart(obj);
 			return obj != null;
 		}
-
-		/// <summary>
-		/// Boolean RequirePart for T
-		/// </summary>
-		public static bool RequiresPart<T>(this GameObject Object) where T : IPart, new()
-		{
-			T obj = Object.GetPart<T>();
-			if (obj != null)
-				return false;
-			Object.AddPart<T>();
-			return true;
-		}
-
 		/// <summary>
 		/// RequiresPart by a Type instance. 
 		/// </summary>
-		public static T RequirePart<T>(this GameObject Object, Type t) where T : IPart
+		public static IPart RequirePart(this GameObject Object, Type t)
 		{
-			T obj = Object.GetPart<T>(t);
+			var obj = Object.GetPart<IPart>(t);
 			if (obj != null)
 				return obj;
-			obj = t.InstanceAs<T>();
+			obj = t.InstanceAs<IPart>();
 			if (obj != null)
 				return Object.AddPart(obj);
 			return obj;
@@ -260,14 +248,6 @@ namespace Nexus.Core
 			if (part != null)
 				return part;
 			return Object.AddPart(obj);
-		}
-
-		/// <summary>
-		/// RequiresPart by a Type instance. Does not add part if Type instance does not convert to an IPart.
-		/// </summary>
-		public static IPart RequirePart(this GameObject Object, Type t)
-		{
-			return Object.RequirePart<IPart>(t);
 		}
 
 		/// <summary>
@@ -338,22 +318,22 @@ namespace Nexus.Core
 		#endregion
 
 		#region Zone/Cell
-		public static List<GameObject> ListCombatObjects(this Zone zone, Func<GameObject, bool> expr)
+		public static IEnumerable<GameObject> CombatObjects(this Zone zone, Func<GameObject, bool> expr)
 		{
-			List<GameObject> list = new();
-			zone.ForEachCombatObject(x => { if (expr(x)) list.Add(x); });
-			return list;
-		}
-		public static void ForEachCombatObject(this Zone zone, Action<GameObject> action)
-		{
-			void func(GameObject x) { if (x.IsCombatObject()) action(x); }
-			zone.Mapper(x => { if (x.HasObjectWithPart(nameof(Combat))) x.Objects.ForEach(func); });
-		}
-		public static void Mapper(this Zone zone, Action<Cell> action)
-		{
+
 			for (int y = 0; y < zone.Height; y++)
+			{
 				for (int x = 0; x < zone.Width; x++)
-					action(zone.Map[x][y]);
+				{
+					var enumerable = zone.Map[x][y].CombatObjects(expr);
+					foreach (var obj in enumerable)
+						yield return obj;
+				}
+			}
+		}
+		public static IEnumerable<GameObject> CombatObjects(this Cell cell, Func<GameObject, bool> expr)
+		{
+			return cell.HasCombatObject() ? cell.Objects.Where(x => x.IsCombatObject() && expr(x)) : Enumerable.Empty<GameObject>();
 		}
 		public static bool LocalCells(this GameObject Player, out List<Cell> cells)
 		{
@@ -403,13 +383,13 @@ namespace Nexus.Core
 		public static T[] ReadPrimitiveArray<T>(this SerializationReader Reader)
 		{
 			T[] array = new T[Reader.ReadInt32()];
-			array.AssignEach(delegate () { return Reader.ReadPrimitive<T>(); });
+			array.AssignEach(Reader.ReadPrimitive<T>());
 			return array;
 		}
 		public static (T1, T2)[] ReadPrimitiveArray<T1, T2>(this SerializationReader Reader)
 		{
 			(T1, T2)[] array = new (T1, T2)[Reader.ReadInt32()];
-			array.AssignEach(delegate () { (T1, T2) tuple = new() { Item1 = Reader.ReadPrimitive<T1>(), Item2 = Reader.ReadPrimitive<T2>() }; return tuple; });
+			array.AssignEach((Reader.ReadPrimitive<T1>(), Reader.ReadPrimitive<T2>()));
 			return array;
 		}
 
@@ -526,10 +506,10 @@ namespace Nexus.Core
 			}
 			obj.Add(add);
 		}
-		public static void AssignEach<T>(this IList<T> objs, Func<T> expr)
+		public static void AssignEach<T>(this IList<T> objs, T obj)
 		{
 			for (int i = 0; i < objs.Count; i++)
-				objs[i] = expr();
+				objs[i] = obj;
 		}
 
 		#endregion
@@ -544,7 +524,7 @@ namespace Nexus.Core
 
 		public static void SafeForEach<T>(this IEnumerable<T> objs, Action<T> action)
 		{
-			objs.AsEnumerable().ForEach(action);
+			objs.ToArray().ForEach(action);
 		}
 
 		#endregion
@@ -552,7 +532,7 @@ namespace Nexus.Core
 		#region IDictionary<TKey,TValue>
 		public static (T1, T2)[] TupleArray<T1, T2>(this IDictionary<T1, T2> dic)
 		{
-			return dic.Select(x=> (x.Key, x.Value)).ToArray();
+			return dic.Select(x => (x.Key, x.Value)).ToArray();
 		}
 		public static TKey[] KeyArray<TKey, TValue>(this IDictionary<TKey, TValue> source)
 		{

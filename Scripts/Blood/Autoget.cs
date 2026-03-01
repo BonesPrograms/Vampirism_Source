@@ -27,7 +27,7 @@ namespace Nexus.Blood
         static bool FoundBlood => PureBlood.Count > 0;
         public static void Empty()
         {
-            PureBlood = null;
+            PureBlood = new();
             ContainerCache = new GameObject[0];
         }
         public static void Autogetter()
@@ -37,20 +37,19 @@ namespace Nexus.Blood
             {
                 FindBlood();
                 if (FoundBlood)
+                {
                     AddBlood();
+                    PureBlood = new();
+                }
             }
         }
         static void ValidateCache()
         {
             var inventory = Player.Inventory.Objects;
-            int count = inventory.Count(cacheDelegate);
-            if (count != ContainerCache.Length) //reduces our need to reset or re-instance the containers list over and over, which i expect to not change often
-                if (count == 0)
-                    ContainerCache = new GameObject[0];
-                else
-                    ContainerCache = inventory.Where(cacheDelegate).ToArray();
+            var query = inventory.Where(x => CheckTag(x.GetBlueprint()));
+            if (query.Count() != ContainerCache.Length) //reduces our need to reset or re-instance the containers list over and over, which i expect to not change often
+                ContainerCache = query.ToArray();
         }
-        static bool cacheDelegate(GameObject x) => x != null && CheckTag(x.GetBlueprint());
         static bool CheckTag(GameObjectBlueprint blueprint)
         {
             return blueprint.Tags.Keys.Contains(Container) && !blueprint.Tags.Keys.Contains("HiddenInInventory");

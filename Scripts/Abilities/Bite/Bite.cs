@@ -19,9 +19,9 @@ namespace Nexus.Bite
     {
         public bool IsOnFire { get; private set; }
         public bool HasPlasma { get; private set; }
-        public bool HasBadLiquid => BadLiquids.Any(x => x.Item2 == true);
-        public bool HasDisease => Diseases.Any(x => x.Item2 == true);
-        public bool IsPoisoned => Poisons.Any(x => x.Item2 == true);
+        public bool HasBadLiquid => BadLiquids.Any(x => x.Item2);
+        public bool HasDisease => Diseases.Any(x => x.Item2);
+        public bool IsPoisoned => Poisons.Any(x => x.Item2);
         readonly Vampirism Vampirism;
         readonly BiteSimulator Sim;
 
@@ -110,7 +110,8 @@ namespace Nexus.Bite
 
         bool OutOfRange()
         {
-            MetricsManager.LogModError(ModManager.GetMod("vampirism"), "BiteSimulator.BadEnding() returned out of range value in Biting.CannotFeed(). Possible empty list in BadEnding() Possible error in Biting.TryCreateInstance() (should automatically set booleans to prevent access of empty lists).");
+            Popup.Show("Vampirism Mod ERROR @ Bite.CannotFeed(GameObject) :: returned value is out of range!");
+            MetricsManager.LogModError(ModManager.GetMod("vampirism"), "BiteSimulator.BadEnding() returned out of range value in Biting.CannotFeed(). Possible empty enumerable in BadEnding().");
             return true;
         }
 

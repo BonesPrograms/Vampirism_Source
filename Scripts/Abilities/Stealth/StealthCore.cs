@@ -28,7 +28,7 @@ namespace Nexus.Stealth
         static GameObject[] KeyArray => Nightbeast.KeyArray;
         public static void ScanEnvironment(Zone zone)
         {
-            zone.ForEachCombatObject(x => CheckValidity(x));
+            zone.CombatObjects().Where(x => ValidSentient(x)).ForEach(x => CheckValidity(x));
         }
         public static void Stealth()
         {
@@ -37,14 +37,11 @@ namespace Nexus.Stealth
             if (Nightbeast.Witnesses.Count != KeyArray.Length)
                 Nightbeast.UpdateKeys();
             KeyArray.ForEach(x => Nightbeast.Witnesses[x] = NearbySentient(x) && ActiveWitness(x));
-            _TrueCount = Nightbeast.Witnesses.Count(x => x.Value == true);
+            _TrueCount = Nightbeast.Witnesses.Count(x => x.Value);
         }
         static void CheckValidity(GameObject obj) //zoneload
         {
-            if (ValidSentient(obj))
-            {
-                Nightbeast.Witnesses[obj] = NearbySentient(obj) && ActiveWitness(obj);
-            }
+            Nightbeast.Witnesses[obj] = NearbySentient(obj) && ActiveWitness(obj);
         }
 
         /// <summary>
