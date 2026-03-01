@@ -37,7 +37,7 @@ namespace Nexus.Stealth
             if (Nightbeast.Witnesses.Count != KeyArray.Length)
                 Nightbeast.UpdateKeys();
             KeyArray.ForEach(x => Nightbeast.Witnesses[x] = NearbySentient(x) && ActiveWitness(x));
-            _TrueCount = Nightbeast.Witnesses.Select(x => x.Value == true).Count();
+            _TrueCount = Nightbeast.Witnesses.Count(x => x.Value == true);
         }
         static void CheckValidity(GameObject obj) //zoneload
         {

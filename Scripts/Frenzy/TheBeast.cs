@@ -70,7 +70,7 @@ namespace XRL.World.Parts
 		{
 			if (GameOver)
 			{
-				TargetRegistry.SafeForEach(x => { var obj = x.Key; if (!obj.InSamePartyAs(ParentObject)) TargetRegistry.Remove(obj);});
+				TargetRegistry.Keys.Where(x => !x?.InSamePartyAs(ParentObject) ?? true).ForEach(x => TargetRegistry.Remove(x));
 				if (TargetRegistry.Count == 0)
 					TargetRegistry = new();
 			}

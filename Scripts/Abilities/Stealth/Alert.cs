@@ -128,7 +128,7 @@ namespace Nexus.Stealth
         }
         public void AddOpinionToWitnesses<T>(uint AoE = Rules.STEALTH.AI_RADIUS) where T : IOpinionSubject, new()
         {
-            Witnesses.ForEach(x => { if (Validated(x, AoE)) x.AddOpinion<T>(Source); });
+            Witnesses.Where(x => Validated(x, AoE)).ForEach(x => x.AddOpinion<T>(Source));
         }
         // public void AddEffectToWitnesses<T>(T obj, uint AoE = default) where T : Effect, new()
         // {
@@ -173,8 +173,7 @@ namespace Nexus.Stealth
         }
         public void RemoveEffectFromWitness<T>(uint AoE = Rules.STEALTH.AI_RADIUS) where T : Effect, new()
         {
-            Witnesses.ForEach(x => { if (Validated(x, AoE) && x.TryGetEffect<T>(out var T)) x.RemoveEffect(T); });
-
+            Witnesses.Where(x => Validated(x, AoE)).ForEach(x => x.RemoveEffect<T>());
         }
         void ProcessList(GameObject Target)
         {
@@ -201,7 +200,7 @@ namespace Nexus.Stealth
                 if (distances.Count > 1)
                 {
                     int min = distances.Values.Min();
-                    return distances.First(x=>x.Value == min).Key;
+                    return distances.First(x => x.Value == min).Key;
                 }
                 else
                     return distances.Single().Key;

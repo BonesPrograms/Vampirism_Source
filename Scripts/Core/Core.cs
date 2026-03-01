@@ -544,7 +544,7 @@ namespace Nexus.Core
 
 		public static void SafeForEach<T>(this IEnumerable<T> objs, Action<T> action)
 		{
-			objs.ToArray().ForEach(action);
+			objs.AsEnumerable().ForEach(action);
 		}
 
 		#endregion

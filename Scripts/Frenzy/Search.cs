@@ -26,7 +26,7 @@ namespace Nexus.Frenzy
 
         void Sift()
         {
-            Source.TargetRegistry.Select(x => x.Key).Where(x => x == null || !x.HasHitpoints() || !x.InSameZone(Source.ParentObject)).ForEach(x => Source.TargetRegistry.Remove(x));
+            Source.TargetRegistry.Keys.Where(x => x == null || !x.HasHitpoints() || !x.InSameZone(Source.ParentObject)).ForEach(x => Source.TargetRegistry.Remove(x));
         }
 
 

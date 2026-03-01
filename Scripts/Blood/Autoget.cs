@@ -17,14 +17,14 @@ namespace Nexus.Blood
         static GameObject Player => The.Player;
 
         [GameBasedStaticCache(false)]
-        static List<LiquidVolume> PureBlood;
+        static List<LiquidVolume> PureBlood = new();
 
         [GameBasedStaticCache(false, true)]
         static GameObject[] ContainerCache = new GameObject[0];
         const int MAX = 64;
         const string Container = "WaterContainer";
         const string Blood = "blood";
-        static bool FoundBlood => PureBlood?.Count > 0;
+        static bool FoundBlood => PureBlood.Count > 0;
         public static void Empty()
         {
             PureBlood = null;
@@ -43,22 +43,17 @@ namespace Nexus.Blood
         static void ValidateCache()
         {
             var inventory = Player.Inventory.Objects;
-            if (inventory.Count(cacheDelegate) != ContainerCache.Length) //reduces our need to reset or re-instance the containers list over and over, which i expect to not change often
-                ContainerCache = inventory.Where(cacheDelegate).ToArray();
+            int count = inventory.Count(cacheDelegate);
+            if (count != ContainerCache.Length) //reduces our need to reset or re-instance the containers list over and over, which i expect to not change often
+                if (count == 0)
+                    ContainerCache = new GameObject[0];
+                else
+                    ContainerCache = inventory.Where(cacheDelegate).ToArray();
         }
         static bool cacheDelegate(GameObject x) => x != null && CheckTag(x.GetBlueprint());
         static bool CheckTag(GameObjectBlueprint blueprint)
         {
-            bool hidden = false;
-            bool container = false;
-            blueprint.Tags.ForEach(obj =>
-            {
-                if (obj.Key == "HiddenInInventory")
-                    hidden = true;
-                if (obj.Key == Container)
-                    container = true;
-            });
-            return container && !hidden;
+            return blueprint.Tags.Keys.Contains(Container) && !blueprint.Tags.Keys.Contains("HiddenInInventory");
         }
 
         // void SecretlyRearrangeBlood() //solution for unsolved issue with my current system where blood is not pooled into a single container but is spread out over all of them
@@ -102,7 +97,7 @@ namespace Nexus.Blood
         // }
         static void AddBlood()
         {
-            ContainerCache.TakeWhile(x => FoundBlood).Select(x => x?.GetPart<LiquidVolume>()).Where(x => x != null && !x.Sealed && x.Volume < MAX).ForEach(x => CheckForStoredLiquids(x, x.ParentObject));
+            ContainerCache.TakeWhile(x => FoundBlood).Select(x => x.GetPart<LiquidVolume>()).Where(x => !x.Sealed && x.Volume < MAX).ForEach(x => CheckForStoredLiquids(x, x.ParentObject));
         }
 
         static void CheckForStoredLiquids(LiquidVolume Part, GameObject Waterskin)
