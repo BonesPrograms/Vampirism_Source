@@ -64,11 +64,8 @@ namespace XRL.World.Parts
         }
         static void DropMote(GameObject Dying)
         {
-            if (Dying.CheckFlag(FLAGS.INNOCENT))
-            {
-                if (FreeMote || WikiRng.Next(1, 1000) <= 1)
-                    Dying.CurrentCell.AddObject("MoteOfHumanity");
-            }
+            if (FreeMote || WikiRng.Next(1, 5000) <= 1)
+                Dying.CurrentCell.AddObject("MoteOfHumanity");
         }
         static void CreateDeathsInstance(GameObject Killer, GameObject Dying)
         {
@@ -87,18 +84,18 @@ namespace XRL.World.Parts
             var obj = Dying.CurrentCell.Objects.FirstOrDefault(x => x.PropertyEquals("SourceID", Dying.ID));
             if (obj != null)
                 DetermineEmbraceability(obj, Dying, isvampire);
-            
+
         }
 
         static void DetermineEmbraceability(GameObject obj, GameObject Dying, bool isvampire)
         {
-                if (isvampire)
-                {
-                    AddPlayerMessage($"{Dying.t()} burns to ashes!");
-                    obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.FALSE);
-                }
-                else if (Dying.TryGetPart(out Corpse corpse))
-                    CompareBlueprints(Dying, obj, corpse);
+            if (isvampire)
+            {
+                AddPlayerMessage($"{Dying.t()} burns to ashes!");
+                obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.FALSE);
+            }
+            else if (Dying.TryGetPart(out Corpse corpse))
+                CompareBlueprints(Dying, obj, corpse);
         }
 
         static void CompareBlueprints(GameObject Dying, GameObject obj, Corpse corpse)

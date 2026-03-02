@@ -41,15 +41,15 @@ namespace XRL.World.Parts
         {
             if (E.Means == "Ghoul" && E.Actor == ParentObject && SpellID != Guid.Empty)
             {
-                admn.msg($"First limt {E.Limit}");
+               // admn.msg($"First limt {E.Limit}");
                 E.Limit = E.Limit + MAX();
-                admn.msg($"Limit {E.Limit} Max {MAX()}");
+               // admn.msg($"Limit {E.Limit} Max {MAX()}");
             }
             return base.HandleEvent(E);
         }
         public override bool HandleEvent(CommandEvent E)
         {
-            admn.msg($"{ParentObject.Level}, {ParentObject.GetStat("Level").Value} level values");
+           // admn.msg($"{ParentObject.Level}, {ParentObject.GetStat("Level").Value} level values");
             if (E.Command == GHOUL.COMMAND_NAME && Checks.Prerequisites(ParentObject, GHOUL.ABILITY_NAME, TEXT))
             {
                 if (ParentObject.TryGetTarget(GHOUL.ABILITY_NAME, TEXT, out GameObject pick))

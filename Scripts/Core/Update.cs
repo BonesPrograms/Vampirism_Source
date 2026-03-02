@@ -31,7 +31,10 @@ namespace Nexus.Update
         public static void UpdateOldSave(GameObject GO)
         {
             if (DoUpdate(GO))
+            {
+                Popup.Show("Vampirism updated to version 1.5! See steam page for more info.");
                 MarkAsOldSave(GO);
+            }
         }
 
         public static bool DoUpdate(GameObject GO)

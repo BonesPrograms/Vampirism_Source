@@ -396,21 +396,24 @@ namespace XRL.World.Parts.Mutation
 		#endregion
 
 		#region Update
-		public override bool HandleEvent(AfterPlayerBodyChangeEvent E) //potential issue here:
-		{                                                               //players who are NOT a vampire and are playing old saves will not be able to use vampiric spells when dominating if the option is enabled.
-			if (E.NewBody.IsVampire())                                  //because only players with vampire parts can request an update
+		public override bool HandleEvent(AfterPlayerBodyChangeEvent E) 
+		{                                                              
+			if (E.NewBody.IsVampire())                                 
 			{
-				//though this can be fixed by saving/loading as the dominatee
-				Nexus.Update.Update.Spells(E.NewBody);                  //ALSO vampires wont get access to the new corpse type unless the player is a vampire that can update them
-				if (E.OldBody?.HasStringProperty(FLAGS.OLD_SAVE) ?? false)
+				
+				Nexus.Update.Update.Spells(E.NewBody);                 
+				if (E.OldBody?.HasStringProperty(FLAGS.OLD_SAVE) ?? false) //from my experience oldbody is usually null, but what can you do
 					E.NewBody.SetStringProperty(FLAGS.OLD_SAVE, null);
 			}
 			return base.HandleEvent(E);
 		}
+
+		//bug:
+		 //AI vampires wont get access to the new corpse type unless the player is a vampire that can update them, because only player vampires can request zone updates when entering zones
 		public override bool HandleEvent(EnteringZoneEvent E)
 		{
 			Zone zone = E.Cell.ParentZone;
-			if (zone.TryGetZoneProperty(FLAGS.MOD.VERSION_TAG, out string result)) //to prevent repeated sifting of zones already updated in old saves
+			if (zone.TryGetZoneProperty(FLAGS.MOD.VERSION_TAG, out string result)) //to prevent repeated sifting of zones already updated in old saves.
 			{
 				if (result != MOD.VERSION)
 					Update(zone);

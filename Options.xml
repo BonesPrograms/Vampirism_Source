@@ -23,10 +23,10 @@
   </option>
   <option
   ID="enablevampiricpowers"
-  DisplayText="Blood Magic - Enable blood magic update (requires save/load)."
+  DisplayText="(Disabled until 2.0 update) Blood Magic - Enable blood magic update (requires save/load)."
   Category="Vampirism"
   Type="Checkbox"
-  Default="Yes">
+  Default="No">
   </option>
   <option
   ID="CoffinAutoWin"
@@ -59,7 +59,7 @@
   </option>
   <option
   ID="FearOfFire"
-  DisplayText="Rotschrek - Vampires take double damage from sources of fire and it makes them panic."
+  DisplayText="Rotschrek - Vampires take double damage from sources of fire and it nearby fire sources makes them panic."
   Category="Vampirism"
   Type="Checkbox"
   Default="Yes">
@@ -67,10 +67,10 @@
   <option
   ID="FearOfTorches"
   Requires="FearOfFire==Yes"
-  DisplayText="Rotschrek: Torches - Vampires cannot use or be near lit torches."
+  DisplayText="Rotschrek: Torches - Vampires cannot use torches."
   Category="Vampirism"
   Type="Checkbox"
-  Default="Yes">
+  Default="No">
   </option>
     <option
   ID="UnderDougsHum"
@@ -121,7 +121,7 @@
   </option>
   <option 
     ID="vampBloodNerf"
-    DisplayText="(Compatibility) Enable changes to vampire's bleeding liquid (should not be necessary to disable anymore but, incase you need it)"
+    DisplayText="(Compatibility) Enable changes to vampire's bleeding liquid."
     Category="Vampirism"
     Type="Checkbox"
     Default="Yes">

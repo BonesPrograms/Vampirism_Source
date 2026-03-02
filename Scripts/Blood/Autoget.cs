@@ -46,14 +46,27 @@ namespace Nexus.Blood
         static void ValidateCache()
         {
             var inventory = Player.Inventory.Objects;
-            var query = inventory.Where(x => CheckTag(x.GetBlueprint()));
+            var query = inventory.Where(x => x != null && CheckTag(x.GetBlueprint())); //if you dont check for null objects, well, you get null objects - not sure what theyre doing in your inventory, but theyre in there
             if (query.Count() != ContainerCache.Length) //reduces our need to reset or re-instance the containers list over and over, which i expect to not change often
                 ContainerCache = query.ToArray();
         }
         static bool CheckTag(GameObjectBlueprint blueprint)
         {
-            return blueprint.Tags.Keys.Contains(Container) && !blueprint.Tags.Keys.Contains("HiddenInInventory");
+            bool valid = false;
+            foreach (var obj in blueprint.Tags.Keys)
+            {
+                if (obj == "HiddenInInventory")
+                    return false;
+                if (obj == Container)
+                    valid = true;
+            }
+            return valid;
         }
+
+
+        //dont worry about this crazy shit
+        //i havent deleted it just incase it needs to make a return tho
+        //however this issue isnt a thing i notice anymore
 
         // void SecretlyRearrangeBlood() //solution for unsolved issue with my current system where blood is not pooled into a single container but is spread out over all of them
         // {
@@ -96,7 +109,11 @@ namespace Nexus.Blood
         // }
         static void AddBlood()
         {
-            ContainerCache.TakeWhile(x => FoundBlood).Select(x => x.GetPart<LiquidVolume>()).Where(x => !x.Sealed && x.Volume < MAX).ForEach(x => CheckForStoredLiquids(x, x.ParentObject));
+            ContainerCache
+            .TakeWhile(x => FoundBlood)
+            .Select(x => x.GetPart<LiquidVolume>())
+            .Where(x => !x.Sealed && x.Volume < MAX)
+            .ForEach(x => CheckForStoredLiquids(x, x.ParentObject)); //split up for debugging lol
         }
 
         static void CheckForStoredLiquids(LiquidVolume Part, GameObject Waterskin)
