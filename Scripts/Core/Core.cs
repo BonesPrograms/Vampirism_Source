@@ -13,28 +13,6 @@ namespace Nexus.Core
 {
 
 
-	[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Explicit)]
-	public struct Reinterpreter<TFrom, TTo>
-	{
-		[System.Runtime.InteropServices.FieldOffset(0)]
-		public TFrom From;
-
-		[System.Runtime.InteropServices.FieldOffset(0)]
-		public TTo To;
-	}
-
-	public static class Unsafe
-	{
-		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-		public static TTo As<TFrom, TTo>(TFrom from)
-		{
-			Reinterpreter<TFrom, TTo> r = default;
-			r.From = from;
-			return r.To;
-		}
-	}
-
-
 	public static class QudExtensions
 	{
 		//RequiresPart (bool): if they already have the part, it returns false and does not assign obj. otherwise it returns true and assigns obj to the new part.
@@ -320,7 +298,6 @@ namespace Nexus.Core
 		#region Zone/Cell
 		public static IEnumerable<GameObject> CombatObjects(this Zone zone, Func<GameObject, bool> expr)
 		{
-
 			for (int y = 0; y < zone.Height; y++)
 			{
 				for (int x = 0; x < zone.Width; x++)
@@ -334,6 +311,23 @@ namespace Nexus.Core
 		public static IEnumerable<GameObject> CombatObjects(this Cell cell, Func<GameObject, bool> expr)
 		{
 			return cell.HasCombatObject() ? cell.Objects.Where(x => x.IsCombatObject() && expr(x)) : Enumerable.Empty<GameObject>();
+		}
+
+		public static IEnumerable<GameObject> CombatObjects(this Zone zone)
+		{
+			for (int y = 0; y < zone.Height; y++)
+			{
+				for (int x = 0; x < zone.Width; x++)
+				{
+					var enumerable = zone.Map[x][y].CombatObjects();
+					foreach (var obj in enumerable)
+						yield return obj;
+				}
+			}
+		}
+		public static IEnumerable<GameObject> CombatObjects(this Cell cell)
+		{
+			return cell.HasCombatObject() ? cell.Objects.Where(x => x.IsCombatObject()) : Enumerable.Empty<GameObject>();
 		}
 		public static bool LocalCells(this GameObject Player, out List<Cell> cells)
 		{
@@ -378,115 +372,7 @@ namespace Nexus.Core
 
 		// #endregion
 
-		#region Serialization
 
-		public static T[] ReadPrimitiveArray<T>(this SerializationReader Reader)
-		{
-			T[] array = new T[Reader.ReadInt32()];
-			array.AssignEach(Reader.ReadPrimitive<T>());
-			return array;
-		}
-		public static (T1, T2)[] ReadPrimitiveArray<T1, T2>(this SerializationReader Reader)
-		{
-			(T1, T2)[] array = new (T1, T2)[Reader.ReadInt32()];
-			array.AssignEach((Reader.ReadPrimitive<T1>(), Reader.ReadPrimitive<T2>()));
-			return array;
-		}
-
-		public static T ReadPrimitive<T>(this SerializationReader Reader)
-		{
-			if (typeof(T) == typeof(sbyte))
-				return Unsafe.As<sbyte, T>(Reader.ReadSByte());
-			else if (typeof(T) == typeof(byte))
-				return Unsafe.As<byte, T>(Reader.ReadByte());
-			else if (typeof(T) == typeof(short))
-				return Unsafe.As<short, T>(Reader.ReadInt16());
-			else if (typeof(T) == typeof(ushort))
-				return Unsafe.As<ushort, T>(Reader.ReadUInt16());
-			else if (typeof(T) == typeof(int))
-				return Unsafe.As<int, T>(Reader.ReadInt32());
-			else if (typeof(T) == typeof(uint))
-				return Unsafe.As<uint, T>(Reader.ReadUInt32());
-			else if (typeof(T) == typeof(long))
-				return Unsafe.As<long, T>(Reader.ReadInt64());
-			else if (typeof(T) == typeof(ulong))
-				return Unsafe.As<ulong, T>(Reader.ReadUInt64());
-			else if (typeof(T) == typeof(float))
-				return Unsafe.As<float, T>(Reader.ReadSingle());
-			else if (typeof(T) == typeof(double))
-				return Unsafe.As<double, T>(Reader.ReadDouble());
-			else if (typeof(T) == typeof(decimal))
-				return Unsafe.As<decimal, T>(Reader.ReadDecimal());
-			else if (typeof(T) == typeof(bool))
-				return Unsafe.As<bool, T>(Reader.ReadBoolean());
-			else if (typeof(T) == typeof(char))
-				return Unsafe.As<char, T>(Reader.ReadChar());
-			else if (typeof(T) == typeof(string))
-				return (T)(object)Reader.ReadString();
-			return default;
-		}
-
-		public static void WritePrimitiveArray<T>(this SerializationWriter Writer, T[] array)
-		{
-			Writer.Write(array.Length);
-			array.ForEach(delegate (T obj) { Writer.WritePrimitive(obj); });
-		}
-		public static void WritePrimitiveArray<T1, T2>(this SerializationWriter Writer, (T1, T2)[] array)
-		{
-			Writer.Write(array.Length);
-			array.ForEach(delegate ((T1, T2) obj) { Writer.WritePrimitive(obj.Item1); Writer.WritePrimitive(obj.Item2); });
-		}
-
-		public static void WritePrimitive<T>(this SerializationWriter Writer, T obj)
-		{
-			switch (obj)
-			{
-				case sbyte bite:
-					Writer.Write(bite);
-					break;
-				case byte bite:
-					Writer.Write(bite);
-					break;
-				case short shrt:
-					Writer.Write(shrt);
-					break;
-				case ushort ushrt:
-					Writer.Write(ushrt);
-					break;
-				case int intgr:
-					Writer.Write(intgr);
-					break;
-				case uint uintgr:
-					Writer.Write(uintgr);
-					break;
-				case long lng:
-					Writer.Write(lng);
-					break;
-				case ulong ulng:
-					Writer.Write(ulng);
-					break;
-				case float flt:
-					Writer.Write(flt);
-					break;
-				case double dbl:
-					Writer.Write(dbl);
-					break;
-				case decimal dcml:
-					Writer.Write(dcml);
-					break;
-				case bool bln:
-					Writer.Write(bln);
-					break;
-				case char chr:
-					Writer.Write(chr);
-					break;
-				case string strng:
-					Writer.Write(strng);
-					break;
-			}
-		}
-
-		#endregion
 	}
 
 
@@ -506,11 +392,7 @@ namespace Nexus.Core
 			}
 			obj.Add(add);
 		}
-		public static void AssignEach<T>(this IList<T> objs, T obj)
-		{
-			for (int i = 0; i < objs.Count; i++)
-				objs[i] = obj;
-		}
+
 
 		#endregion
 
@@ -525,18 +407,6 @@ namespace Nexus.Core
 		public static void SafeForEach<T>(this IEnumerable<T> objs, Action<T> action)
 		{
 			objs.ToArray().ForEach(action);
-		}
-
-		#endregion
-
-		#region IDictionary<TKey,TValue>
-		public static (T1, T2)[] TupleArray<T1, T2>(this IDictionary<T1, T2> dic)
-		{
-			return dic.Select(x => (x.Key, x.Value)).ToArray();
-		}
-		public static TKey[] KeyArray<TKey, TValue>(this IDictionary<TKey, TValue> source)
-		{
-			return source.Keys.ToArray();
 		}
 
 		#endregion

@@ -141,7 +141,7 @@ namespace XRL.World.Parts
 
         void CheckGhouls()
         {
-            foreach (var ghoul in Ghouls.KeyArray())
+            foreach (var ghoul in Ghouls.Keys.ToArray())
             {
                 if ((!ghoul?.HasHitpoints() ?? true) || !ghoul.HasEffect<EnthralledGhoul>())
                     Ghouls.Remove(ghoul);

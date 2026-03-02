@@ -28,7 +28,7 @@ namespace Nexus.Stealth
         static GameObject[] KeyArray => Nightbeast.KeyArray;
         public static void ScanEnvironment(Zone zone)
         {
-            zone.CombatObjects().Where(x => ValidSentient(x)).ForEach(x => CheckValidity(x));
+            zone.CombatObjects(x => ValidSentient(x)).ForEach(x => CheckValidity(x));
         }
         public static void Stealth()
         {

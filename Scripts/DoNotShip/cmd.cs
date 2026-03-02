@@ -374,7 +374,7 @@ namespace XRL.World.Parts
 
         public static void FindSpotter()
         {
-            The.Player.CurrentZone.CombatObjects().Where(x => x.HasEffect<Spotter>()).ForEach(x => msg($"{x}"));
+            The.Player.CurrentZone.CombatObjects(x => x.HasEffect<Spotter>()).ForEach(x => msg($"{x}"));
             msg(nameof(FindSpotter));
         }
 
@@ -507,27 +507,7 @@ namespace XRL.World.Parts
         }
 
 
-        [WishCommand("ReadCopy")]
-        public static void ReadCopy()
-        {
-            Cell cell = The.Player.PickDirection("ReadCopy");
-            if (cell != null)
-            {
-                int copies = 0;
-                for (int i = 0; i < cell.Objects.Count; i++)
-                {
-                    if (cell.Objects[i].TryGetPart<GameObjectDataRecord>(out var copy))
-                    {
-                        copies++;
-                        copy.ReadData();
-                    }
-                }
-                if (copies > 0)
-                    AddPlayerMessage($"Read {copies} copies. See Player.log");
-                else
-                    AddPlayerMessage($"No objects found with GameObjectCopy part in cell.");
-            }
-        }
+
 
         [WishCommand("embrace")]
 
@@ -598,24 +578,6 @@ namespace XRL.World.Parts
             }
         }
 
-
-        [WishCommand("read")]
-
-        public static void read()
-        {
-            GameObject GO = The.Player;
-            Cell cell = GO.PickDirection("read");
-            if (cell != null)
-            {
-                for (int i = 0; i < cell.Objects.Count; i++)
-                {
-                    GameObject obj = cell.Objects[i];
-                    GameObjectDataRecord record = new(obj);
-                    record.ReadData();
-                }
-                AddPlayerMessage($"ReadComplete {cell.Objects.Count} objects");
-            }
-        }
 
         [WishCommand("scan")]
         public static void ScanWish()

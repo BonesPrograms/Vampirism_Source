@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Nexus.Core;
 using Nexus.Properties;
 using Nexus.Stealth;
@@ -48,7 +49,7 @@ namespace XRL.World.Parts
 
 		public static void UpdateKeys()
 		{
-			_KeyArray = Witnesses.KeyArray();
+			_KeyArray = Witnesses.Keys.ToArray();
 		}
 
 		public override bool WantEvent(int ID, int cascade)
