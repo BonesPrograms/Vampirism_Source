@@ -126,4 +126,11 @@
     Type="Checkbox"
     Default="Yes">
   </option>
+  <option 
+  ID="VampireBleedThirst"
+  DisplayText="Bleed Thirst - Make vampires get thirsty from bleeding."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="Yes">
+  </option>
 </options>

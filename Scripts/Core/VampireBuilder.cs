@@ -21,6 +21,8 @@ namespace Nexus.Core
         // {
         //     new HumanityUI(9999), new Bloodlust()
         // };
+
+        public const bool ENABLE_SPELLS = false; //so that i can easily disable spells when releasing pub updates for the time being
         public const string CORPSE = "Ashes";
         static readonly (string, int)[] IntProperties =
         {
@@ -121,17 +123,23 @@ namespace Nexus.Core
 
         public static void RequireSpells(GameObject GO)
         {
-            XRL.UI.Popup.Suppress = true;
-            VampiricSpells.ForEach(delegate (Type type) { if (GO.RequiresPart<VampiricSpell>(type, out var obj)) obj.AddSpell(); });
-            GO.SetStringProperty(FLAGS.SPELLS, FLAGS.TRUE);
-            XRL.UI.Popup.Suppress = false;
+            if (ENABLE_SPELLS)
+            {
+                XRL.UI.Popup.Suppress = true;
+                VampiricSpells.ForEach(delegate (Type type) { if (GO.RequiresPart<VampiricSpell>(type, out var obj)) obj.AddSpell(); });
+                GO.SetStringProperty(FLAGS.SPELLS, FLAGS.TRUE);
+                XRL.UI.Popup.Suppress = false;
+            }
         }
 
 
         public static void RemoveSpells(GameObject GO)
         {
-            VampiricSpells.ForEach(x => GO.GetPart<VampiricSpell>(x)?.RemoveSpell());
-            GO.SetStringProperty(FLAGS.SPELLS, FLAGS.FALSE);
+            if (ENABLE_SPELLS)
+            {
+                VampiricSpells.ForEach(x => GO.GetPart<VampiricSpell>(x)?.RemoveSpell());
+                GO.SetStringProperty(FLAGS.SPELLS, FLAGS.FALSE);
+            }
 
         }
 

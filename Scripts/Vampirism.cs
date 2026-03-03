@@ -247,8 +247,8 @@ namespace XRL.World.Parts.Mutation
 		}
 
 		bool FireyObject(GameObject obj)
-		{
-			return obj.IsAflame() || Flamelike($"{obj}") || (obj.Blueprint != "Campfire" && obj.HasPart<AnimatedMaterialFire>()) || LitTorch(obj);
+		{																		//Temporarily disabled until I make it slightly more complex with a timer
+			return obj.IsAflame() || Flamelike($"{obj}")  || LitTorch(obj); //|| (obj.Blueprint != "Campfire" && obj.HasPart<AnimatedMaterialFire>());
 		}
 
 		// bool HoldingFlamingObject(GameObject obj)

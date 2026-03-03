@@ -64,6 +64,7 @@ namespace Nexus.Rules
     static class OPTIONS //some of these are only referenced once but i hate string literals and i like having them all in one place so i can compare them to my XMLs to make sure there
     {                     //are no typos
 
+        public const string BLEED_THIRST = "VampireBleedThirst";
         public const string SILVER = "SilverAilment";
         public const string COFFIN = "CoffinAutoWin";
         public const string TORCH = "FearOfTorches";
@@ -140,8 +141,8 @@ namespace Nexus.Rules
 
         public const int GHOUL_PUKE_WARN = BLOOD_PUKE - BLOOD_PER_GHOUL;
 
-        public const int BLOOD_PER_BLOODLOSS = 500;
-        public const int BLOOD_PER_BLOODLOSS_FEED = 500; //used to be a different number but im experimenting with values rn, may become a diff number again one day
-
+        public const int BLOOD_PER_BLOODLOSS = 100;
+        public const int BLOOD_PER_BLOODLOSS_FEED = 100; //used to be a different number but im experimenting with values rn, may become a diff number again one day
+                                                            //used to be 500 but i got complaints so now its 100
     }
 }

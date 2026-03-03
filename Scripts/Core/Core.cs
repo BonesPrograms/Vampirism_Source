@@ -296,7 +296,7 @@ namespace Nexus.Core
 		#endregion
 
 		#region Zone/Cell
-		public static IEnumerable<GameObject> CombatObjects(this Zone zone, Func<GameObject, bool> expr)
+		public static IEnumerable<GameObject> CombatObjects(this Zone zone, Func<GameObject, bool> expr = null)
 		{
 			for (int y = 0; y < zone.Height; y++)
 			{
@@ -308,27 +308,11 @@ namespace Nexus.Core
 				}
 			}
 		}
-		public static IEnumerable<GameObject> CombatObjects(this Cell cell, Func<GameObject, bool> expr)
+		public static IEnumerable<GameObject> CombatObjects(this Cell cell, Func<GameObject, bool> expr = null)
 		{
-			return cell.HasCombatObject() ? cell.Objects.Where(x => x.IsCombatObject() && expr(x)) : Enumerable.Empty<GameObject>();
+			return cell.HasCombatObject() ? cell.Objects.Where(expr == null ? x => x.IsCombatObject() : x => x.IsCombatObject() && expr(x)) : Enumerable.Empty<GameObject>();
 		}
 
-		public static IEnumerable<GameObject> CombatObjects(this Zone zone)
-		{
-			for (int y = 0; y < zone.Height; y++)
-			{
-				for (int x = 0; x < zone.Width; x++)
-				{
-					var enumerable = zone.Map[x][y].CombatObjects();
-					foreach (var obj in enumerable)
-						yield return obj;
-				}
-			}
-		}
-		public static IEnumerable<GameObject> CombatObjects(this Cell cell)
-		{
-			return cell.HasCombatObject() ? cell.Objects.Where(x => x.IsCombatObject()) : Enumerable.Empty<GameObject>();
-		}
 		public static bool LocalCells(this GameObject Player, out List<Cell> cells)
 		{
 			cells = Player.CurrentCell?.GetLocalAdjacentCells();

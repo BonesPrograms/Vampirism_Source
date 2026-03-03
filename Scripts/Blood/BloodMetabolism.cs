@@ -64,10 +64,10 @@ namespace Nexus.Blood
 
         void Bleeding()
         {
-            if (Source.ParentObject.HasEffect<Bleeding>())
+            if (Source.ParentObject.HasEffect<Bleeding>() && Options.GetOptionBool(OPTIONS.BLEED_THIRST))
             {
                 Source.Blood -= Source.ParentObject.CheckFlag(FLAGS.FEED) ? VITAE.BLOOD_PER_BLOODLOSS_FEED : VITAE.BLOOD_PER_BLOODLOSS;
-                IComponent<GameObject>.AddPlayerMessage("You feel {{R|thistier}}!");
+                IComponent<GameObject>.AddPlayerMessage("Bloodloss makes you {{R|thistier}}!");
             }
         }
 
