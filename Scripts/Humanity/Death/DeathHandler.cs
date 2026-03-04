@@ -116,63 +116,42 @@ namespace XRL.World.Parts
         /// Ensures that the Player field is assigned to the player's source, original GameObject and that the player is a vampire before beginning.
         /// </summary>
         /// <returns></returns>
-        public static bool Security() => Player?.HasEffect<Dominated>() ?? true ? FindTruePlayer() : Player.HasPart<Vampirism>();
-        static bool FindTruePlayer()
+        public static bool Security() => Player == null ? FindAndCheckPlayer() : Player.HasPart<Vampirism>();
+        static bool FindAndCheckPlayer()
+        {
+            _Player = PlayerFinder().Reference();
+            return Player.HasPart<Vampirism>();
+        }
+        static GameObject PlayerFinder()
         {
             if (The.Player.TryGetEffect(out Dominated e))
-                return FindMaster(e);
-            else
-            {
-                _Player = The.Player.Reference();
-                return Player.HasPart<Vampirism>();
-            }
+                return LoopDominator(e);
+            else if (The.Player.TryGetPart(out Vehicle v))
+                return CheckPilot(v.Pilot);
+            return The.Player;
+        }
+
+        static GameObject CheckPilot(GameObject pilot)
+        {
+            if (pilot.TryGetEffect(out Dominated e))
+                return LoopDominator(e);
+            return pilot;
         }
 
         /// <summary>
         /// Loops through the domination effect's dominator to find the player's actual GameObject and assign it to the Player field.
         /// </summary>
         /// <returns></returns>
-        static bool FindMaster(Dominated e)
-        {
-            if (!e.Dominator.HasEffect<Dominated>())
-            {
-                _Player = e.Dominator.Reference();
-                return Player.HasPart<Vampirism>();
-            }
-            else
-                return LoopDominator(e);
-        }
-
-        static bool LoopDominator(Dominated e)
+        static GameObject LoopDominator(Dominated e)
         {
             GameObject TrueDominator = e.Dominator;
             while (TrueDominator.HasEffect<Dominated>())
             {
                 Dominated d = TrueDominator.GetEffect<Dominated>();
-                if (d != null)
-                    TrueDominator = d.Dominator;
-                else
-                {
-                    // Credits to _Cell for this 
-                    Vehicle vehiclePart = TrueDominator.GetPart<Vehicle>();
-                    if (vehiclePart != null && vehiclePart.Pilot != null)
-                    {
-                        TrueDominator = vehiclePart.Pilot;
-                        MetricsManager.LogInfo("!!Found vehicle pilot!");
-                    }
-                    else
-                    {
-
-                        MetricsManager.LogModError(XRL.ModManager.GetMod("vampirism"), "LoopDominator() failed to find the source player body. DeathHandler will not fire.");
-                        return false;
-                    }
-
-                }
+                TrueDominator = d.Dominator;
             }
-            _Player = TrueDominator.Reference();
-            return Player.HasPart<Vampirism>();
+            return TrueDominator;
         }
-
         // bool LastResort()
         // {
         //     GameObject Object = GameObject.Find(x=>x.IsOriginalPlayerBody());

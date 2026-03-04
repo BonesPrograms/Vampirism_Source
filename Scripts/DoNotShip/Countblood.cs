@@ -47,26 +47,26 @@ namespace Nexus.Wish
         {
             count++;
             string Count = $"\n{count}\n";
-            admn.msg(Count);
+            cmd.msg(Count);
             MetricsManager.LogInfo(Count);
-            admn.msg($"{compound} COMPOUND PURE VALUE");
-            admn.msg($"{badcompound} BAD COMPOUND");
-            admn.msg($"{inventorycompound} INVENTORY COMPOUND");
+            cmd.msg($"{compound} COMPOUND PURE VALUE");
+            cmd.msg($"{badcompound} BAD COMPOUND");
+            cmd.msg($"{inventorycompound} INVENTORY COMPOUND");
             MetricsManager.LogInfo($"{compound} COMPOUND PURE VALUE");
             MetricsManager.LogInfo($"{badcompound} BAD COMPOUND");
             MetricsManager.LogInfo($"{inventorycompound} INVENTORY COMPOUND");
-            admn.msg("\nPUREPOOLS IN ZONE");
+            cmd.msg("\nPUREPOOLS IN ZONE");
             MetricsManager.LogInfo("\nPUREPOOLS IN ZONE");
             foreach (var obj in purepools)
             {
-                admn.msg($"{obj.Key} key, {obj.Value} vol, {obj.Key?.ParentObject} parentobject");
+                cmd.msg($"{obj.Key} key, {obj.Value} vol, {obj.Key?.ParentObject} parentobject");
                 MetricsManager.LogInfo($"{obj.Key} key, {obj.Value} vol, {obj.Key?.ParentObject} parentobject");
             }
             MetricsManager.LogInfo("\nINVENTORY POOLS");
-            admn.msg("\nINVENTORY POOLS");
+            cmd.msg("\nINVENTORY POOLS");
             foreach (var obj in inventorypools)
             {
-                admn.msg($"{obj.Key} key, {obj.Value} vol, {obj.Key?.ParentObject} parentobject");
+                cmd.msg($"{obj.Key} key, {obj.Value} vol, {obj.Key?.ParentObject} parentobject");
                 MetricsManager.LogInfo($"{obj.Key} key, {obj.Value} vol, {obj.Key?.ParentObject} parentobject");
             }
         }

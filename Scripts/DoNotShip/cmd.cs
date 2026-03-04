@@ -40,7 +40,7 @@ namespace Nexus.Core
         {
             if (GO.IsPlayer())
             {
-                GO.AddPart(new admn(true));
+                GO.AddPart(new cmd(true));
             }
         }
     }
@@ -52,17 +52,17 @@ namespace XRL.World.Parts
     [HasWishCommand]
 
     [Serializable]
-    public class admn : IPart
+    public class cmd : IPart
     {
 
         public bool IsVampire = default;
 
-        public admn()
+        public cmd()
         {
 
         }
 
-        public admn(bool IsVampire)
+        public cmd(bool IsVampire)
         {
             this.IsVampire = IsVampire;
         }
@@ -134,11 +134,11 @@ namespace XRL.World.Parts
             if (refresh == true)
                 Refresh();
             if (showturns == true)
-                admn.msg($"{The.Game.Turns}");
+                cmd.msg($"{The.Game.Turns}");
             if (showbloodtype == true)
-                admn.msg(ParentObject.GetStringProperty("BleedLiquid") + "bloodtype");
+                cmd.msg(ParentObject.GetStringProperty("BleedLiquid") + "bloodtype");
             if (showWater)
-                admn.msg($"{ParentObject.GetPart<Stomach>().Water}");
+                cmd.msg($"{ParentObject.GetPart<Stomach>().Water}");
             return base.HandleEvent(E);
         }
 
@@ -149,7 +149,7 @@ namespace XRL.World.Parts
 
         public static void SwitchHandler()
         {
-            admn cmd = Get();
+            cmd cmd = Get();
             cmd.showvitae = false;
             cmd.showStealthed = false;
             cmd.ShowActiveStealthed = false;
@@ -170,7 +170,7 @@ namespace XRL.World.Parts
 
         public static void Reswitch()
         {
-            admn cmd = Get();
+            cmd cmd = Get();
             cmd.showvitae = true;
             cmd.showStealthed = true;
             cmd.ShowActiveStealthed = true;
@@ -478,7 +478,7 @@ namespace XRL.World.Parts
                 int range = WikiRng.Next(0, BadLiquids.Length - 1);
                 string liquid = BadLiquids[range].Item1;
                 pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
-                admn.msg($"badliquified {pick} {liquid} {range}");
+                cmd.msg($"badliquified {pick} {liquid} {range}");
             }
         }
 
@@ -547,7 +547,7 @@ namespace XRL.World.Parts
 
         public static void GetStaticPlayer()
         {
-            admn.msg($"{DeathHandler.Player?.DisplayName} sent");
+            cmd.msg($"{DeathHandler.Player?.DisplayName} sent");
         }
 
         #endregion
@@ -686,7 +686,7 @@ namespace XRL.World.Parts
             if (The.Player.CmdTarget("liquify", out var pick))
             {
                 pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
-                admn.msg($"Liquified {liquid} {pick}");
+                cmd.msg($"Liquified {liquid} {pick}");
             }
         }
 
@@ -960,9 +960,9 @@ namespace XRL.World.Parts
                 AddPlayerMessage($"field {nameOf} does not exist in {typeof(T)} or is not bool");
         }
 
-        static admn Get()
+        static cmd Get()
         {
-            return The.Player.RequirePart(new admn(The.Player.IsVampire()));
+            return The.Player.RequirePart(new cmd(The.Player.IsVampire()));
         }
 
         public static void Log<T>(IList<T> obj)

@@ -38,7 +38,7 @@ namespace Nexus.Core
 		/// <summary>
 		/// Returns true/false values from object string properties. Default true.
 		/// </summary>
-		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.FLAGS.TRUE);
+		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.FLAGS.TRUE, Properties.FLAGS.TRUE_LEGACY);
 		public static bool PropertyEquals(this GameObject Object, string key, long value)
 		{
 			if (Object.TryGetLongProperty(key, out long result))
@@ -50,6 +50,13 @@ namespace Nexus.Core
 		{
 			if (Object.TryGetStringProperty(key, out string result))
 				return result == value;
+			return false;
+		}
+
+		public static bool PropertyEquals(this GameObject Object, string key, string value, string value2)
+		{
+			if (Object.TryGetStringProperty(key, out string result))
+				return result == value || result == value2;
 			return false;
 		}
 
