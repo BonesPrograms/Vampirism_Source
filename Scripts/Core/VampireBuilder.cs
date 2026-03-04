@@ -17,12 +17,7 @@ namespace Nexus.Core
 
     static class VampireBuilder
     {
-        // static readonly List<Effect> VampiricEffects = new()
-        // {
-        //     new HumanityUI(9999), new Bloodlust()
-        // };
-
-        public const bool ENABLE_SPELLS = false; //so that i can easily disable spells when releasing pub updates for the time being
+        public static bool ENABLE_SPELLS = false;
         public const string CORPSE = "Ashes";
         static readonly (string, int)[] IntProperties =
         {
@@ -34,7 +29,6 @@ namespace Nexus.Core
             (FLAGS.GO, FLAGS.FALSE), (FLAGS.FEED, FLAGS.FALSE), (FLAGS.FRENZY, FLAGS.FALSE),
             (FLAGS.BLOOD_STATUS, FLAGS.BLOOD.GLUT), (FLAGS.STEALTH, FLAGS.FALSE)
         };
-
         static readonly Type[] IParts =
         {
             typeof(Humanity), typeof(Vitae), typeof(Nightbeast), typeof(TheBeast)

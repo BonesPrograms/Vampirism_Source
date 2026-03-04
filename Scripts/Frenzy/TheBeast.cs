@@ -61,8 +61,7 @@ namespace XRL.World.Parts
 		{
 
 			if (ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == EnteringZoneEvent.ID)
-				if (Options.GetOptionBool(Nexus.Rules.OPTIONS.FRENZY) && ParentObject.IsPlayer())
-					return true;
+				return Options.GetOptionBool(Nexus.Rules.OPTIONS.FRENZY) && ParentObject.IsPlayer();
 			return base.WantEvent(ID, cascade);
 		}
 

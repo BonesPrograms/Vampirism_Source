@@ -150,6 +150,8 @@ namespace XRL.World.Parts
                 Dominated d = TrueDominator.GetEffect<Dominated>();
                 TrueDominator = d.Dominator;
             }
+            if (TrueDominator.TryGetPart(out Vehicle v))
+                return CheckPilot(v.Pilot);
             return TrueDominator;
         }
         // bool LastResort()

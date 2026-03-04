@@ -325,6 +325,14 @@ namespace XRL.World.Parts
 
         #region Vampirism Wishes
 
+        [WishCommand(Command = "spells")]
+
+        public static void spells()
+        {
+            StaticSwitch(nameof(VampireBuilder.ENABLE_SPELLS), typeof(VampireBuilder));
+        }
+
+
         [WishCommand(Command = "crocs")]
 
         public static void crocs()
@@ -941,11 +949,38 @@ namespace XRL.World.Parts
             var cmd = Get();
             Switch(nameOf, cmd);
         }
-        static void Switch<T>(string nameOf, T obj) // T obj = null for static 
+
+        /// <summary>
+        /// Send a null obj for static fields.
+        /// </summary>
+        static void Switch<T>(string nameOf, T obj)
         {
             BindingFlags flag = obj == null ? BindingFlags.Static : BindingFlags.Instance;
             var field = typeof(T).GetField(nameOf, flag | BindingFlags.Public);
             _Switch(field, nameOf, obj);
+        }
+
+        /// <summary>
+        /// For static classes only.
+        /// </summary>
+        /// <param name="nameOf"></param>
+        /// <param name="obj"></param>
+        static void StaticSwitch(string nameOf, Type obj)
+        {
+            var field = obj.GetField(nameOf, BindingFlags.Static | BindingFlags.Public);
+            _StaticSwitch(field, nameOf, obj);
+        }
+
+        static void _StaticSwitch(FieldInfo field, string nameOf, Type obj)
+        {
+            if (field?.GetValue(null) is bool value)
+            {
+                value = !value;
+                msg($"{nameOf} is {(value ? "on" : "off")}.");
+                field.SetValue(null, value);
+            }
+            else
+                AddPlayerMessage($"field {nameOf} does not exist in {obj} or is not bool");
         }
 
         static void _Switch<T>(FieldInfo field, string nameOf, T obj)
