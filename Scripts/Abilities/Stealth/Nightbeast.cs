@@ -29,17 +29,17 @@ namespace XRL.World.Parts
 	[HasGameBasedStaticCache]
 	public class Nightbeast : IPart
 	{
-		public static Dictionary<GameObject, bool> Witnesses => _Witnesses;
-		public static GameObject[] KeyArray => _KeyArray; 
+		public static Dictionary<GameObject, bool> Witnesses => _witnesses;
+		public static GameObject[] KeyArray => _keyArray;
 
 		[GameBasedStaticCache]
 		public static bool NeedsReactivate = false; //for gamestart
 
 		[GameBasedStaticCache(false)]
-		static Dictionary<GameObject, bool> _Witnesses;
+		static Dictionary<GameObject, bool> _witnesses;
 
 		[GameBasedStaticCache(false, true)]
-		static GameObject[] _KeyArray = new GameObject[0];
+		static GameObject[] _keyArray = new GameObject[0];
 		//this was throwing nullref errors in Stealth() during gamestart if i didnt create an instance of it prematurely. will need to do some more research as to why late
 		public static bool StealthStage1 => ActiveStealth.StealthStage1;
 		public static bool StealthStage2 => ActiveStealth.StealthStage2;
@@ -49,16 +49,17 @@ namespace XRL.World.Parts
 
 		public static void UpdateKeys()
 		{
-			_KeyArray = Witnesses.Keys.ToArray();
+			_keyArray = Witnesses.Keys.ToArray();
 		}
 
 		public override bool WantEvent(int ID, int cascade)
 		{
 			if (ID == AfterPlayerBodyChangeEvent.ID)
 				return true;
-			if ((!AutoAct.IsActive() && ID == SingletonEvent<BeforeTakeActionEvent>.ID) || ID == EnteringZoneEvent.ID || ID == AfterGameLoadedEvent.ID)
-				if (ParentObject.IsPlayer())
-					return true;
+			if (ID == SingletonEvent<BeforeTakeActionEvent>.ID)
+				return !AutoAct.IsActive() && ParentObject.IsPlayer();
+			if (ID == EnteringZoneEvent.ID || ID == AfterGameLoadedEvent.ID)
+				return ParentObject.IsPlayer();
 			return base.WantEvent(ID, cascade);
 		}
 
@@ -95,7 +96,7 @@ namespace XRL.World.Parts
 
 		static void Reactivate(Zone zone) //system relies on pinging the zone on load (or receiving new objects when one is created) and then strictly sifts through its own dictionary from then on for evaluation
 		{
-			_Witnesses = new();
+			_witnesses = new();
 			StealthCore.LightLevel = The.Player.CurrentCell?.GetLight();
 			StealthCore.ScanEnvironment(zone);
 			UpdateKeys();

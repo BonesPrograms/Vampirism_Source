@@ -168,7 +168,8 @@ namespace XRL.World.Parts
                 containers.Clear();
             }
         }
-
+        //im not really sure how containers is able to get your containers
+        //outside of these methods, the list always seems to be empty, and i havent bothered debugging within the methods
         void Sip()
         {
             GameObject gameObject = (containers.Count != 0) ? containers[0] : null;

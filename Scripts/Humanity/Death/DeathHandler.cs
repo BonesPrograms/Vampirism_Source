@@ -20,19 +20,19 @@ namespace XRL.World.Parts
     public class DeathHandler : IPart
     {
         public static bool FreeMote;
-        public static GameObject Player => _Player?.Object; //this is used for two major purposes: accessing the players humanity and checking hostility
+        public static GameObject Player => _player?.Object; //this is used for two major purposes: accessing the players humanity and checking hostility
                                                             //if you try to access by the.player (static) then you will get whatever
         [GameBasedStaticCache(false)]                       //gameobject they are currently dominating
-        static GameObjectReference _Player;
+        static GameObjectReference _player;
 
         //instead of the gameobject that is "really" them 
-        public bool finished;                                   //meaning: we cant find the humanity part, and innocence becomes relative to whatever gameobject the player is currently dominating
+        public bool FinishedInit;                                   //meaning: we cant find the humanity part, and innocence becomes relative to whatever gameobject the player is currently dominating
         public override bool WantEvent(int ID, int cascade)     //so you could dominate a snapjaw, and load a zone with snapjaws, and then come back as the original player
         {                                                       //start feeding on them and then lose humanity because they have the innocent flag
-            if (!finished && ID == SingletonEvent<BeforeTakeActionEvent>.ID) //(for various reasons, checking hostility on death doesnt work)
-                return true;
-            if (Options.GetOptionBool(OPTIONS.FRACTUS_NERF) && ID == TookDamageEvent.ID)
-                return true;
+            if (ID == SingletonEvent<BeforeTakeActionEvent>.ID) //(for various reasons, checking hostility on death doesnt work)
+                return !FinishedInit;
+            if (ID == TookDamageEvent.ID)
+                return Options.GetOptionBool(OPTIONS.FRACTUS_NERF);
             if (ID == DeathEvent.ID)
                 return true;
             return base.WantEvent(ID, cascade);
@@ -45,10 +45,10 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(BeforeTakeActionEvent E)
         {
-            if (Security())
-                finished = Init.Evaluate(ParentObject, Player); //AI are not assigned Innocent flags until the player has become a vampire for the first time
-            return base.HandleEvent(E);                         //as per Security()
-        }                                                       //which can result in funky behavior where AI are innocent in one save and not the other despite relations being the same
+            Security(); //changed - now that we can guarantee security always finds the player, even if the player is not a vampire, innocence will be prepared for them
+            FinishedInit = Init.Evaluate(ParentObject, Player);
+            return base.HandleEvent(E);
+        }
         public override bool HandleEvent(DeathEvent E)
         {
             bool isvampire = E.Dying.IsVampire();
@@ -116,10 +116,11 @@ namespace XRL.World.Parts
         /// Ensures that the Player field is assigned to the player's source, original GameObject and that the player is a vampire before beginning.
         /// </summary>
         /// <returns></returns>
-        public static bool Security() => Player == null ? FindAndCheckPlayer() : Player.HasPart<Vampirism>();
+        public static bool Security() => !Player?.HasHitpoints() ?? true ? FindAndCheckPlayer() : Player.HasPart<Vampirism>();
+                                            //because you can die but still not be null and the system will break if you are domination-hopping to a new body
         static bool FindAndCheckPlayer()
         {
-            _Player = PlayerFinder().Reference();
+            _player = PlayerFinder().Reference();
             return Player.HasPart<Vampirism>();
         }
         static GameObject PlayerFinder()

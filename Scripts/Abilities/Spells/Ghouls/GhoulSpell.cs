@@ -179,7 +179,7 @@ namespace XRL.World.Parts
 
         public override void AddSpell()
         {
-            SpellID = AddMyActivatedAbility(GHOUL.ABILITY_NAME, GHOUL.COMMAND_NAME, $"{CLASS}", null, "\u009f");
+            SpellID = AddMyActivatedAbility(GHOUL.ABILITY_NAME, GHOUL.COMMAND_NAME, $"{CATEGORY}", null, "\u009f");
         }
 
         public override void RemoveSpell()

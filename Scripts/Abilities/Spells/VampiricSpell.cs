@@ -9,7 +9,6 @@ using XRL.World.Parts.Mutation;
 using XRL.World.Parts;
 using XRL.World;
 using XRL.UI;
-using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Parts
 {
@@ -17,7 +16,7 @@ namespace XRL.World.Parts
     [Serializable]
     public abstract class VampiricSpell : IScribedPart
     {
-        public const string CLASS = "Vampiric Spell";
+        public const string CATEGORY = "Blood Magic";
         public Guid SpellID = Guid.Empty;
         public abstract int Cooldown { get; }
         public int Level => ParentObject.GetPart<Vampirism>().Level;
@@ -42,10 +41,10 @@ namespace XRL.World.Parts
             ParentObject.RemovePart(this);
         }
         public virtual int Roll() => SpellCore.Roll(ParentObject, Level);
-        public bool RealityCheck(Cell cell) => SpellCore.RealityCheck(cell, ParentObject, CLASS, this);
-        public void ExpendBlood(bool DontPopup, string text) => SpellCore.ExpendBlood(DontPopup, text, ParentObject, Cost);
+        public bool RealityCheck(Cell cell) => SpellCore.RealityCheck(cell, ParentObject, CATEGORY, this);
+        public void ExpendBlood(bool noPopup, string text) => SpellCore.ExpendBlood(noPopup, text, ParentObject, Cost);
         public void ExpendBlood() => SpellCore.ExpendBlood(ParentObject, Cost);
-        public bool Cast(string ToDo) => SpellCore.Cast(ToDo, ParentObject, this, SpellID, Cooldown, Cost, CLASS, Name);
+        public bool Cast(string toDo) => SpellCore.Cast(toDo, ParentObject, this, SpellID, Cooldown, Cost, CATEGORY, Name);
     }
 }
 
@@ -55,22 +54,19 @@ namespace XRL.World.Effects
     [Serializable]
     public abstract class VampireFX : IScribedEffect
     {
-        public const string CLASS = VampiricSpell.CLASS;
+        public const string CATEGORY = VampiricSpell.CATEGORY;
+        public Guid SpellID = Guid.Empty;
+        public abstract int Cooldown { get; }
         public virtual int Cost => VITAE.BLOOD_PER_SIP; //default 10k 
-        public virtual int Cooldown => 0;
-        public abstract Type SpellType
-        {
-            get;
-        }
         public override bool WantEvent(int ID, int Cascade) //current use of FX is very temporary so there is no need for CollecStats or AbilityManager stuff
         {
-            if (ID == CommandEvent.ID)
+            if (ID == PooledEvent<CommandEvent>.ID)
                 return true;
             return base.WantEvent(ID, Cascade);
         }
-        public bool RealityCheck(Cell cell) => SpellCore.RealityCheck(cell, Object, CLASS, this);
+        public bool RealityCheck(Cell cell) => SpellCore.RealityCheck(cell, Object, CATEGORY, this);
         public void ExpendBlood() => SpellCore.ExpendBlood(Object, Cost);
-        public bool Cast(string ToDo) => SpellCore.Cast(ToDo, Object, this, ID, Cooldown, Cost, CLASS, ClassName);
+        public bool Cast(string toDo) => SpellCore.Cast(toDo, Object, this, SpellID, Cooldown, Cost, CATEGORY, ClassName);
     }
 }
 
@@ -80,57 +76,57 @@ namespace Nexus.Spells
 {
     public static class SpellCore
     {
-        public static int Roll(GameObject Object, int Level) => WikiRng.Next(1, 8) + Math.Max(Object.StatMod("Ego"), Level) + Object.GetStat("Level").Value;
-        public static bool EnoughBlood(string text, GameObject ParentObject, int Cost)
+        public static int Roll(GameObject gameObj, int level) => WikiRng.Next(1, 8) + Math.Max(gameObj.StatMod("Ego"), level) + gameObj.GetStat("Level").Value;
+        public static bool EnoughBlood(string text, GameObject parentObj, int cost)
         {
-            if (ParentObject.GetIntProperty(FLAGS.BLOOD_VALUE) > Cost)
+            if (parentObj.GetIntProperty(FLAGS.BLOOD_VALUE) > cost)
                 return true;
             else
-                return ParentObject.ShowFailure("You don't have enough {{R|blood}} " + text + "!");
+                return parentObj.ShowFailure("You don't have enough {{R|blood}} " + text + "!");
         }
-        public static bool SunlightInterference(GameObject ParentObject)
+        public static bool SunlightInterference(GameObject parentObject)
         {
             if (Options.GetOptionBool(OPTIONS.NIGHTBEAST))
             {
-                if (Calendar.IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false))
+                if (Calendar.IsDay() && (parentObject.CurrentZone?.IsOutside() ?? false))
                     return true;
             }
             return false;
         }
-        public static bool Cast<T>(string ToDo, GameObject ParentObject, T part, Guid SpellID, int Cooldown, int Cost, string CLASS, string Name) where T : IComponent<GameObject>
+        public static bool Cast<T>(string toDo, GameObject parentObject, T invoker, Guid spellID, int cooldown, int cost, string category, string typeName) where T : IComponent<GameObject>
         {
-            if (SunlightInterference(ParentObject))
+            if (SunlightInterference(parentObject))
             {
                 Popup.Show("You are powerless before the gross incandescence of the Sun!");
             }
-            else if (EnoughBlood(ToDo, ParentObject, Cost))
+            else if (EnoughBlood(toDo, parentObject, cost))
             {
                 IComponent<GameObject>.AddPlayerMessage("You invoke {{R|blood magic}}.");
-                ParentObject.SmallTeleportSwirl(null, "&R");
-                ParentObject.UseEnergy(1000, $"{CLASS} {Name}");
-                part.CooldownMyActivatedAbility(SpellID, Cooldown);
+                parentObject.SmallTeleportSwirl(null, "&R");
+                parentObject.UseEnergy(1000, $"{category} {typeName}");
+                invoker.CooldownMyActivatedAbility(spellID, cooldown);
                 return true;
             }
             return false;
         }
-        public static bool RealityCheck<T>(Cell cell, GameObject obj, string CLASS, T Class) where T : IComponent<GameObject>
+        public static bool RealityCheck<T>(Cell cell, GameObject parentObject, string category, T invoker) where T : IComponent<GameObject>
         {
-            Event E = Event.New("InitiateRealityDistortionTransit", "Object", obj, $"{CLASS}", Class, "Cell", cell);
-            if (!obj.FireEvent(E) || !obj.CurrentCell.FireEvent(E))
+            Event E = Event.New("InitiateRealityDistortionTransit", "Object", parentObject, $"{category}", invoker, "Cell", cell);
+            if (!parentObject.FireEvent(E) || !parentObject.CurrentCell.FireEvent(E))
             {
-                RealityStabilized.ShowGenericInterdictMessage(obj);
+                RealityStabilized.ShowGenericInterdictMessage(parentObject);
                 return false;
             }
             return true;
         }
 
-        public static void ExpendBlood(bool DontPopup, string text, GameObject ParentObject, int Cost)
+        public static void ExpendBlood(bool noPopup, string text, GameObject parentObj, int cost)
         {
-            if (DontPopup)
+            if (noPopup)
                 IComponent<GameObject>.AddPlayerMessage(text);
             else
                 Popup.Show(text);
-            ExpendBlood(ParentObject, Cost);
+            ExpendBlood(parentObj, cost);
         }
         //ExpendBlood should be invoked after Cast() returns true
         public static void ExpendBlood(GameObject ParentObject, int Cost)

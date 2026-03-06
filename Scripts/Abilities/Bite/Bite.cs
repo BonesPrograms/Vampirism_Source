@@ -22,8 +22,8 @@ namespace Nexus.Bite
         public bool HasBadLiquid => BadLiquids.Any(x => x.Item2);
         public bool HasDisease => Diseases.Any(x => x.Item2);
         public bool IsPoisoned => Poisons.Any(x => x.Item2);
-        readonly Vampirism Vampirism;
-        readonly BiteSimulator Sim;
+        readonly Vampirism _vampirism;
+        readonly BiteSimulator _sim;
 
         /// <summary>
         /// For debug only. Used to access the arrays.
@@ -33,12 +33,12 @@ namespace Nexus.Bite
         }
         public Bite(GameObject Biter, Vampirism Vampirism) : base(Biter)
         {
-            this.Vampirism = Vampirism;
-            Sim = new(Biter, this);
+            this._vampirism = Vampirism;
+            _sim = new(Biter, this);
         }
-        public bool[] Flags => new bool[]
+        public (string,bool)[] Flags => new (string,bool)[]
         {
-            IsOnFire, HasPlasma, HasBadLiquid, HasDisease, IsPoisoned
+            (nameof(IsOnFire),IsOnFire), (nameof(HasPlasma), HasPlasma), (nameof(HasBadLiquid), HasBadLiquid), (nameof(HasDisease), HasDisease), (nameof(IsPoisoned), IsPoisoned)
         };
         readonly public (string, bool)[] BadLiquids =
         {
@@ -76,7 +76,7 @@ namespace Nexus.Bite
 
         bool Fail(GameObject Target)
         {
-            Vampirism.BiteActivate(Target);
+            _vampirism.BiteActivate(Target);
             if (Target != null)
             {
                 if (Biter.IsPlayer())
@@ -119,7 +119,7 @@ namespace Nexus.Bite
         /// Should not run if BadTarget returns false, otherwise you will get OutOfRange().
         /// </summary>
         /// <returns></returns>
-        public bool CannotFeed(GameObject Target) => Sim.BadEnding(Target) switch
+        public bool CannotFeed(GameObject Target) => _sim.BadEnding(Target) switch
         {
             Ending.VOMIT => VomitEnding(Target),
             Ending.FAIL => Fail(Target),

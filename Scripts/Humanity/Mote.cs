@@ -70,7 +70,7 @@ namespace XRL.World.Parts
             {
                 UI.Popup.Show("The feeling of human experience repulses you. You will never know what it is like to be human again.");
                 AddPlayerMessage($"{ParentObject.t()} dissipates into mist.");
-                ParentObject.TakeDamage(WikiRng.Next(5, 10), ParentObject, null);
+                h.ParentObject.TakeDamage(WikiRng.Next(5, 10), ParentObject, null);
                 ParentObject.Obliterate();
                 return false;
             }

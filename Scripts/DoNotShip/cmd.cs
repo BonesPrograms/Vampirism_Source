@@ -15,6 +15,24 @@ using Nexus.Stealth;
 using System.Linq;
 using XRL;
 
+[HasModSensitiveStaticCache]
+public static class EnableDeveloperSpells
+{
+    [ModSensitiveCacheInit]
+    public static void EnableSpells()
+    {
+        VampireBuilder.ENABLE_SPELLS = true;
+    }
+}
+public class AddCMDPart : IPlayerMutator
+{
+    public void mutate(GameObject obj)
+    {
+        var part = obj.AddPart(new cmd(obj.IsVampire()));
+        part.refresh = true;
+    }
+}
+
 namespace Nexus.Core
 {
     static class cmd_extensions
@@ -28,20 +46,6 @@ namespace Nexus.Core
             if (!value && Cell != null)
                 Popup.ShowFail(Cell.HasObjectWithPart(nameof(Combat)) ? $"There is no one there you can {text}." : $"There is no one there to {text}");
             return value;
-        }
-    }
-
-
-    [HarmonyPatch(typeof(VampireBuilder), nameof(VampireBuilder.Make))]
-    static class cmd_patch
-    {
-        [HarmonyPostfix]
-        public static void Postfix(GameObject GO)
-        {
-            if (GO.IsPlayer())
-            {
-                GO.AddPart(new cmd(true));
-            }
         }
     }
 }
@@ -115,6 +119,7 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(BeforeTakeActionEvent E)
         {
+            refresh = true;
             if (IsVampire)
             {
                 if (showStealthed || showStealthy || ShowActiveStealthed)
@@ -442,7 +447,7 @@ namespace XRL.World.Parts
 
         public static void AddSpell(string text)
         {
-            object obj = RequirePart(text);
+            object obj = AddPart(text);
             if (obj is VampiricSpell spell)
                 spell.AddSpell();
             else
@@ -832,14 +837,6 @@ namespace XRL.World.Parts
             RemovePart(value);
         }
 
-        [WishCommand("addpart", null)]
-
-        public static void addpart(string value)
-        {
-            RequirePart(value);
-        }
-
-
         [WishCommand(Command = "hurt")]
         public static void Hurt()
         {
@@ -997,7 +994,7 @@ namespace XRL.World.Parts
 
         static cmd Get()
         {
-            return The.Player.RequirePart(new cmd(The.Player.IsVampire()));
+            return The.Player.AddPart(new cmd(The.Player.IsVampire()));
         }
 
         public static void Log<T>(IList<T> obj)
@@ -1182,17 +1179,30 @@ namespace XRL.World.Parts
             }
         }
 
-        public static object RequirePart(string value)
+        public static object AddPart(string partName)
         {
-            value = "XRL.World.Parts." + value;
-            Type type = Type.GetType(value, false);
-            if (type != null && Activator.CreateInstance(type) is IPart obj)
+            partName = "XRL.World.Parts." + partName;
+            Type partType = Type.GetType(partName, false, true);
+            object instance = Activator.CreateInstance(partType);
+            IPart part = instance as IPart;
+            if (partType != null && part != null)
             {
-                msg("requirepart " + value);
-                return The.Player.RequirePart(obj);
+                if (!The.Player.HasPart(partType))
+                {
+                    msg("addpart " + partName);
+                    return The.Player.AddPart(part);
+                }
+                IComponent<GameObject>.AddPlayerMessage("Player already has " + partName);
             }
             else
-                msg($"{value} is not IPart or is null : {value == null}");
+            {
+                string msg = null;
+                if (partType == null)
+                    msg = $"Type name {partName} could not be found, check for typos.";
+                else if (part == null)
+                    msg = $"Type {partName} does not descend from IPart.";
+                IComponent<GameObject>.AddPlayerMessage(msg);
+            }
             return null;
         }
 

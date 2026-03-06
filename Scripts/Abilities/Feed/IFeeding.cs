@@ -26,23 +26,23 @@ namespace XRL.World.Effects
 		int VictimHP => isAttacker ? other.Object.GetHPPercent() : base.Object.GetHPPercent();
 		protected int Amount;
 
-		
+
 		public string Damage;
 
-		
-		public  bool _isAttacker;
 
-		
-		public  bool StealthVersion;
+		public bool _isAttacker;
 
-		
-		public  bool Ghoul;
 
-		
-		public  bool friendly;
+		public bool StealthVersion;
 
-		
-		public  bool vampire;
+
+		public bool Ghoul;
+
+
+		public bool friendly;
+
+
+		public bool vampire;
 
 		public IFeeding() => DisplayName = "";
 		public IFeeding(GameObject other, bool isAttacker, string DamagePerRound, int Duration, bool Ghoul, bool friendly, bool vampire) : this()
@@ -149,6 +149,12 @@ namespace XRL.World.Effects
 				return false;
 			}
 			if (!other.Object.HasEffectDescendedFrom<IFeeding>())
+			{
+				other = null;
+				Duration = 0;
+				return false;
+			}
+			if (Object.DistanceTo(other.Object) > 1)
 			{
 				other = null;
 				Duration = 0;
@@ -276,7 +282,7 @@ namespace XRL.World.Effects
 		void MakeFangsBloody(Vampirism v)
 		{
 			v.FangsObject.DisplayName = "{{r|bloody}} fangs";
-			v.bloodycounter = 1;
+			v.BloodyFangsCounter = 1;
 			base.Object.SetStringProperty(FLAGS.FEED, FLAGS.FALSE);
 		}
 

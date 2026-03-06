@@ -59,14 +59,6 @@ namespace Nexus.Core
 				return result == value || result == value2;
 			return false;
 		}
-
-		public static bool PropertyEquals(this GameObject Object, string key, int value)
-		{
-			if (Object.TryGetIntProperty(key, out int result))
-				return result == value;
-			return false;
-		}
-
 		public static bool TryGetLongProperty(this GameObject Object, string key, string key2, out long value)
 		{
 			if (Object.TryGetLongProperty(key, out value) || Object.TryGetLongProperty(key2, out value))
@@ -199,49 +191,6 @@ namespace Nexus.Core
 			return Target != null && e?.Beguiler == Target;
 		}
 
-
-		#endregion
-
-		#region IPart
-		public static bool RequiresPart<T>(this GameObject Object, Type type, out T obj) where T : IPart
-		{
-			obj = Object.GetPart<T>(type);
-			if (obj != null)
-				return false; //very specific use case - i have parts that run initialization methods after adding, but you wouldnt want to run them twice
-			obj = type.InstanceAs<T>(); //merely checking if the obj != null isnt sufficient for knowing if its new or old
-			if (obj != null)
-				Object.AddPart(obj);
-			return obj != null;
-		}
-		/// <summary>
-		/// RequiresPart by a Type instance. 
-		/// </summary>
-		public static IPart RequirePart(this GameObject Object, Type t)
-		{
-			var obj = Object.GetPart<IPart>(t);
-			if (obj != null)
-				return obj;
-			obj = t.InstanceAs<IPart>();
-			if (obj != null)
-				return Object.AddPart(obj);
-			return obj;
-		}
-
-		public static T RequirePart<T>(this GameObject Object, T obj) where T : IPart
-		{
-			T part = Object.GetPart<T>();
-			if (part != null)
-				return part;
-			return Object.AddPart(obj);
-		}
-
-		/// <summary>
-		/// GetPart by Type instance that casts to the generic parameter. Explodes if the type does not convert.
-		/// </summary>
-		public static T GetPart<T>(this GameObject Object, Type t) where T : IPart
-		{
-			return (T)Object.GetPart(t);
-		}
 
 		#endregion
 

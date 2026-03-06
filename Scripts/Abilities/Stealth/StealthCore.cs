@@ -23,8 +23,8 @@ namespace Nexus.Stealth
         public static LightLevel? LightLevel;
 
         [GameBasedStaticCache]
-        static int _TrueCount = 0;
-        public static int TrueCount => _TrueCount;
+        static int _trueCount = 0;
+        public static int TrueCount => _trueCount;
         static GameObject[] KeyArray => Nightbeast.KeyArray;
         public static void ScanEnvironment(Zone zone)
         {
@@ -32,12 +32,12 @@ namespace Nexus.Stealth
         }
         public static void Stealth()
         {
-            _TrueCount = default;
+            _trueCount = default;
             KeyArray.Where(x => !x?.HasHitpoints() ?? true || !x.InSameZone(The.Player)).ForEach(x => Nightbeast.Witnesses.Remove(x));
             if (Nightbeast.Witnesses.Count != KeyArray.Length)
                 Nightbeast.UpdateKeys();
             KeyArray.ForEach(x => Nightbeast.Witnesses[x] = NearbySentient(x) && ActiveWitness(x));
-            _TrueCount = Nightbeast.Witnesses.Count(x => x.Value);
+            _trueCount = Nightbeast.Witnesses.Count(x => x.Value);
         }
         static void CheckValidity(GameObject obj) //zoneload
         {

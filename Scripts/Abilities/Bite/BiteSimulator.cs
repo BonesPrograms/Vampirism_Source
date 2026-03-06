@@ -14,12 +14,12 @@ namespace Nexus.Bite
 
     public class BiteSimulator : VampireBite
     {
-        readonly public Bite Source;
-        readonly public LiquidBehaviors LiquidBehaviors;
+        readonly Bite _source;
+        readonly LiquidBehaviors _liquidBehaviors;
         public BiteSimulator(GameObject Biter, Bite Source) : base(Biter)
         {
-            this.Source = Source;
-            LiquidBehaviors = new(Biter);
+            this._source = Source;
+            _liquidBehaviors = new(Biter);
         }
         Ending FlameEnding(GameObject Target)
         {
@@ -49,9 +49,9 @@ namespace Nexus.Bite
         }
         Ending DiseaseEnding() //this is impossible to succeed on, it is the worst one
         {
-            if (Source.Diseases[0].Item2 || Source.Diseases[1].Item2)
+            if (_source.Diseases[0].Item2 || _source.Diseases[1].Item2)
                 Glotrot();
-            else if (Source.Diseases[2].Item2 || Source.Diseases[3].Item2)
+            else if (_source.Diseases[2].Item2 || _source.Diseases[3].Item2)
                 Ironshank();
             return Ending.VOMIT;
 
@@ -73,17 +73,17 @@ namespace Nexus.Bite
 
         public Ending BadEnding(GameObject Target)
         {
-            return Result(Source.Flags.Select((x, i) => (Data: x, Index: i)).Where(x => x.Data).Select(x => Cycle(x.Index, Target)));
+            return Result(_source.Flags.Where(x => x.Item2).Select(x => Cycle(x.Item1, Target)));
         }
 
-        Ending Cycle(int i, GameObject Target) =>
-        i switch
+        Ending Cycle(string flag, GameObject Target) =>
+        flag switch
         {
-            0 => FlameEnding(Target),
-            1 => PlasmaEnding(),
-            2 => LiquidBehaviors.LiquidEnding(Source.BadLiquids),
-            3 => DiseaseEnding(),
-            4 => PoisonEnding(),
+            nameof(_source.IsOnFire) => FlameEnding(Target),
+            nameof(_source.HasPlasma) => PlasmaEnding(),
+            nameof(_source.HasBadLiquid) => _liquidBehaviors.LiquidEnding(_source.BadLiquids),
+            nameof(_source.HasDisease) => DiseaseEnding(),
+            nameof(_source.IsPoisoned) => PoisonEnding(),
             _ => default
         };
 

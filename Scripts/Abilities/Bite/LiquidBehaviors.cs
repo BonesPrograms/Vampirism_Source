@@ -87,20 +87,20 @@ namespace Nexus.Bite
 
         public Ending LiquidEnding((string, bool)[] BadLiquids)
         {
-            return Result(BadLiquids.Select((x, i) => (Data: x, index: i)).Where(x => x.Data.Item2).Select(x => Cycle(x.index)));
+            return Result(BadLiquids.Where(x => x.Item2).Select(x => Cycle(x.Item1)));
         }
 
-        Ending Cycle(int i) =>
-        i switch
+        Ending Cycle(string liquid) =>
+        liquid switch
         {
-            0 => SludgeLiquid(),
-            1 => OozeLiquid(),
-            2 => GooLiquid(),
-            3 => OilLiquid(),
-            4 => AcidLiquid(),
-            5 => SlimeLiquid(),
-            6 => GrossLiquid(),
-            7 => AsphaltLiquid(),
+            "sludge" => SludgeLiquid(),
+            "ooze" => OozeLiquid(),
+            "goo" => GooLiquid(),
+            "oil" => OilLiquid(),
+            "acid" => AcidLiquid(),
+            "slime" => SlimeLiquid(),
+            "putrid" => GrossLiquid(),
+            "asphalt" => AsphaltLiquid(),
             _ => default
         };
 

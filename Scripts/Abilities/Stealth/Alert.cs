@@ -177,12 +177,7 @@ namespace Nexus.Stealth
         }
         void ProcessList(GameObject Target)
         {
-            if (Witnesses.Count == 1)
-            {
-                if (Source.HasLOSTo(Witnesses[0], false) && Witnesses[0] != Target)
-                    Exposer = Witnesses[0];
-            }
-            Exposer ??= CreateDictionaryOfRanges(Target);
+            Exposer = CreateDictionaryOfRanges(Target);
         }
 
         GameObject CreateDictionaryOfRanges(GameObject Target)

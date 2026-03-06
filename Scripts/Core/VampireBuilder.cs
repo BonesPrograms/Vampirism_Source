@@ -92,7 +92,7 @@ namespace Nexus.Core
         }
         static void RequireParts(GameObject GO)
         {
-            IParts.ForEach(x => GO.RequirePart(x));
+            IParts.ForEach(x => GO.AddPart((IPart)Activator.CreateInstance(x)));
             GO.ApplyEffect(new HumanityUI(9999));
             if (XRL.UI.Options.GetOptionBool(OPTIONS.SPELLS) && GO.IsPlayer())
                 RequireSpells(GO);
@@ -120,7 +120,7 @@ namespace Nexus.Core
             if (ENABLE_SPELLS)
             {
                 XRL.UI.Popup.Suppress = true;
-                VampiricSpells.ForEach(delegate (Type type) { if (GO.RequiresPart<VampiricSpell>(type, out var obj)) obj.AddSpell(); });
+                VampiricSpells.Select(x => (VampiricSpell)Activator.CreateInstance(x)).ForEach(x => { GO.AddPart(x); x.AddSpell(); });
                 GO.SetStringProperty(FLAGS.SPELLS, FLAGS.TRUE);
                 XRL.UI.Popup.Suppress = false;
             }
@@ -131,7 +131,7 @@ namespace Nexus.Core
         {
             if (ENABLE_SPELLS)
             {
-                VampiricSpells.ForEach(x => GO.GetPart<VampiricSpell>(x)?.RemoveSpell());
+                VampiricSpells.Select(x => (VampiricSpell)GO.GetPart(x)).ForEach(x => x.RemoveSpell());
                 GO.SetStringProperty(FLAGS.SPELLS, FLAGS.FALSE);
             }
 
@@ -150,7 +150,7 @@ namespace Nexus.Core
         {
             var ashes = GO.GetPart<VampireAshes>();
             if (ashes.HasCopyData)
-                GO.RequirePart(ashes.Revert());
+                GO.AddPart(ashes.Revert());
             GO.RemovePart(ashes);
         }
         public static void ChangeCorpse(GameObject GO)
@@ -158,7 +158,7 @@ namespace Nexus.Core
             if (GO.TryGetPart<Corpse>(out var Corpse))
             {
                 VampireAshes ashes = new(Corpse.BurntCorpseBlueprint, Corpse.VaporizedCorpseBlueprint, Corpse.CorpseBlueprint, Corpse.BurntCorpseChance, Corpse.CorpseChance, Corpse.VaporizedCorpseChance);
-                GO.RequirePart(ashes);
+                GO.AddPart(ashes);
                 GO.RemovePart(Corpse);
             }
             else

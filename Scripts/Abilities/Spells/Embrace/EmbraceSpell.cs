@@ -49,7 +49,7 @@ namespace XRL.World.Parts
 
         public override void AddSpell()
         {
-            SpellID = AddMyActivatedAbility(EMBRACE.ABILITY_NAME, EMBRACE.COMMAND_NAME, $"{CLASS}", null, "\u009f");
+            SpellID = AddMyActivatedAbility(EMBRACE.ABILITY_NAME, EMBRACE.COMMAND_NAME, $"{CATEGORY}", null, "\u009f");
         }
         public override bool HandleEvent(CommandEvent E)
         {

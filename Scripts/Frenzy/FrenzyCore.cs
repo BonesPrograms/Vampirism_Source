@@ -87,20 +87,28 @@ namespace Nexus.Frenzy
 
         public void Frenzy()
         {
-            if (Search.TryScan(out GameObject Target))
-                Apply(Target);
-            else if (!Source.GameOver && Source.ParentObject.IsPlayer())
-                IComponent<GameObject>.AddPlayerMessage("You feel a surge of adrenaline as {{R sequence|the Beast}} momentarily tries to take control.");
+            if (!Source.Frenzied)
+            {
+                if (Search.TryScan(out GameObject Target))
+                    Apply(Target);
+                else if (!Source.GameOver && Source.ParentObject.IsPlayer())
+                    IComponent<GameObject>.AddPlayerMessage("You feel a surge of adrenaline as {{R sequence|the Beast}} momentarily tries to take control.");
+            }
         }
         void Apply(GameObject Target)
         {
-            if (!Source.GameOver)
-                Popup.Show("{{R sequence|You frenzy!}}"); //specific order of operations - want the wassai thing to skip if youre not in gameover yet
-            else if (!Source.Wassail)
+            if (Source.ParentObject.IsPlayer())
             {
-                Popup.Show("{{R sequence|Wassail!}}");
-                Source.Wassail = true;
+                if (!Source.GameOver)
+                    Popup.Show("{{R sequence|You frenzy!}}"); //specific order of operations - want the wassai thing to skip if youre not in gameover yet
+                else if (!Source.Wassail)
+                {
+                    Popup.Show("{{R sequence|Wassail!}}");
+                    Source.Wassail = true;
+                }
             }
+            else
+                IComponent<GameObject>.AddPlayerMessage($"{Source.ParentObject.t()} frenzies!");
             AssembleAI(Target);
         }
 
@@ -108,7 +116,7 @@ namespace Nexus.Frenzy
         {
             Source.ParentObject.ApplyEffect(new FrenzyAI(9999, Source, Target, Source.GameOver));
             Source.Frenzied = true;
-            Source.ParentObject.ApplyEffect(new Running(WikiRng.Next(10,20)));
+            Source.ParentObject.ApplyEffect(new Running(WikiRng.Next(10, 20)));
         }
 
 

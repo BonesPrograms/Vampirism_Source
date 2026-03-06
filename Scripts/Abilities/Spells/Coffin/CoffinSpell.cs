@@ -11,8 +11,6 @@ namespace XRL.World.Parts
     [Serializable]
     public class CoffinSpell : VampiricSpell
     {
-
-        [NonSerialized]
         public GameObject Coffin;
         public override int Cooldown => COFFIN.MATERIALIZE_COOLDOWN;
         public int JauntCooldown;
@@ -22,14 +20,14 @@ namespace XRL.World.Parts
         public string Zone;
         public int CellX;
         public int CellY;
-        bool JustJaunted;
-        bool TookFireDamage;
+        bool _justJaunted;
+        bool _tookFireDamage;
         public static bool ShowDebug;
         public override int Roll() => WikiRng.Next(1, 20) + Level;
         //uses vampirism level like all spells
         public override void AddSpell()
         {
-            SpellID = AddMyActivatedAbility(COFFIN.ABILITY_NAME, COFFIN.COMMAND_NAME, $"{CLASS}", null, "\u009f");
+            SpellID = AddMyActivatedAbility(COFFIN.ABILITY_NAME, COFFIN.COMMAND_NAME, $"{CATEGORY}", null, "\u009f");
         }
 
         public bool UpdateXY(Cell cell)
@@ -40,12 +38,14 @@ namespace XRL.World.Parts
                 CellY = cell.Y;
                 return true;
             }
-            else
-            {
-                UI.Popup.Show("You feel your coffin being destroyed.");
-                HasCoffin = false;
-                return false;
-            }
+            return CoffinDestroyed();
+        }
+
+        public bool CoffinDestroyed()
+        {
+            UI.Popup.Show("You feel your coffin being destroyed.");
+            HasCoffin = false;
+            return false;
         }
 
         public override void Write(GameObject Basis, SerializationWriter Writer)
@@ -62,12 +62,12 @@ namespace XRL.World.Parts
 
         public override bool WantEvent(int ID, int Cascade)
         {
-            if ((ID == BeforeDieEvent.ID || ID == BeforeTookDamageEvent.ID) && !CoolingOff && HasCoffin)
-                return true;
-            if (ID == SingletonEvent<BeginTakeActionEvent>.ID && (JustJaunted || CoolingOff || HasCoffin))
-                return true;
-            if (ID == AfterDieEvent.ID && HasCoffin)
-                return true;
+            if (ID == BeforeDieEvent.ID || ID == BeforeTookDamageEvent.ID)
+                return !CoolingOff && HasCoffin;
+            if (ID == SingletonEvent<BeginTakeActionEvent>.ID)
+                return _justJaunted || CoolingOff;
+            if (ID == AfterDieEvent.ID)
+                return HasCoffin;
             return base.WantEvent(ID, Cascade);
         }
 
@@ -91,7 +91,7 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(BeginTakeActionEvent E)
         {
-            if (JustJaunted)
+            if (_justJaunted)
                 Jaunted();
             if (CoolingOff)
                 CoolOff();
@@ -100,7 +100,7 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(BeforeDieEvent E)
         {
-            if (E.Dying == ParentObject && !TookFireDamage && !SpellCore.SunlightInterference(ParentObject))
+            if (E.Dying == ParentObject && !_tookFireDamage && !SpellCore.SunlightInterference(ParentObject))
             {
                 if ((Roll() >= COFFIN.SAVING_THROW_DC) || UI.Options.GetOptionBool(OPTIONS.COFFIN))
                 {
@@ -111,7 +111,7 @@ namespace XRL.World.Parts
                         E.Dying.TeleportTo(cell);
                         E.Dying.TeleportSwirl(null, "&C", Voluntary: true, null, 'ù', IsOut: true);
                         E.RequestInterfaceExit();
-                        JustJaunted = true;
+                        _justJaunted = true;
                         return false;
                     }
                 }
@@ -123,7 +123,7 @@ namespace XRL.World.Parts
         {
             if (E.Object == ParentObject && UI.Options.GetOptionBool(OPTIONS.FIRE))
             {
-                TookFireDamage = E.Damage.Attributes.Contains("Fire");
+                _tookFireDamage = E.Damage.Attributes.Contains("Fire");
             }
             return base.HandleEvent(E);
         }
@@ -168,14 +168,12 @@ namespace XRL.World.Parts
                 var obj = cell.Objects.FirstOrDefault(x => x.GetPart<VampireCoffin>()?.OwnerID == ParentObject.ID);
                 if (ShowDebug)
                     UI.Popup.Show($"{obj}, {obj?.Blueprint}");
-                Recreate(obj);
+                Coffin = obj;
             }
-            Recreate(Coffin); //recreate if cell is null or obj is not found in cell
         }
 
-        void Recreate(GameObject obj)
+        void MakeCoffin()
         {
-            obj?.Obliterate(); //either way, moving and teleporting the object was buggy, so we dont actually, we just destroy it and replace it
             GameObject newObject = GameObject.Create(COFFIN.BLUEPRINT);
             VampireCoffin part = new(ParentObject);
             newObject.AddPart(part);
@@ -186,7 +184,8 @@ namespace XRL.World.Parts
         void PlaceCoffin(Cell cell)
         {
             CheckExistence();
-            cell.AddObject(Coffin);
+            //cell.AddObject(Coffin);
+            Coffin.DirectMoveTo(cell);
             CellX = cell.X;
             CellY = cell.Y;
             Zone = cell.ParentZone.DebugName;
@@ -204,7 +203,7 @@ namespace XRL.World.Parts
             else
             {
                 HasCoffin = true;
-                Recreate(null);
+                MakeCoffin();
             }
 
         }
@@ -228,7 +227,7 @@ namespace XRL.World.Parts
                 UI.Popup.Show("You return to your coffin!");
             else
                 AddPlayerMessage($"{ParentObject.t()} vanishes!");
-            JustJaunted = false;
+            _justJaunted = false;
             CoolingOff = true;
             Timer = 0;
             JauntCooldown = WikiRng.Next(COFFIN.SAVE_FROM_DEATH_MIN, COFFIN.SAVE_FROM_DEATH_MAX);

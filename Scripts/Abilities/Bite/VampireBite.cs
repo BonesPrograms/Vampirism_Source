@@ -13,18 +13,20 @@ namespace Nexus.Bite
     /// </summary>
     /// 
     /// 
-    public enum Ending
-    {
-        VOMIT = 4,
-        FAIL = 3,
-        PAIN_TOLERANCE = 2,
-        SUCCESS = 1,
-        OUT_OF_RANGE = 0
-    }
+
 
     public abstract class VampireBite
     {
-        readonly public GameObject Biter;
+
+        public enum Ending
+        {
+            VOMIT = 4,
+            FAIL = 3,
+            PAIN_TOLERANCE = 2,
+            SUCCESS = 1,
+            OUT_OF_RANGE = 0
+        }
+        readonly protected GameObject Biter;
 
         protected VampireBite()
         {

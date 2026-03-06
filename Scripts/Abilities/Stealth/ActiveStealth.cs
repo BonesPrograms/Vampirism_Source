@@ -24,23 +24,23 @@ namespace Nexus.Stealth
         /// </summary>
         /// 
         [GameBasedStaticCache]
-        static bool _StealthStage1 = default;
+        static bool _stealthStage1 = default;
 
         /// <summary>
         /// Stage two means there are no witnesses.
         /// </summary>
         /// 
         [GameBasedStaticCache]
-        static bool _StealthStage2 = default;
+        static bool _stealthStage2 = default;
 
-        public static bool StealthStage1 => _StealthStage1;
+        public static bool StealthStage1 => _stealthStage1;
 
-        public static bool StealthStage2 => _StealthStage2;
+        public static bool StealthStage2 => _stealthStage2;
 
         public static void Halt()
         {
-            _StealthStage1 = false;
-            _StealthStage2 = false;
+            _stealthStage1 = false;
+            _stealthStage2 = false;
         }
         public static void SetStealth()
         {
@@ -60,34 +60,34 @@ namespace Nexus.Stealth
 
         static void Single(int count)
         {
-            if (!_StealthStage1)
+            if (!_stealthStage1)
             {
                 IComponent<GameObject>.AddPlayerMessage(Display(count));
-                _StealthStage1 = true;
-                _StealthStage2 = false;
+                _stealthStage1 = true;
+                _stealthStage2 = false;
                 Player.SetStringProperty(FLAGS.STEALTH, FLAGS.TRUE);
             }
         }
 
         static void None(int count)
         {
-            if (!_StealthStage2)
+            if (!_stealthStage2)
             {
 
                 IComponent<GameObject>.AddPlayerMessage(Display(count));
-                _StealthStage2 = true;
-                _StealthStage1 = false;
+                _stealthStage2 = true;
+                _stealthStage1 = false;
                 Player.SetStringProperty(FLAGS.STEALTH, FLAGS.TRUE);
             }
         }
 
         static void Broken(int count)
         {
-            if (_StealthStage1 || _StealthStage2)
+            if (_stealthStage1 || _stealthStage2)
             {
                 IComponent<GameObject>.AddPlayerMessage(Display(count));
-                _StealthStage2 = false;
-                _StealthStage1 = false;
+                _stealthStage2 = false;
+                _stealthStage1 = false;
                 Player.SetStringProperty(FLAGS.STEALTH, FLAGS.FALSE);
             }
         }

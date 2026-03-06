@@ -18,8 +18,9 @@ namespace XRL.World.Effects
     [Serializable]
     public class BatformFX : VampireFX
     {
+
+        public override int Cooldown => 0;
         public const string COMMAND_NAME = "cmdTrueformBat";
-        public override Type SpellType => typeof(BatformFX);
         public bool AlreadyHadWings;
         public bool WasLessThanTen;
         public string OldTile;
@@ -111,7 +112,7 @@ namespace XRL.World.Effects
         public override bool Apply(GameObject Object)
         {
             Suppress(true);
-            ID = AddMyActivatedAbility("True Form", COMMAND_NAME, $"{SpellType}", $"{CLASS}", null, "\u0002");
+            SpellID = AddMyActivatedAbility("True Form", COMMAND_NAME, $"{CATEGORY}", null, "\u0002");
             Transform();
             return true;
         }
@@ -356,7 +357,7 @@ namespace XRL.World.Parts
 
         public override void AddSpell()
         {
-            SpellID = AddMyActivatedAbility(BATFORM.ABILITY_NAME, BATFORM.COMMAND_NAME, CLASS, null, "\u009f");
+            SpellID = AddMyActivatedAbility(BATFORM.ABILITY_NAME, BATFORM.COMMAND_NAME, CATEGORY, null, "\u009f");
         }
         public override bool HandleEvent(CommandEvent E)
         {
@@ -400,60 +401,72 @@ namespace XRL.World.Parts
         }
         static void SyncFX(GameObject bat, IEnumerable<Effect> fx) => fx.ForEach(delegate (Effect e) { bat.ApplyEffect(e); });
         static void SyncMutations(Mutations part, IEnumerable<(string, int)> mutations) => mutations.ForEach(m => { part.AddMutation(m.Item1, m.Item2); });
-        static void SyncVampirism(GameObject obj, GameObject bat)
+        static void SyncVampirism(GameObject bat, GameObject player)
         {
-            if (!obj.CheckFlag(FLAGS.GO))
+            if (!player.CheckFlag(FLAGS.GO))
             {
-                SyncHum(bat, obj);
+                SyncHum(bat, player);
             }
             else
             {
-                SyncGO(bat, obj);
+                SyncGO(bat, player);
             }
-            SyncBlood(bat, obj);
+            SyncBlood(bat, player);
         }
 
-        static void SyncGO(GameObject bat, GameObject obj)
+        static void SyncGO(GameObject bat, GameObject player)
         {
-            var h = SyncHum(bat, obj);
+            var h = SyncHum(bat, player);
             h.GameOver = true;
-            bat.GetPart<TheBeast>().Wassail = obj.GetPart<TheBeast>().Wassail;
+            bat.GetPart<TheBeast>().Wassail = player.GetPart<TheBeast>().Wassail;
             bat.FireEvent(Nexus.Registry.Events.GAMEOVER);
         }
 
-        static void SyncBlood(GameObject bat, GameObject obj)
+        static void SyncBlood(GameObject bat, GameObject player)
         {
-            Vitae v = bat.GetPart<Vitae>();
-            if (obj.GetPart<Vitae>().Bloodlusted)
-                v.Bloodlusted = true;
-            v.Blood = obj.GetIntProperty(FLAGS.BLOOD_VALUE);
+            Vitae batVitae = bat.GetPart<Vitae>();
+            Vitae playerVitae = player.GetPart<Vitae>();
+            batVitae.Bloodlusted = playerVitae.Bloodlusted;
+            batVitae.Blood = playerVitae.Blood;
         }
 
-        static Humanity SyncHum(GameObject bat, GameObject obj)
+        static Humanity SyncHum(GameObject bat, GameObject player)
         {
             Humanity h = bat.GetPart<Humanity>();
-            h.Score = obj.GetIntProperty(FLAGS.HUMANITY);
-            h.RegenTimer = obj.GetIntProperty(FLAGS.REGEN);
+            h.Score = player.GetIntProperty(FLAGS.HUMANITY);
+            h.RegenTimer = player.GetIntProperty(FLAGS.REGEN);
             return h;
         }
-        static void MakeBat(GameObject bat, GameObject obj)
+        static void MakeBat(GameObject bat, GameObject player)
         {
 
-            SyncStats(bat, obj.Statistics);
-            SyncFX(bat, GetFX(obj.Effects, bat));
-            SyncMutations(bat.RequirePart<Mutations>(), GetMutations(obj.GetPart<Mutations>().MutationList));
-            SyncVampirism(obj, bat);
-            SyncParty(bat, obj);
+            SyncStats(bat, player.Statistics);
+            SyncFX(bat, GetFX(player.Effects, bat));
+            SyncMutations(bat.RequirePart<Mutations>(), GetMutations(player.GetPart<Mutations>().MutationList));
+            SyncVampirism(bat, player);
+            SyncParty(bat, player);
+            SyncSkills(bat, player);
+            SyncPrecog(bat, player);
+            //note: we should fire an AfterPlayerBodyChangedEvent
 
+        }
+
+        static void SyncSkills(GameObject bat, GameObject player)
+        {
+            var playerSkills = player.GetPart<Skills>().SkillList.Select(x => x.GetType());
+            bat.RequirePart<Skills>();
+            playerSkills.ForEach(x => bat.AddSkill(x));
         }
         static void SyncCooldowns(ActivatedAbilities abilities)
         {
         }
 
-        static void SyncParty(GameObject bat, GameObject obj)
+        //if we sync factions, dont forget to boost winged mammals rep
+
+        static void SyncParty(GameObject bat, GameObject player)
         {
-            SyncGhoulPersuadedBeguiled(bat, obj);
-            obj.Brain.PartyMembers.SafeForEach(member =>
+            SyncGhoulPersuadedBeguiled(bat, player);
+            player.Brain.PartyMembers.SafeForEach(member =>
             {
                 var brain = member.Value.Reference.Object.Brain;
                 // if(brain.TryGetOpinions(obj, out var list))
@@ -467,9 +480,9 @@ namespace XRL.World.Parts
         }
 
         // insamepartyas? // brain.partylwader == obj? // isplayerled? // isledyby? //gameobject.findall?
-        static void SyncGhoulPersuadedBeguiled(GameObject bat, GameObject obj)
+        static void SyncGhoulPersuadedBeguiled(GameObject bat, GameObject player)
         {
-            obj.Brain.PartyMembers.SafeForEach(x =>
+            player.Brain.PartyMembers.SafeForEach(x =>
             {
                 var obj = x.Value.Reference.Object;
                 if (obj.TryGetEffect(out Beguiled beguiled))
@@ -481,32 +494,40 @@ namespace XRL.World.Parts
             });
         }
 
-        static void SyncGhoul(GameObject bat, GameObject obj, EnthralledGhoul ghoul)
+        static void SyncGhoul(GameObject bat, GameObject player, EnthralledGhoul ghoul)
         {
             ghoul.Master = bat;
-            GhoulSpell.SyncTarget(bat, obj);
+            GhoulSpell.SyncTarget(bat, player);
         }
 
-        static void SyncPersuaded(GameObject bat, GameObject obj, Proselytized pros)
+        static void SyncPersuaded(GameObject bat, GameObject player, Proselytized pros)
         {
             pros.Proselytizer = bat;
-            obj.AddOpinion<OpinionProselytize>(bat);
-            obj.SetAlliedLeader<AllyProselytize>(bat);
-            Persuasion_Proselytize.SyncTarget(bat, obj);
+            player.AddOpinion<OpinionProselytize>(bat);
+            player.SetAlliedLeader<AllyProselytize>(bat);
+            Persuasion_Proselytize.SyncTarget(bat, player);
         }
 
 
-        static void SyncBeguiled(GameObject bat, GameObject obj, Beguiled beguiled)
+        static void SyncBeguiled(GameObject bat, GameObject player, Beguiled beguiled)
         {
             beguiled.Beguiler = bat;
             beguiled.UnapplyBeguilement();
-            Beguiling.SyncTarget(bat, obj);
-            obj.SetAlliedLeader<AllyBeguile>(bat);
+            Beguiling.SyncTarget(bat, player);
+            player.SetAlliedLeader<AllyBeguile>(bat);
             beguiled.ApplyBeguilement();
         }
 
-        static void SyncPrecog()
-        { }
+        //if this works, i am tempted to share instances of beguiling too, and persuasion
+        static void SyncPrecog(GameObject bat, GameObject player)
+        {
+            if (player.TryGetPart(out Precognition part))
+            {
+                part.ParentObject = bat;
+                bat.AddPart(part);
+            }
+
+        }
         static void Transform()
         {
             UI.Popup.Suppress = true;

@@ -21,19 +21,19 @@ namespace XRL.World.Parts.Mutation
 	{
 		public const string COMMAND_NAME = "CommandFeedBlood";
 		public const string ABILITY_NAME = "Feed";
-		public const string BodyPartType = "Face";
+		public const string BODYPART_TYPE = "Face";
 		public Guid FangsActivatedAbilityID = Guid.Empty;
 		public GameObject FangsObject; //your actual fangs
-		FeedCommand _FeedCommand;
-		public FeedCommand FeedCommand => _FeedCommand ??= new FeedCommand(this);
+		public FeedCommand FeedCommand => _feedCommand ??= new(this);
+		FeedCommand _feedCommand;
 		public string ManagerID => ParentObject.ID + "::Vampiric Fangs"; //i never really researched managerid yet. i assume that the fangs object counts as a bodypart and this is its manager
 		public override bool CanSelectVariant => false;
 		public override bool UseVariantName => false;
+		public bool Rotschrek => _rotschrek;
 		public bool GameOver = default;
-		public int bloodycounter = default;
-		public bool Rotschrek => _Rotschrek;
-		bool Immune = default;
-		bool _Rotschrek = default;
+		public int BloodyFangsCounter = default;
+		bool _immune = default;
+		bool _rotschrek = default;
 		//bool AlreadyBurnedWithSilver = default;
 		public override void Register(GameObject Object, IEventRegistrar Registrar)
 		{
@@ -65,13 +65,13 @@ namespace XRL.World.Parts.Mutation
 			if (ID == AfterPlayerBodyChangeEvent.ID || ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == PooledEvent<CommandEvent>.ID || ID == AIGetOffensiveAbilityListEvent.ID || ID == PooledEvent<AfterDismemberEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
 				return true;
 			if (ID == SingletonEvent<EndTurnEvent>.ID)
-				return bloodycounter > 0 && HasFangs();
+				return BloodyFangsCounter > 0 && HasFangs();
 			if (ID == BeforeRenderEvent.ID)
 				return CheckNightbeast();
 			if (ID == TookDamageEvent.ID)
-				return CheckFireOption() && !Immune;
+				return CheckFireOption() && !_immune;
 			if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID)
-				return Rotschrek || Immune;
+				return Rotschrek || _immune;
 			if (ID == EnteringZoneEvent.ID)
 				return ParentObject.HasStringProperty(FLAGS.OLD_SAVE) && ParentObject.IsPlayer();
 			if (ID == EquipperEquippedEvent.ID || ID == TookEvent.ID)
@@ -95,7 +95,7 @@ namespace XRL.World.Parts.Mutation
 
 		public override bool HandleEvent(AfterDismemberEvent E)
 		{
-			if (E.Part?.Type == BodyPartType)
+			if (E.Part?.Type == BODYPART_TYPE)
 			{
 				if (E.Actor != null && E.Object != null)
 				{
@@ -119,11 +119,11 @@ namespace XRL.World.Parts.Mutation
 				if (!ParentObject.OnWorldMap())
 					ParentObject.CurrentCell?.AddObject("FangBloodDrop");
 			}
-			bloodycounter++;
-			if (bloodycounter >= 25)
+			BloodyFangsCounter++;
+			if (BloodyFangsCounter >= 25)
 			{
 				FangsObject.DisplayName = "fangs";
-				bloodycounter = 0;
+				BloodyFangsCounter = 0;
 			}
 			return base.HandleEvent(E);
 		}
@@ -157,7 +157,6 @@ namespace XRL.World.Parts.Mutation
 		{
 			if (E.Item.IsSilver() && Options.GetOptionBool(OPTIONS.SILVER))
 			{
-				Popup.Show(nameof(TookEvent));
 				SilverAilment(E.Item);
 				E.RequestInterfaceExit();
 				return false;
@@ -181,7 +180,7 @@ namespace XRL.World.Parts.Mutation
 				AddPlayerMessage("{{W|IT BURNS!!!}}");
 				ParentObject.TakeDamage(WikiRng.Next(5, 10), null, null);
 			}
-			if (!Immune && CheckFireOption() && ParentObject.LocalCells(out var cells))
+			if (!_immune && CheckFireOption() && ParentObject.LocalCells(out var cells))
 			{
 				if (ParentObject.IsPlayer() || !Rotschrek)
 					SearchForFire(cells);
@@ -207,9 +206,9 @@ namespace XRL.World.Parts.Mutation
 		public override bool HandleEvent(EffectRemovedEvent E)
 		{
 			if (E.Effect.GetType() == typeof(Terrified)) //tried to match by effect.Object, but it always shows up null
-				_Rotschrek = false;
+				_rotschrek = false;
 			else if (E.Effect.GetType() == typeof(Blaze_Tonic))
-				Immune = false;
+				_immune = false;
 			return base.HandleEvent(E);
 		}
 
@@ -217,7 +216,7 @@ namespace XRL.World.Parts.Mutation
 		{
 			if (E.Effect.GetType() == typeof(Blaze_Tonic))
 			{
-				Immune = true;
+				_immune = true;
 				if (Rotschrek)
 					ParentObject.RemoveEffect<Terrified>();
 			}
@@ -238,12 +237,17 @@ namespace XRL.World.Parts.Mutation
 			foreach (var cell in cells)
 			{
 				var obj = cell.Objects.FirstOrDefault(FireyObject);
-				if (obj != null)
+				if (obj != null && obj.PhaseMatches(ParentObject) && ConsiderFlight(obj))
 				{
 					Panic(obj, true);
 					return;
 				}
 			}
+		}
+
+		bool ConsiderFlight(GameObject obj) //because you cannot make physical attacks (aside from swoop) if flight is not synced i dont care if you are adjacent to eachother
+		{									//i may have to implement a caveat for swoop
+			return obj.IsFlying == ParentObject.IsFlying;
 		}
 
 		bool FireyObject(GameObject obj)
@@ -277,7 +281,7 @@ namespace XRL.World.Parts.Mutation
 
 		void Panic(GameObject FireSource, bool showmessage)
 		{
-			_Rotschrek = true;
+			_rotschrek = true;
 			Capabilities.AutoAct.Interrupt();
 			if (showmessage)
 			{
@@ -363,7 +367,7 @@ namespace XRL.World.Parts.Mutation
 			}
 			return Checks.Prerequisites(ParentObject, ABILITY_NAME, "feed");
 		}
-		public bool HasFangs() => FangsObject is not null && ParentObject.HasBodyPart(BodyPartType);
+		public bool HasFangs() => FangsObject is not null && ParentObject.HasBodyPart(BODYPART_TYPE);
 		public void BiteATK(GameObject Fangs, GameObject Defender, bool Auto = false)
 		 =>
 			Combat.MeleeAttackWithWeapon
@@ -515,11 +519,11 @@ namespace XRL.World.Parts.Mutation
 		}
 		public override void OnRegenerateDefaultEquipment(Body body) //this is straight up beak code that i stole and didnt even research for a second
 		{
-			if (!TryGetRegisteredSlot(body, BodyPartType, out BodyPart BodyPart))
+			if (!TryGetRegisteredSlot(body, BODYPART_TYPE, out BodyPart BodyPart))
 			{
-				BodyPart = body.GetFirstPart(BodyPartType);
+				BodyPart = body.GetFirstPart(BODYPART_TYPE);
 				if (BodyPart is not null)
-					RegisterSlot(BodyPartType, BodyPart);
+					RegisterSlot(BODYPART_TYPE, BodyPart);
 			}
 			if (BodyPart is not null)
 				Create(BodyPart);
