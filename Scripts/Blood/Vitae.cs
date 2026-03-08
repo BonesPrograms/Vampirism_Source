@@ -23,12 +23,12 @@ namespace XRL.World.Parts
         [NonSerialized]
         public static List<GameObject> containers = new();
         public int BloodDrams => ParentObject.GetFreeDrams("blood"); //for harmony
-        public int Blood = VITAE.BLOOD_GLUTTONOUS;
+        public int Blood = Nexus.Rules.Vitae.BLOOD_GLUTTONOUS;
         public bool GameOver;
         public bool Bloodlusted;
         public static bool AntiPuke;
         BloodMetabolism _Metab; //cant really add new fields (vitae has already been serialized in many peoples saves) so i have not bothered to make this into a serializable object
-        public BloodMetabolism Metab => _Metab ??= new BloodMetabolism(this);
+        public BloodMetabolism Metab => _Metab ??= new(this);
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
@@ -69,7 +69,7 @@ namespace XRL.World.Parts
                 return true;
             if (ID == AfterPlayerBodyChangeEvent.ID)
                 return true;
-            if (ID == SingletonEvent<BeforeTakeActionEvent>.ID && ParentObject.IsPlayer() && !AutoAct.IsResting() && !ParentObject.Incap(false) && !ParentObject.IsInCombat() && Options.GetOptionBool(OPTIONS.AUTOGET) && !Options.GetOptionBool(OPTIONS.HUNTER) && !ParentObject.CheckFlag(FLAGS.FRENZY, FLAGS.FEED) && !ParentObject.IsInBatForm())
+            if (ID == SingletonEvent<BeforeTakeActionEvent>.ID && ParentObject.IsPlayer() && !AutoAct.IsResting() && !ParentObject.Incap(false) && !ParentObject.IsInCombat() && Options.GetOptionBool(ModOptions.AUTOGET) && !Options.GetOptionBool(ModOptions.HUNTER) && !ParentObject.CheckFlag(Flags.FRENZY, Flags.FEED) && !ParentObject.IsInBatForm())
                 return true;
             if (ID == SingletonEvent<BeginTakeActionEvent>.ID && ParentObject.IsPlayer())
                 return true;
@@ -77,7 +77,7 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(AfterPlayerBodyChangeEvent E)
         {
-            Autoget.Empty();
+            Autoget.Clear();
             return base.HandleEvent(E);
         }
         public override bool HandleEvent(BeforeTakeActionEvent E)
@@ -87,10 +87,10 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(BeginTakeActionEvent E)
         {
-            if (AntiPuke && (Blood >= VITAE.SIP_PUKE_WARN || Blood >= VITAE.FEED_PUKE_WARN || Blood >= VITAE.GHOUL_PUKE_WARN))
+            if (AntiPuke && (Blood >= Nexus.Rules.Vitae.SIP_PUKE_WARN || Blood >= Nexus.Rules.Vitae.FEED_PUKE_WARN || Blood >= Nexus.Rules.Vitae.GHOUL_PUKE_WARN))
                 Blood = 1;
             Metab.Cycle();
-            if (!Options.GetOptionBool(OPTIONS.HUNTER) && !ParentObject.CheckFlag(FLAGS.FRENZY, FLAGS.FEED) && !ParentObject.Incap(false) && !ParentObject.IsInBatForm())
+            if (!Options.GetOptionBool(ModOptions.HUNTER) && !ParentObject.CheckFlag(Flags.FRENZY, Flags.FEED) && !ParentObject.Incap(false) && !ParentObject.IsInBatForm())
                 BloodAutoSip();
             return base.HandleEvent(E);
         }
@@ -106,63 +106,30 @@ namespace XRL.World.Parts
             }
             return base.HandleEvent(E);
         }
-
-        public void SubtractBlood(int value)
-        {
-            Blood -= value;
-        }
-
-        public void AddBlood(int value)
-        {
-            Blood += value;
-        }
-
-        public void SetBloodlust(bool value)
-        {
-            Bloodlusted = value;
-        }
-
-        public void SetBlood(int value)
-        {
-            Blood = value;
-        }
-
         bool ItsTimeToDrink(string option)
         {
             switch (option)
             {
-                case OPTIONS.AUTOSIP_LEVELS.GLUT:
-                    if (Blood < VITAE.BLOOD_GLUTTONOUS)
-                        return true;
-                    break;
-                case OPTIONS.AUTOSIP_LEVELS.QUENCH:
-                    if (Blood < VITAE.BLOOD_QUENCHED)
-                        return true;
-                    break;
-                case OPTIONS.AUTOSIP_LEVELS.THIRSTY:
-                    if (Blood < VITAE.BLOOD_THIRSTY)
-                        return true;
-                    break;
-                case OPTIONS.AUTOSIP_LEVELS.PARCHED:
-                    if (Blood < VITAE.BLOOD_PARCHED)
-                        return true;
-                    break;
-                case OPTIONS.AUTOSIP_LEVELS.MIN:
-                    if (Blood <= VITAE.BLOOD_MIN)
-                        return true;
-                    break;
+                case ModOptions.Autosip_Settings.QUENCH:
+                    return Blood < Nexus.Rules.Vitae.BLOOD_GLUTTONOUS;
+                case ModOptions.Autosip_Settings.THIRSTY: //in our code, being marked as "thirsty" actually means your blood is > thirsty and < quenched
+                    return Blood < Nexus.Rules.Vitae.BLOOD_QUENCHED;//kind of confusing but i dont care to change it now
+                case ModOptions.Autosip_Settings.PARCHED:
+                    return Blood < Nexus.Rules.Vitae.BLOOD_THIRSTY;
+                case ModOptions.Autosip_Settings.MIN:
+                    return Blood < Nexus.Rules.Vitae.BLOOD_PARCHED;
             }
             return false;
         }
 
         void BloodAutoSip()
         {
-            if (Options.GetOptionBool(OPTIONS.AUTOSIP) && ItsTimeToDrink(Options.GetOption(OPTIONS.AUTOSIP_LEVEL)))
+            if (Options.GetOptionBool(ModOptions.AUTOSIP) && ItsTimeToDrink(Options.GetOption(ModOptions.AUTOSIP_LEVEL)))
             {
                 containers.Clear();
                 if (ParentObject.UseDrams(1, "blood", null, null, null, containers, true))
                 {
-                    Drink(false, false);
+                    Drink(false);
                     Sip();
                 }
                 containers.Clear();
@@ -181,32 +148,32 @@ namespace XRL.World.Parts
                 DidXToY("take", "a sip of {{R sequence|blood}} from", gameObject, null, null, null, null, ParentObject, null, UseFullNames: false, IndefiniteSubject: false, IndefiniteObject: false, IndefiniteObjectForOthers: false, PossessiveObject: false, null, ParentObject);
             }
         }
-        public string BloodStatus() => ParentObject.CheckFlag(FLAGS.GO) ? "{{r|Bottomless}}" : Switch();
-        string Switch() =>
+        public string BloodStatus() => ParentObject.CheckFlag(Flags.GO) ? "{{r|Bottomless}}" : StatusToString();
+        string StatusToString() =>
         Blood switch
         {
-            >= VITAE.BLOOD_GLUTTONOUS => "{{G|Glutted}}",
-            >= VITAE.BLOOD_QUENCHED and < VITAE.BLOOD_GLUTTONOUS => "{{g|Gorged}}",
-            >= VITAE.BLOOD_THIRSTY and < VITAE.BLOOD_QUENCHED => "{{R|Thirsty}}",
-            >= VITAE.BLOOD_PARCHED and < VITAE.BLOOD_THIRSTY => "{{r|Fiending}}",
-            >= VITAE.BLOOD_MIN and < VITAE.BLOOD_PARCHED or < VITAE.BLOOD_MIN => "{{r|Ravenous}}"
+            >= Nexus.Rules.Vitae.BLOOD_GLUTTONOUS => "{{G|Glutted}}",
+            >= Nexus.Rules.Vitae.BLOOD_QUENCHED and < Nexus.Rules.Vitae.BLOOD_GLUTTONOUS => "{{g|Gorged}}",
+            >= Nexus.Rules.Vitae.BLOOD_THIRSTY and < Nexus.Rules.Vitae.BLOOD_QUENCHED => "{{R|Thirsty}}",
+            >= Nexus.Rules.Vitae.BLOOD_PARCHED and < Nexus.Rules.Vitae.BLOOD_THIRSTY => "{{r|Fiending}}",
+            >= Nexus.Rules.Vitae.BLOOD_MIN and < Nexus.Rules.Vitae.BLOOD_PARCHED or < Nexus.Rules.Vitae.BLOOD_MIN => "{{r|Ravenous}}"
         };
 
-        public bool IDontWantToPuke(bool feeding, bool ghoul) // didnt know what to name this one
+        public bool IDontWantToPuke(bool feeding) // didnt know what to name this one
         { //cannot know at compile time if you might be frenzying at any given moment
-            if (!ParentObject.CheckFlag(FLAGS.FRENZY) && !ParentObject.Incap(false) && ParentObject.IsPlayer())
+            if (!ParentObject.CheckFlag(Flags.FRENZY) && !ParentObject.Incap(false) && ParentObject.IsPlayer())
             {
                 // if (ghoul && Blood >= VITAE.GHOUL_PUKE_WARN)
                 // {
                 //     if (Popup.ShowYesNo("Feeding that much will probably make you sick. Do you still want to feed?") == DialogResult.No)
                 //         return true;
                 // }
-                if (Blood >= VITAE.FEED_PUKE_WARN && feeding)
+                if (Blood >= Nexus.Rules.Vitae.FEED_PUKE_WARN && feeding)
                 {
                     if (Popup.ShowYesNo("Feeding that much will probably make you sick. Do you still want to feed?") == DialogResult.No)
                         return true;
                 }
-                else if (Blood >= VITAE.SIP_PUKE_WARN && !feeding && !ghoul)
+                else if (Blood >= Nexus.Rules.Vitae.SIP_PUKE_WARN && !feeding)
                 {
                     if (Popup.ShowYesNo("Drinking that much will probably make you sick. Do you still want a drink?") == DialogResult.No)
                         return true;
@@ -215,11 +182,11 @@ namespace XRL.World.Parts
             return false;
         }
 
-        public void Drink(bool feeding, bool ghoul)
+        public void Drink(bool feeding)
         {
             //  if (ghoul)
             //      Blood += VITAE.BLOOD_PER_GHOUL;
-            Blood += feeding ? VITAE.BLOOD_PER_FEED : VITAE.BLOOD_PER_SIP;
+            Blood += feeding ? Nexus.Rules.Vitae.BLOOD_PER_FEED : Nexus.Rules.Vitae.BLOOD_PER_SIP;
             Event E = Event.New("AddFood");
             E.SetParameter("Satiation", "Snack");
             E.SetFlag("Meat", true);

@@ -1,10 +1,8 @@
 using XRL.World;
-using System.Collections.Generic;
 using XRL.World.Parts;
 using XRL.World.Parts.Mutation;
 using System.Linq;
 using Nexus.Core;
-using static XRL.World.Cell;
 
 namespace Nexus.Frenzy
 {
@@ -16,22 +14,23 @@ namespace Nexus.Frenzy
     {
         readonly public TheBeast Source;
         public Search(TheBeast Source) => this.Source = Source;
-        public bool TryScan(out GameObject Object)
+        public bool TryScan(out GameObject tgt)
         {
-            Object = null;
+            tgt = null;
             Sift();
             Register();
             if (Source.TargetRegistry.Any(x => x.Value != TheBeast.FLAG_AVOID))
             {
                 int min = Source.TargetRegistry.Values.Min();
-                Object = Source.TargetRegistry.First(x => x.Value == min).Key;
+                tgt = Source.TargetRegistry.First(x => x.Value == min).Key;
             }
-            return Object != null;
+            return tgt != null;
         }
 
         void Sift()
         {
-            Source.TargetRegistry.Keys.Where(x => x == null || !x.HasHitpoints() || !x.InSameZone(Source.ParentObject)).SafeForEach(x => Source.TargetRegistry.Remove(x));
+            GameObject[] invalids = Source.TargetRegistry.Keys.Where(x => x == null || !x.HasHitpoints() || !x.InSameZone(Source.ParentObject)).ToArray();
+            invalids.ForEach(x => Source.TargetRegistry.Remove(x));
         }
 
 
@@ -56,7 +55,7 @@ namespace Nexus.Frenzy
         }
 
         public void Register()
-         => Source.ParentObject.CurrentZone.CombatObjects().ForEach(registerDelegate);
+         => Source.ParentObject.CurrentZone.CombatObjects().SafeForEach(registerDelegate);
 
         void registerDelegate(GameObject obj)
         {

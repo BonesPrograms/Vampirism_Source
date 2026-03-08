@@ -34,17 +34,27 @@ namespace XRL.World.Parts.Mutation
 		public int BloodyFangsCounter = default;
 		bool _immune = default;
 		bool _rotschrek = default;
+		int _timeOnWorldMap = 0;
+		bool _wasOnWorldMap => _timeOnWorldMap > 0;
 		//bool AlreadyBurnedWithSilver = default;
+
+
+		#region FireEvent/Register
+		//though many of these are duplicates of minevent calls, i added them incase any modders out there preferred string events over minevents for their
+		//custom diseases and spores - see True Undead
+		public static readonly string[] RegisteredEvents =
+		{ "LungedTarget", Events.GAMEOVER, Events.WISH_HUMANITY, "CanApplySpores", "ApplySpores", "ApplyDiseaseOnset", "ApplyDisease", "CanApplyAshPoison" };
 		public override void Register(GameObject Object, IEventRegistrar Registrar)
 		{
-			Registrar.Register("LungedTarget");
-			Registrar.Register(Events.GAMEOVER);
-			Registrar.Register(Events.WISH_HUMANITY);
+			foreach (var stringEvent in RegisteredEvents)
+				Registrar.Register(stringEvent);
 		}
 		public override bool FireEvent(Event E)
 		{
 			switch (E.ID)
 			{
+				case "ApplyDisease" or "ApplyDiseaseOnset" or "ApplySpores" or "CanApplySpores" or "CanApplyAshPoison":
+					return false;
 				case Events.GAMEOVER:
 					GameOver = true;
 					break;
@@ -58,22 +68,26 @@ namespace XRL.World.Parts.Mutation
 			}
 			return base.FireEvent(E);
 		}
-
+		#endregion
 		#region WantEvent
 		public override bool WantEvent(int ID, int cascade)
 		{
-			if (ID == AfterPlayerBodyChangeEvent.ID || ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == PooledEvent<CommandEvent>.ID || ID == AIGetOffensiveAbilityListEvent.ID || ID == PooledEvent<AfterDismemberEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
+			if (ID == RespiresEvent.ID || ID == ApplyEffectEvent.ID || ID == CanApplyEffectEvent.ID || ID == CheckGasCanAffectEvent.ID || ID == BeforeApplyDamageEvent.ID) //the confusion between ApplyEffectEvent and CanApplyEffectEvent was painful
+				return Options.GetOptionBool(ModOptions.TRUE_UNDEAD);
+			if (ID == EffectAppliedEvent.ID || ID == AfterPlayerBodyChangeEvent.ID || ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == PooledEvent<CommandEvent>.ID || ID == AIGetOffensiveAbilityListEvent.ID || ID == PooledEvent<AfterDismemberEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
 				return true;
+			if (ID == EnteredCellEvent.ID)
+				return Options.GetOptionBool(ModOptions.NIGHTBEAST) && ParentObject.IsPlayer();
 			if (ID == SingletonEvent<EndTurnEvent>.ID)
 				return BloodyFangsCounter > 0 && HasFangs();
 			if (ID == BeforeRenderEvent.ID)
 				return CheckNightbeast();
 			if (ID == TookDamageEvent.ID)
-				return CheckFireOption() && !_immune;
-			if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID)
+				return Options.GetOptionBool(ModOptions.FIRE) && !_immune;
+			if (ID == EffectRemovedEvent.ID)
 				return Rotschrek || _immune;
 			if (ID == EnteringZoneEvent.ID)
-				return ParentObject.HasStringProperty(FLAGS.OLD_SAVE) && ParentObject.IsPlayer();
+				return ParentObject.HasStringProperty(Flags.MOD_VERSION) && ParentObject.IsPlayer();
 			if (ID == EquipperEquippedEvent.ID || ID == TookEvent.ID)
 				return The.Game.Turns > 0;//will fire and go crazy if you spawn with silver items in your inventory or torches
 			return base.WantEvent(ID, cascade);
@@ -81,12 +95,96 @@ namespace XRL.World.Parts.Mutation
 
 		#endregion
 
+		#region True Undead
+
+		//funny thing i noticed while making this: vampires and undead are similar mechanically to Robots
+		//inorganics also do not breathe and are immune to disease... interesting stuff
+		//and vampires cannot feed on robots, even if theyre a wight they can interract without a problem... vampire + robot alliance
+
+		public override bool HandleEvent(CheckGasCanAffectEvent E)
+		{
+			return GasCheck(E);
+		}
+		public override bool HandleEvent(BeforeApplyDamageEvent E)
+		{
+			if (E.Object == ParentObject && E.Damage.HasAttribute("Asphyxiation")) //if we add poison immunity well want to add it here as well
+			{
+				NotifyTargetImmuneEvent.Send(E.Weapon, E.Object, E.Actor, E.Damage, this);
+				E.Damage.Amount = 0;
+				return false;
+			}
+			return base.HandleEvent(E);
+		}
+		public override bool HandleEvent(CanApplyEffectEvent E)
+		{
+			return EffectCheck(E);
+		}
+		public override bool HandleEvent(ApplyEffectEvent E)
+		{
+			return EffectCheck(E);
+		}
+		public override bool HandleEvent(RespiresEvent E)
+		{
+			if (E.Object == ParentObject)
+				return false;
+			return base.HandleEvent(E);
+		}
+
+		bool GasCheck(CheckGasCanAffectEvent E) =>
+		E.Gas.GasType switch
+		{
+			"Poison" or "Ash" or "Disease" or "FungalSpores" or "Confusion" or "Sleep" or "Stun" => false,
+			_ => base.HandleEvent(E)
+		};
+		bool EffectCheck(IEffectCheckEvent E) =>
+		E.Name switch
+		{
+			"DiseaseOnset" or "Disease" or "AshPoison" or "CardiacArrest" or "PoisonGasPoison" => false,
+			_ => base.HandleEvent(E)
+		};
+
+		// or "Poison" or "ToxicConfusion" //not sure about these
+		#endregion
+
+
 		#region Nightbeast
+
+		public override bool HandleEvent(EnteredCellEvent E) //this is code from stomach - note to self - if we have problems with the nonserialization _timeOnWorldMap field,
+		{                                                   //we can use the Long property "OnWorldMapSince" perhaps
+			if (!ParentObject.OnWorldMap())
+			{
+				if (_wasOnWorldMap)
+					AdvanceTimeToNight();
+				_timeOnWorldMap = 0;
+			}
+			else
+				_timeOnWorldMap++;
+			return base.HandleEvent(E);
+		}
 		public override bool HandleEvent(BeforeRenderEvent E)
 		{
 			AddLight(21, LightLevel.Dimvision);
 			return base.HandleEvent(E);
 		}
+
+		bool IsOutsideDuringTheDay(bool preventOnWorldMap = true) => CheckNightbeast(preventOnWorldMap) && IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false);
+
+		bool CheckNightbeast(bool preventOnWorldMap = true)
+		{
+			if (Options.GetOptionBool(ModOptions.NIGHTBEAST) && ParentObject.IsPlayer())
+			{
+				return !preventOnWorldMap || !ParentObject.OnWorldMap();
+			}
+			return false;
+
+		}
+
+		public static void AdvanceTimeToNight()
+		{
+			while (Calendar.IsDay())
+				The.Game.TimeTicks++;
+		}
+
 
 		#endregion
 
@@ -113,7 +211,7 @@ namespace XRL.World.Parts.Mutation
 		}
 		public override bool HandleEvent(EndTurnEvent E)
 		{
-			if (WikiRng.Next(1, 10) == 10 && !ParentObject.CheckFlag(FLAGS.FEED))
+			if (WikiRng.Next(1, 10) == 10 && !ParentObject.CheckFlag(Flags.FEED))
 			{
 				AddPlayerMessage("{{r|Blood}} drips from your fangs.");
 				if (!ParentObject.OnWorldMap())
@@ -129,12 +227,12 @@ namespace XRL.World.Parts.Mutation
 		}
 		#endregion
 
-		#region [Debuff] Combined Event Handlers
+		#region [Debuff] Combined Event Handlers (Silver Ailment, Rotschrek, Nightbeast)
 		public override bool HandleEvent(EquipperEquippedEvent E)
 		{
 			if (E.Item.Blueprint == "Torch")
 			{
-				if (CheckFireOption() && Options.GetOptionBool(OPTIONS.TORCH)) //this event runs before the game loads and was causing serious hangups/crashes
+				if (Options.GetOptionBool(ModOptions.FIRE) && Options.GetOptionBool(ModOptions.TORCH)) //this event runs before the game loads and was causing serious hangups/crashes
 				{                                                       //in tandem with the VampirismStartGame mutator that deletes torches
 					var Torch = E.Item.GetPart<TorchProperties>();      //just a mess of null errors
 					if (!Torch.IsUnlightableBecauseOfLiquidCovering())
@@ -143,7 +241,7 @@ namespace XRL.World.Parts.Mutation
 					return false;
 				}
 			}
-			if (E.Item.IsSilver() && Options.GetOptionBool(OPTIONS.SILVER))
+			if (E.Item.IsSilver() && Options.GetOptionBool(ModOptions.SILVER))
 			{
 				Popup.Show(nameof(EquipperEquippedEvent));
 				E.Item.ForceUnequip(true);
@@ -155,13 +253,13 @@ namespace XRL.World.Parts.Mutation
 		}
 		public override bool HandleEvent(TookEvent E)
 		{
-			if (E.Item.IsSilver() && Options.GetOptionBool(OPTIONS.SILVER))
+			if (E.Item.IsSilver() && Options.GetOptionBool(ModOptions.SILVER))
 			{
 				SilverAilment(E.Item);
 				E.RequestInterfaceExit();
 				return false;
 			}
-			if (CheckFireOption() && FireyObject(E.Item))
+			if (Options.GetOptionBool(ModOptions.FIRE) && FireyObject(E.Item))
 			{
 				Panic(E.Item, true);
 				E.RequestInterfaceExit();
@@ -175,20 +273,32 @@ namespace XRL.World.Parts.Mutation
 		//however if its the player it doesnt matter because you can move yourself a bit so rotschrek can chain on the player
 		public override bool HandleEvent(BeginTakeActionEvent E)
 		{
-			if (CheckNightbeast() && IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false))
+			if (IsOutsideDuringTheDay())
 			{
 				AddPlayerMessage("{{W|IT BURNS!!!}}");
 				ParentObject.TakeDamage(WikiRng.Next(5, 10), null, null);
 			}
-			if (!_immune && CheckFireOption() && ParentObject.LocalCells(out var cells))
+			if (!_immune && Options.GetOptionBool(ModOptions.FIRE) && ParentObject.LocalCells(out var cells))
 			{
 				if (ParentObject.IsPlayer() || !Rotschrek)
 					SearchForFire(cells);
 			}
 			return base.HandleEvent(E);
 		}
-
-
+		public override bool HandleEvent(EffectAppliedEvent E) //the patch is here
+		{
+			if (IsOutsideDuringTheDay(false) && E.Effect.GetType() == typeof(Lost))
+			{
+				AdvanceTimeToNight();
+			}
+			if (E.Effect.GetType() == typeof(Blaze_Tonic))
+			{
+				_immune = true;
+				if (Rotschrek)
+					ParentObject.RemoveEffect<Terrified>();
+			}
+			return base.HandleEvent(E);
+		}
 
 		#endregion
 
@@ -201,7 +311,7 @@ namespace XRL.World.Parts.Mutation
 		}
 		#endregion
 
-		#region [Debuff] Rotschrek 
+		#region [Debuff] Rotschrek
 
 		public override bool HandleEvent(EffectRemovedEvent E)
 		{
@@ -209,17 +319,6 @@ namespace XRL.World.Parts.Mutation
 				_rotschrek = false;
 			else if (E.Effect.GetType() == typeof(Blaze_Tonic))
 				_immune = false;
-			return base.HandleEvent(E);
-		}
-
-		public override bool HandleEvent(EffectAppliedEvent E)
-		{
-			if (E.Effect.GetType() == typeof(Blaze_Tonic))
-			{
-				_immune = true;
-				if (Rotschrek)
-					ParentObject.RemoveEffect<Terrified>();
-			}
 			return base.HandleEvent(E);
 		}
 
@@ -246,13 +345,13 @@ namespace XRL.World.Parts.Mutation
 		}
 
 		bool ConsiderFlight(GameObject obj) //because you cannot make physical attacks (aside from swoop) if flight is not synced i dont care if you are adjacent to eachother
-		{									//i may have to implement a caveat for swoop
+		{                                   //i may have to implement a caveat for swoop
 			return obj.IsFlying == ParentObject.IsFlying;
 		}
 
 		bool FireyObject(GameObject obj)
-		{																		//Temporarily disabled until I make it slightly more complex with a timer
-			return obj.IsAflame() || Flamelike($"{obj}")  || LitTorch(obj); //|| (obj.Blueprint != "Campfire" && obj.HasPart<AnimatedMaterialFire>());
+		{                                                                       //Temporarily disabled until I make it slightly more complex with a timer
+			return obj.IsAflame() || Flamelike($"{obj}") || LitTorch(obj); //|| (obj.Blueprint != "Campfire" && obj.HasPart<AnimatedMaterialFire>());
 		}
 
 		// bool HoldingFlamingObject(GameObject obj)
@@ -268,7 +367,7 @@ namespace XRL.World.Parts.Mutation
 
 		bool LitTorch(GameObject obj) //im pretty sure this cannot actually happen (cannot drop lit torches) but ive included it anyways
 		{
-			if (obj.Blueprint == "Torch" && Options.GetOptionBool(OPTIONS.TORCH))
+			if (obj.Blueprint == "Torch" && Options.GetOptionBool(ModOptions.TORCH))
 			{
 				LightSource source = obj.GetPart<LightSource>(); //private field in TorchProperties, but accessible thru the PartsList, no reflection required
 				if (source.Lit)
@@ -384,42 +483,27 @@ namespace XRL.World.Parts.Mutation
 
 		#endregion
 
-		#region QuickOptionCheckers
-
-		bool CheckNightbeast()
-		{
-			return ParentObject.IsPlayer() && Options.GetOptionBool(OPTIONS.NIGHTBEAST) && !ParentObject.OnWorldMap();
-		}
-
-		static bool CheckFireOption()
-		{
-			return Options.GetOptionBool(OPTIONS.FIRE);
-		}
-
-
-		#endregion
-
 		#region Update
-		public override bool HandleEvent(AfterPlayerBodyChangeEvent E) 
-		{                                                              
-			if (E.NewBody.IsVampire())                                 
+		public override bool HandleEvent(AfterPlayerBodyChangeEvent E)
+		{
+			if (E.NewBody.IsVampire())
 			{
-				
-				Nexus.Update.Update.Spells(E.NewBody);                 
-				if (E.OldBody?.HasStringProperty(FLAGS.OLD_SAVE) ?? false) //from my experience oldbody is usually null, but what can you do
-					E.NewBody.SetStringProperty(FLAGS.OLD_SAVE, null);
+
+				Nexus.Update.Update.Spells(E.NewBody);
+				if (E.OldBody?.HasStringProperty(Flags.MOD_VERSION) ?? false) //from my experience oldbody is usually null, but what can you do
+					E.NewBody.SetStringProperty(Flags.MOD_VERSION, null);
 			}
 			return base.HandleEvent(E);
 		}
 
 		//bug:
-		 //AI vampires wont get access to the new corpse type unless the player is a vampire that can update them, because only player vampires can request zone updates when entering zones
+		//AI vampires wont get access to the new corpse type unless the player is a vampire that can update them, because only player vampires can request zone updates when entering zones
 		public override bool HandleEvent(EnteringZoneEvent E)
 		{
 			Zone zone = E.Cell.ParentZone;
-			if (zone.TryGetZoneProperty(FLAGS.MOD.VERSION_TAG, out string result)) //to prevent repeated sifting of zones already updated in old saves.
+			if (zone.TryGetZoneProperty(Flags.Mod.VERSION_TAG, out string result)) //to prevent repeated sifting of zones already updated in old saves.
 			{
-				if (result != MOD.VERSION)
+				if (result != Mod.VERSION)
 					Update(zone);
 			}
 			else
@@ -428,8 +512,8 @@ namespace XRL.World.Parts.Mutation
 		}
 		static void Update(Zone zone)
 		{
-			zone.CombatObjects(x => x.IsVampire() && !x.IsPlayer()).ForEach(x => Nexus.Update.Update.DoUpdate(x));
-			zone.SetZoneProperty(FLAGS.MOD.VERSION_TAG, MOD.VERSION);
+			zone.CombatObjects(x => x.IsVampire() && !x.IsPlayer()).SafeForEach(x => Nexus.Update.Update.TryUpdateNPCFriendly(x));
+			zone.SetZoneProperty(Flags.Mod.VERSION_TAG, Mod.VERSION);
 		}
 		#endregion
 
@@ -490,7 +574,7 @@ namespace XRL.World.Parts.Mutation
 					break;
 			}
 			stats.Set("HP", GetDamageDice() + " blood");
-			stats.CollectCooldownTurns(MyActivatedAbility(ActivatedAbilityID), FEED.COOLDOWN);
+			stats.CollectCooldownTurns(MyActivatedAbility(ActivatedAbilityID), Feed.COOLDOWN);
 		}
 		public override string GetLevelText(int Level)
 		=> "Feeds {{rules|" + GetDamageDice() + "}} blood per round, for up to {{rules|5}} rounds.\n" +

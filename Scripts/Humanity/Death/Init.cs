@@ -24,8 +24,8 @@ namespace Nexus.Death
         }
         static void Innocent(GameObject GO, GameObject Player)
         {
-            if (!GO.HasStringProperty(FLAGS.INNOCENT))
-                GO.SetStringProperty(FLAGS.INNOCENT, GO.IsHostileTowards(Player) ? FLAGS.FALSE : FLAGS.TRUE);
+            if (!GO.HasStringProperty(Flags.INNOCENT))
+                GO.SetStringProperty(Flags.INNOCENT, GO.IsHostileTowards(Player) ? Flags.FALSE : Flags.TRUE);
         }
 
     }

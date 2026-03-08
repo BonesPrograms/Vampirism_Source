@@ -21,19 +21,19 @@ namespace Nexus.Core
         public const string CORPSE = "Ashes";
         static readonly (string, int)[] IntProperties =
         {
-            (FLAGS.BLOOD_VALUE, VITAE.BLOOD_GLUTTONOUS), (FLAGS.HUMANITY, HUMANITY.MAX), (FLAGS.REGEN, default)
+            (Flags.BLOOD_VALUE, Rules.Vitae.BLOOD_GLUTTONOUS), (Flags.HUMANITY, Rules.Humanity.MAX), (Flags.REGEN, default)
         };
 
         public static readonly (string, string)[] StringProperties =
         {
-            (FLAGS.GO, FLAGS.FALSE), (FLAGS.FEED, FLAGS.FALSE), (FLAGS.FRENZY, FLAGS.FALSE),
-            (FLAGS.BLOOD_STATUS, FLAGS.BLOOD.GLUT), (FLAGS.STEALTH, FLAGS.FALSE)
+            (Flags.GO, Flags.FALSE), (Flags.FEED, Flags.FALSE), (Flags.FRENZY, Flags.FALSE),
+            (Flags.BLOOD_STATUS, Flags.Blood.GLUT), (Flags.STEALTH, Flags.FALSE)
         };
         static readonly Type[] IParts =
         {
-            typeof(Humanity), typeof(Vitae), typeof(Nightbeast), typeof(TheBeast)
+            typeof(XRL.World.Parts.Humanity), typeof(XRL.World.Parts.Vitae), typeof(Nightbeast), typeof(TheBeast)
         };
-        public static readonly Type[] VampiricSpells =
+        static readonly Type[] VampiricSpells =
         {
             typeof(GhoulSpell), typeof(CoffinSpell), typeof(EmbraceSpell), typeof(BatformSpell)
         };
@@ -58,7 +58,7 @@ namespace Nexus.Core
         static void RemoveGameProperties(GameObject GO)
         {
             GO.SetStringProperty("WaterRitualLiquid", "water");
-            if (GO.TryGetStringProperty("BleedLiquid", out string result) && result == OPTIONS.BLEEDLIQUID)
+            if (GO.TryGetStringProperty("BleedLiquid", out string result) && result == ModOptions.BLEEDLIQUID)
             {
                 GO.SetStringProperty("BleedLiquid", "blood-1000");
             }
@@ -68,7 +68,7 @@ namespace Nexus.Core
         {
             bool value = GO.IsPlayer();
             GO.SetStringProperty("WaterRitualLiquid", "blood");
-            if (XRL.UI.Options.GetOptionBool(OPTIONS.BLOOD_NERF) && value)
+            if (XRL.UI.Options.GetOptionBool(ModOptions.BLOOD_NERF) && value)
             {
                 SetBleedLiquid(GO);
             }
@@ -84,17 +84,17 @@ namespace Nexus.Core
             {
                 if (result.IsNullOrEmpty() || result == "blood-1000")
                 {
-                    GO.SetStringProperty("BleedLiquid", OPTIONS.BLEEDLIQUID);
+                    GO.SetStringProperty("BleedLiquid", ModOptions.BLEEDLIQUID);
                 }
             }
             else
-                GO.SetStringProperty("BleedLiquid", OPTIONS.BLEEDLIQUID);
+                GO.SetStringProperty("BleedLiquid", ModOptions.BLEEDLIQUID);
         }
         static void RequireParts(GameObject GO)
         {
             IParts.ForEach(x => GO.AddPart((IPart)Activator.CreateInstance(x)));
             GO.ApplyEffect(new HumanityUI(9999));
-            if (XRL.UI.Options.GetOptionBool(OPTIONS.SPELLS) && GO.IsPlayer())
+            if (XRL.UI.Options.GetOptionBool(ModOptions.SPELLS) && GO.IsPlayer())
                 RequireSpells(GO);
         }
 
@@ -111,7 +111,7 @@ namespace Nexus.Core
             IParts.ForEach(x => GO.RemovePart(x));
             GO.RemoveEffect<HumanityUI>();
             GO.RemoveEffect<Bloodlust>();
-            if (GO.TryGetStringProperty(FLAGS.SPELLS, out var spells) && spells == FLAGS.TRUE)
+            if (GO.TryGetStringProperty(Flags.SPELLS, out var spells) && spells == Flags.TRUE)
                 RemoveSpells(GO);
         }
 
@@ -121,7 +121,7 @@ namespace Nexus.Core
             {
                 XRL.UI.Popup.Suppress = true;
                 VampiricSpells.Select(x => (VampiricSpell)Activator.CreateInstance(x)).ForEach(x => { GO.AddPart(x); x.AddSpell(); });
-                GO.SetStringProperty(FLAGS.SPELLS, FLAGS.TRUE);
+                GO.SetStringProperty(Flags.SPELLS, Flags.TRUE);
                 XRL.UI.Popup.Suppress = false;
             }
         }
@@ -132,7 +132,7 @@ namespace Nexus.Core
             if (ENABLE_SPELLS)
             {
                 VampiricSpells.Select(x => (VampiricSpell)GO.GetPart(x)).ForEach(x => x.RemoveSpell());
-                GO.SetStringProperty(FLAGS.SPELLS, FLAGS.FALSE);
+                GO.SetStringProperty(Flags.SPELLS, Flags.FALSE);
             }
 
         }

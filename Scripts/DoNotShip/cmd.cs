@@ -10,8 +10,6 @@ using XRL.World.Parts.Mutation;
 using XRL.World;
 using XRL.World.Parts;
 using System.Reflection;
-using HarmonyLib;
-using Nexus.Stealth;
 using System.Linq;
 using XRL;
 
@@ -302,6 +300,7 @@ namespace XRL.World.Parts
 
         public static void refreshme()
         {
+            Refresh();
             cmdSwitch(nameof(refresh));
         }
 
@@ -391,13 +390,13 @@ namespace XRL.World.Parts
             msg(nameof(FindSpotter));
         }
 
-        [WishCommand("staticstealth")]
+        // [WishCommand("staticstealth")]
 
-        public static void Staticstealth()
-        {
-            AddPlayerMessage($"{StealthCore.Player.DisplayName}");
+        // public static void Staticstealth()
+        // {
+        //     AddPlayerMessage($"{StealthCore.Player.DisplayName}");
 
-        }
+        // }
 
         [WishCommand("comparelevels")]
 
@@ -532,7 +531,7 @@ namespace XRL.World.Parts
                 msg("CheckEmbrace");
                 foreach (var obj in cell.Objects)
                 {
-                    if (obj.TryGetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, out var result))
+                    if (obj.TryGetStringProperty(Flags.Embrace.EMBRACEABLE, out var result))
                         msg($"{obj}, {result}");
                 }
             }
@@ -715,44 +714,8 @@ namespace XRL.World.Parts
         #region Spawn and Kill
 
 
-
-        [WishCommand("kill")]
-
-        public static void kill()
-        {
-            if (The.Player.TryGetTarget("kill", "kill", out var pick))
-            {
-                pick.TakeDamage(100000, The.Player, "Killed");
-            }
-        }
-
         [WishCommand("farmer")]
         public static void Farmer() => Spawn(The.Player.CurrentCell, "WatervineFarmerJoppa");
-
-        [WishCommand("killall")]
-
-        public static void KillAll()
-        {
-            GameObject GO = The.Player;
-            Zone zone = GO.CurrentZone;
-            for (int y = 0; y < zone.Height; y++)
-            {
-                for (int x = 0; x < zone.Width; x++)
-                {
-                    Cell cell = zone.Map[x][y];
-                    for (int i = 0; i < cell.Objects.Count; i++)
-                    {
-                        GameObject obj = cell.Objects[i];
-                        if (obj != GO && obj.HasPart<Combat>())
-                        {
-                            obj.TakeDamage(1000, GO, "KIllAll");
-                        }
-                    }
-                }
-
-            }
-            AddPlayerMessage("AllKilled");
-        }
 
         #endregion
 
@@ -775,9 +738,37 @@ namespace XRL.World.Parts
 
         #region Misc
 
+        [WishCommand("time")]
+
+        public static void showtime()
+        {
+            string time = Calendar.GetTime();
+            int rawtime = (int)Calendar.TotalTimeTicks % 1200;
+            cmd.msg(time);
+            msg(rawtime.ToString());
+        }
+
+        [WishCommand("lost")]
+        public static void imlost() => The.Player.RemoveEffect<Lost>();
+
+        [WishCommand("giveglotrot")]
+
+        public static void GiveGlotrot()
+        {
+            if(The.Player.TryGetTarget("glotrot", "glotrot", out var pick))
+            {
+                pick.ApplyEffect(new Glotrot());
+                cmd.msg("GlotrotAdded to " + pick.t());
+            }
+        }
+
         [WishCommand("r")]
 
-        public static void r() => refreshme();
+        public static void r()
+        {
+            Refresh();
+            refreshme();
+        }
 
         [WishCommand(Command = "blueprint")]
 
@@ -1091,13 +1082,13 @@ namespace XRL.World.Parts
         void Properties(string text)
         {
             var tgt = ParentObject;
-            bool HumanityGameOver = tgt.CheckFlag(FLAGS.GO);
-            bool Feeding = tgt.CheckFlag(FLAGS.FEED);
-            bool Frenzying = tgt.CheckFlag(FLAGS.FRENZY);
-            bool Stealthy = tgt.CheckFlag(FLAGS.STEALTH);
-            string Blooddrinker = tgt.GetStringProperty(FLAGS.BLOOD_STATUS);
-            int Vitae = tgt.GetIntProperty(FLAGS.BLOOD_VALUE);
-            int Humanity = tgt.GetIntProperty(FLAGS.HUMANITY);
+            bool HumanityGameOver = tgt.CheckFlag(Flags.GO);
+            bool Feeding = tgt.CheckFlag(Flags.FEED);
+            bool Frenzying = tgt.CheckFlag(Flags.FRENZY);
+            bool Stealthy = tgt.CheckFlag(Flags.STEALTH);
+            string Blooddrinker = tgt.GetStringProperty(Flags.BLOOD_STATUS);
+            int Vitae = tgt.GetIntProperty(Flags.BLOOD_VALUE);
+            int Humanity = tgt.GetIntProperty(Flags.HUMANITY);
             bool combat = tgt.IsInCombat();
 
             if (showGO)

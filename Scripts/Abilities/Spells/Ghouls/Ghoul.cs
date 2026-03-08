@@ -115,7 +115,7 @@ namespace XRL.World.Effects
         {
             StatShifter.SetStatShift("Hitpoints", Roll); //"Hitpoints"
             Object.Heal(Roll);
-            BuffTime = GHOUL.BUFFTIME;
+            BuffTime = Ghoul.BUFFTIME;
             Buffed = true;
         }
 

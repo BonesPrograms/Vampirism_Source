@@ -31,24 +31,24 @@ namespace Nexus.Stealth
         public const string defaultAlertText = "You are caught sneaking around by";
         public const string altAlertText = "You are caught sneaking around!";
 
-        /// <param name="Source"></param>
-        /// <param name="Witnesses">It is recommended to use ValidSentients as the base for your list, because it is "validated" (see conditionals in StealthCore)
+        /// <param name="source"></param>
+        /// <param name="witnesses">It is recommended to use ValidSentients as the base for your list, because it is "validated" (see conditionals in StealthCore)
         /// and has none of the restrictions of the other lists, such as LOS, awareness, and distance.</param>
-        /// <param name="Exposer">If using spotters and the return value is SPOTTER_IN_DETECTION, it is recommended to assign the spotter to the exposer for consistency.
+        /// <param name="exposer">If using spotters and the return value is SPOTTER_IN_DETECTION, it is recommended to assign the spotter to the exposer for consistency.
         /// </param>
         /// <param name="Target"></param>
-        public Alert(GameObject Source, List<GameObject> Witnesses, GameObject Exposer = null)
+        public Alert(GameObject source, List<GameObject> witnesses, GameObject exposer = null)
         {
-            this.Source = Source;
-            this.Witnesses = Witnesses;
-            this.Exposer = Exposer;
+            this.Source = source;
+            this.Witnesses = witnesses;
+            this.Exposer = exposer;
         }
 
-        public Alert(GameObject Source, GameObject Exposer = null)
+        public Alert(GameObject source, GameObject exposer = null)
         {
-            this.Source = Source;
-            this.Exposer = Exposer;
-            Witnesses = Alert.GiveDefaultList(Source);
+            this.Source = source;
+            this.Exposer = exposer;
+            Witnesses = Alert.GiveDefaultList(source);
         }
 
         bool Validated(GameObject obj, uint AoE) => obj != null && obj.DistanceTo(Source) <= AoE;
@@ -57,60 +57,60 @@ namespace Nexus.Stealth
         /// <summary>
         /// Quick use method for popups when stealth is broken.
         /// </summary>
-        /// <param name="ShowExposer">Set this to false if you want to send in completely custom strings.</param>
-        /// <param name="PopupText"></param>
+        /// <param name="showExposer">Set this to false if you want to send in completely custom strings.</param>
+        /// <param name="popupText"></param>
         /// <param name="backup">If showExposer is true and exposer is null, will default to backup that does not try to access Exposer.</param>
-        public void Popup(bool ShowExposer, string PopupText = defaultAlertText, string backup = altAlertText)
+        public void Popup(bool showExposer, string popupText = defaultAlertText, string backup = altAlertText)
         {
-            if (ShowExposer)
+            if (showExposer)
             {
                 if (Exposer is null)
                 {
                     MetricsManager.LogModError(XRL.ModManager.GetMod("vampirism"), "Error @ Alert<T>.Popup - Exposer is null. Playing alternative string.");
-                    PopupText = backup;
+                    popupText = backup;
                 }
                 else
-                    PopupText = $"{PopupText} {Exposer.t()}!";
+                    popupText = $"{popupText} {Exposer.t()}!";
             }
             else
-                PopupText = PopupText == defaultAlertText ? backup : PopupText;
-            XRL.UI.Popup.Show(PopupText);
+                popupText = popupText == defaultAlertText ? backup : popupText;
+            XRL.UI.Popup.Show(popupText);
         }
 
         /// <summary>
         /// Default template for a list that excludes plants. Usually, your target will be on the list, even if they are unaware.
         /// </summary>
-        /// <param name="Source"></param>
+        /// <param name="source"></param>
         /// <returns></returns>
 
-        public static List<GameObject> GiveDefaultList(GameObject Source)
+        public static List<GameObject> GiveDefaultList(GameObject source)
         {
-            return Source.CurrentZone.CombatObjects(x => StealthCore.ValidSentient(x)).ToList(); //this does not check for unawareness because it will wake up anyone who is unaware
+            return source.CurrentZone.CombatObjects(x => StealthCore.ValidSentient(x)).ToList(); //this does not check for unawareness because it will wake up anyone who is unaware
         }
 
         /// <summary>
         /// Quick access method to wake up sleepers.
         /// </summary>
         /// <param name="AoE"></param>
-        public void RemoveSleepFromWitnesses(uint AoE = Rules.STEALTH.AI_RADIUS) => RemoveEffectFromWitness<Asleep>(AoE);
+        public void RemoveSleepFromWitnesses(uint AoE = Rules.Stealth.AI_RADIUS) => RemoveEffectFromWitness<Asleep>(AoE);
 
-        public GameObject Add(GameObjectReference Target)
+        public GameObject Add(GameObjectReference tgt)
         {
-            return Add(Target?.Object);
+            return Add(tgt?.Object);
         }
 
-        public GameObject Add(GameObjectReference Target, out bool IsNull)
+        public GameObject Add(GameObjectReference tgt, out bool isNull)
         {
-            return Add(Target?.Object, out IsNull);
+            return Add(tgt?.Object, out isNull);
         }
 
-        public GameObject Add(GameObject Target)
+        public GameObject Add(GameObject tgt)
         {
-            if (Target != null)
+            if (tgt != null)
             {
-                Witnesses.SafeAddReference(Target);
+                Witnesses.SafeAddReference(tgt);
             }
-            return Target;
+            return tgt;
         }
 
         /// <summary>
@@ -118,17 +118,17 @@ namespace Nexus.Stealth
         /// If your target may not be on the list and you want them to be part of the effect application, add them here.
         ///  here
         /// </summary>
-        /// <param name="Target"></param>
+        /// <param name="tgt"></param>
         /// <returns></returns>
-        public GameObject Add(GameObject Target, out bool IsNull)
+        public GameObject Add(GameObject tgt, out bool isNull)
         {
-            Add(Target);
-            IsNull = Target is null;
-            return Target;
+            Add(tgt);
+            isNull = tgt is null;
+            return tgt;
         }
-        public void AddOpinionToWitnesses<T>(uint AoE = Rules.STEALTH.AI_RADIUS) where T : IOpinionSubject, new()
+        public void AddOpinionToWitnesses<T>(uint radius = Rules.Stealth.AI_RADIUS) where T : IOpinionSubject, new()
         {
-            Witnesses.Where(x => Validated(x, AoE)).ForEach(x => x.AddOpinion<T>(Source));
+            Witnesses.Where(x => Validated(x, radius)).ForEach(x => x.AddOpinion<T>(Source));
         }
         // public void AddEffectToWitnesses<T>(T obj, uint AoE = default) where T : Effect, new()
         // {
@@ -148,10 +148,10 @@ namespace Nexus.Stealth
         //     }
         // }
 
-        public void AddOpinionToWitnessesAndExposer<T>(uint AoE = Rules.STEALTH.AI_RADIUS) where T : IOpinionSubject, new()
+        public void AddOpinionToWitnessesAndExposer<T>(uint radius = Rules.Stealth.AI_RADIUS) where T : IOpinionSubject, new()
         {
             Exposer?.AddOpinion<T>(Source);
-            AddOpinionToWitnesses<T>(AoE);
+            AddOpinionToWitnesses<T>(radius);
         }
 
         /// <summary>
@@ -166,24 +166,24 @@ namespace Nexus.Stealth
         /// <summary>
         /// If your target is showing up as the exposer and you want to prevent it, pass them by this method.
         /// </summary>
-        /// <param name="Target"></param>
-        public void FindClosestExposerInListExcept(GameObject Target)
+        /// <param name="tgt"></param>
+        public void FindClosestExposerInListExcept(GameObject tgt)
         {
-            ProcessList(Target);
+            ProcessList(tgt);
         }
-        public void RemoveEffectFromWitness<T>(uint AoE = Rules.STEALTH.AI_RADIUS) where T : Effect, new()
+        public void RemoveEffectFromWitness<T>(uint radius = Rules.Stealth.AI_RADIUS) where T : Effect, new()
         {
-            Witnesses.Where(x => Validated(x, AoE)).ForEach(x => x.RemoveEffect<T>());
+            Witnesses.Where(x => Validated(x, radius)).ForEach(x => x.RemoveEffect<T>());
         }
-        void ProcessList(GameObject Target)
+        void ProcessList(GameObject tgt)
         {
-            Exposer = CreateDictionaryOfRanges(Target);
+            Exposer = CreateDictionaryOfRanges(tgt);
         }
 
-        GameObject CreateDictionaryOfRanges(GameObject Target)
+        GameObject CreateDictionaryOfRanges(GameObject tgt)
         {
             Dictionary<GameObject, int> distances = new();
-            Witnesses.Where(x => Source.HasLOSTo(x, false) && x != Source).ForEach(x => distances[x] = Source.DistanceTo(x));
+            Witnesses.Where(x => Source.HasLOSTo(x, false) && x != Source && x != tgt).ForEach(x => distances[x] = Source.DistanceTo(x));
             return ReturnKey(distances);
 
         }

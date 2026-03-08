@@ -35,7 +35,7 @@ namespace Nexus.Frenzy
         {
             if (AICantFrenzy())
                 AI.Duration = 0;
-            else if (!AI.Object.CheckFlag(FLAGS.FEED))
+            else if (!AI.Object.CheckFlag(Flags.FEED))
             {
                 if (AI.Target?.HasHitpoints() ?? false && AI.Object.canPathTo(AI.Target.CurrentCell) && Checks.IsNotASolidBlock(AI.Target)) //canpathto does nullcheck for us
                     DecideAction();

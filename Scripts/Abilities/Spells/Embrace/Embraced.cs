@@ -33,7 +33,7 @@ namespace XRL.World.Effects
         }
         public override bool WantEvent(int ID, int Cascade)
         {
-            if (ID == SingletonEvent<EndTurnEvent>.ID || ID == BeforeTookDamageEvent.ID || ID == DeathEvent.ID || ID == BeforeDieEvent.ID)
+            if (ID == SingletonEvent<EndTurnEvent>.ID || ID == BeforeApplyDamageEvent.ID || ID == DeathEvent.ID || ID == BeforeDieEvent.ID)
                 return true;
             return base.WantEvent(ID, Cascade);
         }
@@ -58,9 +58,9 @@ namespace XRL.World.Effects
             return base.HandleEvent(E);
         }
 
-        public override bool HandleEvent(BeforeTookDamageEvent E)
+        public override bool HandleEvent(BeforeApplyDamageEvent E)
         {
-            if (E.Object == Object && E.Damage.Attributes.Contains("Fire") && UI.Options.GetOptionBool(OPTIONS.FIRE))
+            if (E.Object == Object && E.Damage.Attributes.Contains("Fire") && UI.Options.GetOptionBool(ModOptions.FIRE))
             {
                 Message($"Fire disrupts the embracing of {Object.t()}!");
                 FailedEmbrace = true;
@@ -68,6 +68,7 @@ namespace XRL.World.Effects
             }
             if (E.Object == Object && !E.Damage.Attributes.Contains("Fire"))
             {
+                NotifyTargetImmuneEvent.Send(E.Weapon, E.Object, E.Actor, E.Damage, this);
                 E.Damage.Amount = 0;
                 return false;
             }
@@ -96,7 +97,7 @@ namespace XRL.World.Effects
             if (!FailedEmbrace)
             {
                 Object.RequireMutation<Vampirism>(Level);
-                Fledgling part = new(Embracer?.Object, false);
+                Parts.Fledgling part = new(Embracer?.Object, false);
                 Object.AddPart(part);
                 Object.ApplyEffect(new Embraced());
                 Object.ApplyEffect(new Pale(999));
@@ -155,15 +156,15 @@ namespace XRL.World.Effects
         {
             if (!Obj.IsPlayer())
             {
-                Vitae v = Obj.GetPart<Vitae>();
-                v.SetBlood(VITAE.BLOOD_QUENCHED);
+                Parts.Vitae v = Obj.GetPart<Parts.Vitae>();
+                v.Blood = Nexus.Rules.Vitae.BLOOD_QUENCHED;
             }
         }
 
         public override bool Apply(GameObject Obj)
         {
-            Vitae v = Obj.GetPart<Vitae>();
-            v.SetBlood(VITAE.BLOOD_MIN);
+            Parts.Vitae v = Obj.GetPart<Parts.Vitae>();
+            v.Blood = Nexus.Rules.Vitae.BLOOD_MIN;
             return true;
         }
 

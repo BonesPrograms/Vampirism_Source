@@ -32,7 +32,7 @@ namespace Nexus.Attack
         }
         public void Attack(bool frenzy)
         {
-            Target.ApplyEffect(new Vampires_Kiss(FEED.DURATION));
+            Target.ApplyEffect(new Vampires_Kiss(Feed.DURATION));
             if (Source.ParentObject.IsPlayer() && Nightbeast.Stealthed && !frenzy && !friendly && SpotterCheck())
                 StealthATK();
             else
@@ -60,8 +60,8 @@ namespace Nexus.Attack
                 bool ghoul = Target.IsGhoulOf(Source.ParentObject);
                 if (ghoul && Target.TryGetEffect(out Bleeding bleed) && bleed.Owner == Source.ParentObject)
                     Target.RemoveEffect(bleed);
-                Source.ParentObject.ApplyEffect(new CombatFeed(Target, true, dice, FEED.DURATION, frenzy, friendly, ghoul, vampire));
-                Target.ApplyEffect(new CombatFeed(Source.ParentObject, false, dice, FEED.DURATION, frenzy, friendly, ghoul, vampire));
+                Source.ParentObject.ApplyEffect(new CombatFeed(Target, true, dice, Feed.DURATION, frenzy, friendly, ghoul, vampire));
+                Target.ApplyEffect(new CombatFeed(Source.ParentObject, false, dice, Feed.DURATION, frenzy, friendly, ghoul, vampire));
             }
 
         }
@@ -69,8 +69,8 @@ namespace Nexus.Attack
         {
             if (Source.ParentObject.IsPlayer())
                 IComponent<GameObject>.AddPlayerMessage("{{G sequence|You ambush " + Target.t() + " and}} {{B|silently}} {{G sequence|sink your fangs into " + Target.its + " neck.}}");
-            Source.ParentObject.ApplyEffect(new StealthFeed(Target, true, dice, FEED.DURATION, vampire));
-            Target.ApplyEffect(new StealthFeed(Source.ParentObject, false, dice, FEED.DURATION, vampire));
+            Source.ParentObject.ApplyEffect(new StealthFeed(Target, true, dice, Feed.DURATION, vampire));
+            Target.ApplyEffect(new StealthFeed(Source.ParentObject, false, dice, Feed.DURATION, vampire));
         }
 
     }

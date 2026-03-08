@@ -12,7 +12,7 @@ namespace XRL.World.Parts
     [Serializable]
     public class GhoulSpell : VampiricSpell
     {
-        public override int Cooldown =>  GHOUL.COOLDOWN;
+        public override int Cooldown => Nexus.Rules.Ghoul.COOLDOWN;
         public Effect Ghoul;
         public Dictionary<GameObject, EnthralledGhoul> Ghouls = new();
         int MAX()
@@ -50,9 +50,9 @@ namespace XRL.World.Parts
         public override bool HandleEvent(CommandEvent E)
         {
            // admn.msg($"{ParentObject.Level}, {ParentObject.GetStat("Level").Value} level values");
-            if (E.Command == GHOUL.COMMAND_NAME && Checks.Prerequisites(ParentObject, GHOUL.ABILITY_NAME, TEXT))
+            if (E.Command == Nexus.Rules.Ghoul.COMMAND_NAME && Checks.Prerequisites(base.ParentObject, Nexus.Rules.Ghoul.ABILITY_NAME, TEXT))
             {
-                if (ParentObject.TryGetTarget(GHOUL.ABILITY_NAME, TEXT, out GameObject pick))
+                if (base.ParentObject.TryGetTarget(Nexus.Rules.Ghoul.ABILITY_NAME, TEXT, out GameObject pick))
                 {
                     if (Checks.Attackable(pick, TEXT))
                     {
@@ -127,7 +127,7 @@ namespace XRL.World.Parts
         }
 
         bool Attack(GameObject Target) =>
-        Capabilities.Mental.PerformAttack(Enthrall, ParentObject, Target, null, GHOUL.COMMAND_NAME, "1d8", 1, int.MinValue, int.MinValue, Roll(), Target.Stat("Level"));
+        Capabilities.Mental.PerformAttack(Enthrall, base.ParentObject, Target, null, Nexus.Rules.Ghoul.COMMAND_NAME, "1d8", 1, int.MinValue, int.MinValue, base.Roll(), Target.Stat("Level"));
 
         public bool Prerequisites(GameObject Target)
         {
@@ -174,12 +174,12 @@ namespace XRL.World.Parts
                     stats.Set("Attack", "1d8" + num, !stats.mode.Contains("ability"));
                     break;
             }
-            stats.CollectCooldownTurns(MyActivatedAbility(SpellID), GHOUL.COOLDOWN);
+            stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Nexus.Rules.Ghoul.COOLDOWN);
         }
 
         public override void AddSpell()
         {
-            SpellID = AddMyActivatedAbility(GHOUL.ABILITY_NAME, GHOUL.COMMAND_NAME, $"{CATEGORY}", null, "\u009f");
+            SpellID = AddMyActivatedAbility(Nexus.Rules.Ghoul.ABILITY_NAME, Nexus.Rules.Ghoul.COMMAND_NAME, $"{CATEGORY}", null, "\u009f");
         }
 
         public override void RemoveSpell()

@@ -13,22 +13,22 @@ namespace Nexus.Blood
     /// <summary>
     /// Handles the inner logic for metabolizing blood every turn.
     /// </summary>
-    public class BloodMetabolism 
+    public class BloodMetabolism
     {
-        readonly Vitae Source;
-        public bool Glut => Source.Blood >= VITAE.BLOOD_GLUTTONOUS;
-        public bool Quenched => Source.Blood >= VITAE.BLOOD_QUENCHED && Source.Blood < VITAE.BLOOD_GLUTTONOUS;
-        public bool Thirsty => Source.Blood >= VITAE.BLOOD_THIRSTY && Source.Blood < VITAE.BLOOD_QUENCHED;
-        public bool Parched => Source.Blood >= VITAE.BLOOD_PARCHED && Source.Blood < VITAE.BLOOD_THIRSTY;
-        public bool Min => Source.Blood < VITAE.BLOOD_PARCHED;
+        readonly XRL.World.Parts.Vitae Source;
+        public bool Glut => Source.Blood >= Rules.Vitae.BLOOD_GLUTTONOUS;
+        public bool Quenched => Source.Blood >= Rules.Vitae.BLOOD_QUENCHED && Source.Blood < Rules.Vitae.BLOOD_GLUTTONOUS;
+        public bool Thirsty => Source.Blood >= Rules.Vitae.BLOOD_THIRSTY && Source.Blood < Rules.Vitae.BLOOD_QUENCHED;
+        public bool Parched => Source.Blood >= Rules.Vitae.BLOOD_PARCHED && Source.Blood < Rules.Vitae.BLOOD_THIRSTY;
+        public bool Min => Source.Blood < Rules.Vitae.BLOOD_PARCHED;
 
-     
+
 
         /// <summary>
         /// For water resets only.
         /// </summary>
 
-        public BloodMetabolism(Vitae Source) => this.Source = Source;
+        public BloodMetabolism(XRL.World.Parts.Vitae Source) => this.Source = Source;
         public void Cycle() //the main thirst method for using your blood as time goes on and giving you Bloodthirst
         {
             if (NotAtMinimum())
@@ -38,24 +38,32 @@ namespace Nexus.Blood
                 SetBloodValue();
                 CheckForBloodlust();
             }
-            Overrides.Water(ref Source.ParentObject.GetPart<Stomach>().Water);
+            SetStomachValues();
+        }
+
+        void SetStomachValues()
+        {
+            Stomach s = Source.ParentObject.GetPart<Stomach>();
+            Overrides.Water(ref s.Water);
+            if (Options.GetOptionBool(ModOptions.TRUE_UNDEAD) && s.HungerLevel != 0)   //most True Undead code is in Vampirism, this is the only one outside of it
+                s.ClearHunger();
         }
 
         void SetBloodValue()
         {
-            Source.Blood -= VITAE.BLOOD_METAB;
-            Source.ParentObject.SetStringProperty(FLAGS.BLOOD_STATUS, TurnBoolToString());
-            Source.ParentObject.SetIntProperty(FLAGS.BLOOD_VALUE, Source.Blood);
+            Source.Blood -= Rules.Vitae.BLOOD_METAB;
+            Source.ParentObject.SetStringProperty(Flags.BLOOD_STATUS, StatusToString());
+            Source.ParentObject.SetIntProperty(Flags.BLOOD_VALUE, Source.Blood);
         }
         bool NotAtMinimum()
         {
-            Source.Blood = Source.Blood <= VITAE.BLOOD_MIN ? VITAE.BLOOD_MIN : Source.Blood;
-            return Source.Blood > VITAE.BLOOD_MIN;
+            Source.Blood = Source.Blood <= Rules.Vitae.BLOOD_MIN ? Rules.Vitae.BLOOD_MIN : Source.Blood;
+            return Source.Blood > Rules.Vitae.BLOOD_MIN;
         }
 
         void Overfed()
         {
-            if (Source.Blood >= VITAE.BLOOD_PUKE && !Source.ParentObject.CheckFlag(FLAGS.FRENZY))
+            if (Source.Blood >= Rules.Vitae.BLOOD_PUKE && !Source.ParentObject.CheckFlag(Flags.FRENZY))
             {
                 Popup.Show("You overfed!");
                 Overrides.Vomit(Source.ParentObject);
@@ -64,18 +72,18 @@ namespace Nexus.Blood
 
         void Bleeding()
         {
-            if (Source.ParentObject.HasEffect<Bleeding>() && Options.GetOptionBool(OPTIONS.BLEED_THIRST))
+            if (Source.ParentObject.HasEffect<Bleeding>() && Options.GetOptionBool(ModOptions.BLEED_THIRST))
             {
-                Source.Blood -= Source.ParentObject.CheckFlag(FLAGS.FEED) ? VITAE.BLOOD_PER_BLOODLOSS_FEED : VITAE.BLOOD_PER_BLOODLOSS;
+                Source.Blood -= Source.ParentObject.CheckFlag(Flags.FEED) ? Rules.Vitae.BLOOD_PER_BLOODLOSS_FEED : Rules.Vitae.BLOOD_PER_BLOODLOSS;
                 IComponent<GameObject>.AddPlayerMessage("Bloodloss makes you {{R|thistier}}!");
             }
         }
 
         void CheckForBloodlust()
         {
-            if (!Source.Bloodlusted && Source.Blood < VITAE.BLOOD_QUENCHED)
+            if (!Source.Bloodlusted && Source.Blood < Rules.Vitae.BLOOD_QUENCHED)
             {
-                Source.SetBloodlust(true);
+                Source.Bloodlusted = true;
                 Source.ParentObject.ApplyEffect(new Bloodlust(9999, Source.GameOver));
             }
         }
@@ -85,7 +93,7 @@ namespace Nexus.Blood
         /// </summary>
         /// <returns></returns>
 
-        string TurnBoolToString()
+        string StatusToString()
         {
             if (Glut)
                 return nameof(Glut);
@@ -97,14 +105,13 @@ namespace Nexus.Blood
                 return nameof(Parched);
             if (Min)
                 return nameof(Min);
-            else
-                return OutOfRange();
+            return OutOfRange();
         }
 
         static string OutOfRange()
         {
-             MetricsManager.LogModError(XRL.ModManager.GetMod("vampirism"), "Error @ BloodMetabolism.TurnBoolToString() -- all values returned false, should not be possible. Will break bloodthirst.");
-             return "Error";
+            MetricsManager.LogModError(XRL.ModManager.GetMod("vampirism"), "Error @ BloodMetabolism.TurnBoolToString() -- all values returned false, should not be possible. Will break bloodthirst.");
+            return "Error";
         }
 
 

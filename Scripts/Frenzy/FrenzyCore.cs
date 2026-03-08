@@ -33,23 +33,23 @@ namespace Nexus.Frenzy
         }
         void FrenzyHumanityChance()
         {
-            if (Source.ParentObject.IsInCombat() || Source.ParentObject.GetStringProperty(FLAGS.BLOOD_STATUS) is FLAGS.BLOOD.MIN or FLAGS.BLOOD.THIRSTY or FLAGS.BLOOD.PARCHED)
+            if (Source.ParentObject.IsInCombat() || Source.ParentObject.GetStringProperty(Flags.BLOOD_STATUS) is Flags.Blood.MIN or Flags.Blood.THIRSTY or Flags.Blood.PARCHED)
             {
-                switch (Source.ParentObject.GetIntProperty(FLAGS.HUMANITY))
+                switch (Source.ParentObject.GetIntProperty(Flags.HUMANITY))
                 {
-                    case Nexus.Rules.HUMANITY.MID:
+                    case Nexus.Rules.Humanity.MID:
                         {
                             if (_midFrenzyChance)
                                 Frenzy();
                             break;
                         }
-                    case Nexus.Rules.HUMANITY.LOW:
+                    case Nexus.Rules.Humanity.LOW:
                         {
                             if (_highFrenzyChance)
                                 Frenzy();
                             break;
                         }
-                    case Nexus.Rules.HUMANITY.CRIT:
+                    case Nexus.Rules.Humanity.CRIT:
                         {
                             if (_critFrenzyChance)
                                 Frenzy();
@@ -61,22 +61,22 @@ namespace Nexus.Frenzy
 
         void FrenzyThirstChance()
         {
-            switch (Source.ParentObject.GetStringProperty(FLAGS.BLOOD_STATUS))
+            switch (Source.ParentObject.GetStringProperty(Flags.BLOOD_STATUS))
             {
-                case FLAGS.BLOOD.THIRSTY:
+                case Flags.Blood.THIRSTY:
                     {
                         if (_midFrenzyChance)
                             Frenzy();
                         break;
                     }
-                case FLAGS.BLOOD.PARCHED:
+                case Flags.Blood.PARCHED:
                     {
                         if (_highFrenzyChance)
                             Frenzy();
                         break;
                     }
 
-                case FLAGS.BLOOD.MIN:
+                case Flags.Blood.MIN:
                     {
                         if (_critFrenzyChance)
                             Frenzy();

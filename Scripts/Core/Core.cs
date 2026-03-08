@@ -38,25 +38,11 @@ namespace Nexus.Core
 		/// <summary>
 		/// Returns true/false values from object string properties. Default true.
 		/// </summary>
-		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.FLAGS.TRUE, Properties.FLAGS.TRUE_LEGACY);
-		public static bool PropertyEquals(this GameObject Object, string key, long value)
-		{
-			if (Object.TryGetLongProperty(key, out long result))
-				return result == value;
-			return false;
-		}
-
-		public static bool PropertyEquals(this GameObject Object, string key, string value)
+		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.Flags.TRUE, Properties.Flags.TRUE_LEGACY);
+		public static bool PropertyEquals(this GameObject Object, string key, string value, string value2 = null)
 		{
 			if (Object.TryGetStringProperty(key, out string result))
-				return result == value;
-			return false;
-		}
-
-		public static bool PropertyEquals(this GameObject Object, string key, string value, string value2)
-		{
-			if (Object.TryGetStringProperty(key, out string result))
-				return result == value || result == value2;
+				return value2 == null ? result == value : result == value || result == value2;
 			return false;
 		}
 		public static bool TryGetLongProperty(this GameObject Object, string key, string key2, out long value)
@@ -111,7 +97,7 @@ namespace Nexus.Core
 			|| theVampire.IsInStasis()
 			|| Unaware(theVampire, false)
 			|| (theVampire.IsConfused && frenzying) // specifically to end frenzy if confused
-			|| (!theVampire.IsPlayer() && theVampire.HasEffect<StunGasStun>())) //stungasstun does not count as unawareness but does count as incapacitated only because i dont like being bitten by stun-gassed vampires
+			|| (!theVampire.IsPlayer() && theVampire.HasEffect<StunGasStun>())) //stungasstun does not count as unawareness but does count as incapacitated only because i dont like being bitten by stun-gassed vampires. NOTE: this does nothing for True Undead, who cannot be stungassed
 			|| !theVampire.CanMoveExtremities(XRL.World.Parts.Mutation.Vampirism.ABILITY_NAME);                                              //even with useenergy event, still had some bugs associated with effects and conditions that youd normally expect to end a feeding
 
 		public readonly static Type[] UnawareFX =

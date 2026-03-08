@@ -31,12 +31,20 @@ namespace Nexus.Attack
             Bite = new Bite.Bite(Source.ParentObject, Source);
         }
 
-        bool Stealth => Source.ParentObject.CheckFlag(FLAGS.STEALTH);
+        bool Stealth => Source.ParentObject.CheckFlag(Flags.STEALTH);
         //this has nothing to do with whether or not you get a Stealth Feed it is just for skipping attack resistance. VampireAttack evaluates stealth separately
         //using stricter logic from a method in Nightbeast that enforces rules related to the "one witness" feature for stealth, as well as Spotter features
         int ParentRoll => WikiRng.Next(1, 8) + Math.Max(Source.ParentObject.StatMod("Agility"), Source.Level) + Source.ParentObject.GetStat("Level").Value;
         int TargetRoll(GameObject Target) => Stats.GetCombatDV(Target) + Target.GetStat("Level").Value;
-        bool Success(GameObject Target) => Checks.Vulnerability(Target, Source.ParentObject) || Stealth || ParentRoll > TargetRoll(Target);
+        bool Success(GameObject Target) => Checks.Vulnerability(Target, Source.ParentObject) || Stealth || ParentRoll > ProcessTargetRoll(Target);
+
+        int ProcessTargetRoll(GameObject Target)
+        {
+            int value = TargetRoll(Target);
+            if (Target.IsConfused || Target.HasEffect<Dazed>())
+                value /= 2;
+            return value;
+        }
 
         /// <summary>
         /// Begins HandleCommand method chain.
@@ -46,7 +54,7 @@ namespace Nexus.Attack
             if (BeforeAttackCheckIfValid(Target))
             {
                 Source.UseEnergy(1000, "Physical Mutation Vampirism");
-                Source.CooldownMyActivatedAbility(Source.FangsActivatedAbilityID, FEED.COOLDOWN);
+                Source.CooldownMyActivatedAbility(Source.FangsActivatedAbilityID, Feed.COOLDOWN);
                 if (Success(Target) || AutoWin)
                     BeginAttack(Target);
                 else
@@ -76,14 +84,14 @@ namespace Nexus.Attack
                     if (Popup.ShowYesNo(Target.t() + " looks gross. Are you sure you want to bite " + Target.them + "?") == DialogResult.No)
                         return false;
             }
-            if (Source.ParentObject.GetIntProperty(FLAGS.HUMANITY) == Rules.HUMANITY.CRIT)
+            if (Source.ParentObject.GetIntProperty(Flags.HUMANITY) == Rules.Humanity.CRIT)
             {
                 if (Popup.ShowYesNo("Your {{G sequence|Humanity}} is {{R|CRITICAL!}}\nAre you sure you want to feed on " + Target.t() + "?") == DialogResult.No)
                     return false;
             }
-            if (Source.ParentObject.GetIntProperty(FLAGS.BLOOD_VALUE) >= VITAE.FEED_PUKE_WARN && Source.ParentObject.IsPlayer())
+            if (Source.ParentObject.GetIntProperty(Flags.BLOOD_VALUE) >= Rules.Vitae.FEED_PUKE_WARN && Source.ParentObject.IsPlayer())
             {
-                if (Source.ParentObject.GetPart<Vitae>().IDontWantToPuke(true, false))
+                if (Source.ParentObject.GetPart<XRL.World.Parts.Vitae>().IDontWantToPuke(true))
                     return false;
             }
             return true;

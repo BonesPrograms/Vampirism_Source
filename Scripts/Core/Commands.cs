@@ -5,7 +5,6 @@ using Nexus.Registry;
 using Nexus.Properties;
 using XRL.World;
 using Nexus.Core;
-using Nexus.Rules;
 using XRL.World.Effects;
 
 namespace Nexus.Wish
@@ -21,7 +20,7 @@ namespace Nexus.Wish
         [WishCommand(Command = "frenzy")]
         public static void Frenzy()
         {
-            if (Security(false))
+            if (Security())
             {
                 TheBeast beast = The.Player.GetPart<TheBeast>();
                 beast.Core.Frenzy();
@@ -31,7 +30,7 @@ namespace Nexus.Wish
         [WishCommand(Command = "bloodlust")]
         public static void Bloodlust()
         {
-            if (Security(false))
+            if (Security())
             {
                 Vitae Vitae = The.Player.GetPart<Vitae>();
                 Vitae.Blood = 1;
@@ -42,10 +41,10 @@ namespace Nexus.Wish
         [WishCommand(Command = "wassail")]
         public static void GameOverWish()
         {
-            if (Security(false))
+            if (Security())
             {
                 The.Player.GetPart<Humanity>().SetZero();
-                The.Player.SetStringProperty(FLAGS.GO, FLAGS.TRUE);
+                The.Player.SetStringProperty(Flags.GO, Flags.TRUE);
                 The.Player.PassTurn();
             }
         }
@@ -53,11 +52,11 @@ namespace Nexus.Wish
         [WishCommand(Command = "humanity")]
         public static void Gameover()
         {
-            if (Security(false))
+            if (Security())
             {
                 The.Player.FireEvent(Event.New(Events.WISH_HUMANITY));
-                The.Player.SetIntProperty(FLAGS.HUMANITY, Rules.HUMANITY.MAX);
-                The.Player.SetStringProperty(FLAGS.GO, FLAGS.FALSE);
+                The.Player.SetIntProperty(Flags.HUMANITY, Rules.Humanity.MAX);
+                The.Player.SetStringProperty(Flags.GO, Flags.FALSE);
                 IComponent<GameObject>.AddPlayerMessage("{{G sequence|Humanity reset to maximum.}}");
             }
         }
@@ -65,25 +64,20 @@ namespace Nexus.Wish
         [WishCommand(Command = "vitae")]
         public static void Blood()
         {
-            if (Security(false))
+            if (Security())
             {
                 Vitae Vitae = The.Player.GetPart<Vitae>();
-                Vitae.Blood = VITAE.BLOOD_GLUTTONOUS;
-                The.Player.SetIntProperty(FLAGS.BLOOD_VALUE, VITAE.BLOOD_GLUTTONOUS);
-                The.Player.SetStringProperty(FLAGS.BLOOD_STATUS, FLAGS.BLOOD.GLUT);
+                Vitae.Blood = Nexus.Rules.Vitae.BLOOD_GLUTTONOUS;
+                The.Player.SetIntProperty(Flags.BLOOD_VALUE, Rules.Vitae.BLOOD_GLUTTONOUS);
+                The.Player.SetStringProperty(Flags.BLOOD_STATUS, Flags.Blood.GLUT);
                 IComponent<GameObject>.AddPlayerMessage("{{G sequence|Thirst removed.}}");
             }
         }
 
-        static bool Security(bool dominationblock)
+        static bool Security()
         {
             if (The.Player.IsVampire())
             {
-                if (dominationblock && The.Player.HasEffect<Dominated>())
-                {
-                    IComponent<GameObject>.AddPlayerMessage("Cannot use on dominated targets!");
-                    return false;
-                }
                 return true;
             }
             else

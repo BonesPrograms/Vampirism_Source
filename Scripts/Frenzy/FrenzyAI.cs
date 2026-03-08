@@ -87,7 +87,7 @@ namespace XRL.World.Effects
         =>
             Object == base.Object
             && !InRange
-            && !Object.CheckFlag(FLAGS.FEED) //fun bug here. because frenzy never uses energy, if you are attacked by a group, you will stack feeding on all of them and become god. so we check for if FEED == false before swapping targets
+            && !Object.CheckFlag(Flags.FEED) //fun bug here. because frenzy never uses energy, if you are attacked by a group, you will stack feeding on all of them and become god. so we check for if FEED == false before swapping targets
             && this.Source.Core.Search.ValidForRegistration(Actor);
 
 
@@ -105,21 +105,21 @@ namespace XRL.World.Effects
             base.Object.RemoveEffect<Running>();
             CheckBloodAndCooldown();
             Source.Frenzied = false;
-            Source.ParentObject.SetStringProperty(FLAGS.FRENZY, FLAGS.FALSE);
+            Source.ParentObject.SetStringProperty(Flags.FRENZY, Flags.FALSE);
         }
 
         void CheckBloodAndCooldown()
         {
-            Vitae vitae = base.Object.GetPart<Vitae>();
-            Source.Base.CooldownMyActivatedAbility(Source.Base.FangsActivatedAbilityID, FEED.COOLDOWN);
-            if (vitae.Blood >= VITAE.BLOOD_PUKE) //prevents vomit softlock from having 184,000 blood after a crazy wassail sesh
-                vitae.Blood = VITAE.BLOOD_PUKE;
+            Parts.Vitae vitae = base.Object.GetPart<Parts.Vitae>();
+            Source.Base.CooldownMyActivatedAbility(Source.Base.FangsActivatedAbilityID, Feed.COOLDOWN);
+            if (vitae.Blood >= Nexus.Rules.Vitae.BLOOD_PUKE) //prevents vomit softlock from having 184,000 blood after a crazy wassail sesh
+                vitae.Blood = Nexus.Rules.Vitae.BLOOD_PUKE;
         }
 
         public override bool Apply(GameObject Object)
         {
 
-            Source.ParentObject.SetStringProperty(FLAGS.FRENZY, FLAGS.TRUE);
+            Source.ParentObject.SetStringProperty(Flags.FRENZY, Flags.TRUE);
             AutoAct.Interrupt(); //prevents graphics bugs that occur if frenzy activates while waiting
             XRLCore.Core.RenderDelay(100);
             base.Object.PassTurn(); // need to pass turn on apply or else you get a turn to act

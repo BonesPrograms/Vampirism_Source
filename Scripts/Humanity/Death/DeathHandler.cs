@@ -32,7 +32,7 @@ namespace XRL.World.Parts
             if (ID == SingletonEvent<BeforeTakeActionEvent>.ID) //(for various reasons, checking hostility on death doesnt work)
                 return !FinishedInit;
             if (ID == TookDamageEvent.ID)
-                return Options.GetOptionBool(OPTIONS.FRACTUS_NERF);
+                return Options.GetOptionBool(ModOptions.FRACTUS_NERF);
             if (ID == DeathEvent.ID)
                 return true;
             return base.WantEvent(ID, cascade);
@@ -69,10 +69,10 @@ namespace XRL.World.Parts
         }
         static void CreateDeathsInstance(GameObject Killer, GameObject Dying)
         {
-            if (Options.GetOptionBool(Nexus.Rules.OPTIONS.HUMANITY) && Security() && !Player.CheckFlag(FLAGS.GO) && !Dying.HasStringProperty(FLAGS.DEAD))
+            if (Options.GetOptionBool(Nexus.Rules.ModOptions.HUMANITY) && Security() && !Player.CheckFlag(Flags.GO) && !Dying.HasStringProperty(Flags.DEAD))
             {
                 bool friendly = Dying.IsFriendly(The.Player);
-                if (Options.GetOptionBool(Nexus.Rules.OPTIONS.DOUG) && friendly && !Dying.IsGhoulOf(The.Player) && !Dying.IsBeguiledBy(The.Player))
+                if (Options.GetOptionBool(Nexus.Rules.ModOptions.DOUG) && friendly && !Dying.IsGhoulOf(The.Player) && !Dying.IsBeguiledBy(The.Player))
                     return;                             //The.Player != this.Player if the player is dominating. Targets beguiled by a gameobject will not be loyal to gameobjects that they dominate, only the source object
                 else                                    //so for us this means morality and friendship is relative to how AI feel about the player's current body rather than original body
                     new Deaths(Player, Dying, Killer, friendly, Dying.IsHostileTowards(The.Player)).Possibilities();
@@ -92,7 +92,7 @@ namespace XRL.World.Parts
             if (isvampire)
             {
                 AddPlayerMessage($"{Dying.t()} burns to ashes!");
-                obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.FALSE);
+                obj.SetStringProperty(Flags.Embrace.EMBRACEABLE, Flags.FALSE);
             }
             else if (Dying.TryGetPart(out Corpse corpse))
                 CompareBlueprints(Dying, obj, corpse);
@@ -102,14 +102,14 @@ namespace XRL.World.Parts
         {
             if (obj.Blueprint == corpse.CorpseBlueprint)
             {
-                obj.SetIntProperty(FLAGS.EMBRACE.LEVEL_ON_DEATH, Dying.Level);
-                obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.TRUE);
+                obj.SetIntProperty(Flags.Embrace.LEVEL_ON_DEATH, Dying.Level);
+                obj.SetStringProperty(Flags.Embrace.EMBRACEABLE, Flags.TRUE);
                 EmbraceableObject copy = new(Dying);
                 obj.AddPart(copy);
 
             }
             else if (obj.Blueprint == corpse.BurntCorpseBlueprint || obj.Blueprint == corpse.VaporizedCorpseBlueprint)
-                obj.SetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, FLAGS.FALSE);
+                obj.SetStringProperty(Flags.Embrace.EMBRACEABLE, Flags.FALSE);
         }
 
         /// <summary>

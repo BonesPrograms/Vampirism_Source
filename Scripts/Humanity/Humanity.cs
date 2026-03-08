@@ -17,8 +17,8 @@ namespace XRL.World.Parts
 	public class Humanity : IPart //AI do not experience humanity on their own, but if dominated, 
 								  //they can lose humanity by killing people via feeding, and enter a gameover state.
 	{                               //Other forms of humanity loss covered by DeathEvents all track back to the original player instead.
-		bool State_GO => Score <= HUMANITY.GAMEOVER;
-		public int Score = HUMANITY.MAX;
+		bool State_GO => Score <= Nexus.Rules.Humanity.GAMEOVER;
+		public int Score = Nexus.Rules.Humanity.MAX;
 		public int RegenTimer;
 		public bool GameOver;
 
@@ -27,7 +27,7 @@ namespace XRL.World.Parts
 		{
 			if (E.ID == Events.WISH_HUMANITY)
 			{
-				Score = HUMANITY.MAX;
+                Score = Nexus.Rules.Humanity.MAX;
 				GameOver = false;
 			}
 			return base.FireEvent(E);
@@ -39,14 +39,14 @@ namespace XRL.World.Parts
 
 		public void VampireKilled()
 		{
-			Score -= HUMANITY.LOSS_PER_KILL;
-			ParentObject.SetIntProperty(FLAGS.HUMANITY, Score);
-			if (Score > HUMANITY.GAMEOVER)
-				AddPlayerMessage("{{R|HUMANITY LOST!}}\nYou have " + strings() + " {{G sequence|Humanity}}.");
+            Score -= Nexus.Rules.Humanity.LOSS_PER_KILL;
+			ParentObject.SetIntProperty(Flags.HUMANITY, Score);
+			if (Score > Nexus.Rules.Humanity.GAMEOVER)
+                AddPlayerMessage("{{R|HUMANITY LOST!}}\nYou have " + strings() + " {{G sequence|Humanity}}.");
 		}
 		public override bool WantEvent(int ID, int cascade)
 		{
-			if (ID == SingletonEvent<BeginTakeActionEvent>.ID && !GameOver && ParentObject.IsPlayer() && Options.GetOptionBool(OPTIONS.HUMANITY) && !ParentObject.CheckFlag(FLAGS.FEED, FLAGS.FRENZY))
+			if (ID == SingletonEvent<BeginTakeActionEvent>.ID && !GameOver && ParentObject.IsPlayer() && Options.GetOptionBool(ModOptions.HUMANITY) && !ParentObject.CheckFlag(Flags.FEED, Flags.FRENZY))
 				return true;
 			return base.WantEvent(ID, cascade);
 		}
@@ -56,8 +56,8 @@ namespace XRL.World.Parts
 				Regenerate();
 			else
 				HumanityGameOver();
-			ParentObject.SetIntProperty(FLAGS.HUMANITY, Score);
-			ParentObject.SetIntProperty(FLAGS.REGEN, RegenTimer);
+			ParentObject.SetIntProperty(Flags.HUMANITY, Score);
+			ParentObject.SetIntProperty(Flags.REGEN, RegenTimer);
 			return base.HandleEvent(E);
 		}
 
@@ -68,19 +68,19 @@ namespace XRL.World.Parts
 
 		public void AddHumanity()
 		{
-			Score += HUMANITY.REGEN;
+            Score += Nexus.Rules.Humanity.REGEN;
 			AddPlayerMessage("{{G sequence|Humanity}} gained!\nYou have " + strings() + " {{G sequence|Humanity.}}");
 		}
 
 		void Regenerate()
 		{
-			if (Score < HUMANITY.MAX)
+			if (Score < Nexus.Rules.Humanity.MAX)
 			{
-				RegenTimer++;
-				if (RegenTimer >= HUMANITY.REGEN_TIME)
+                RegenTimer++;
+				if (RegenTimer >= Nexus.Rules.Humanity.REGEN_TIME)
 				{
-					AddHumanity();
-					RegenTimer = 0;
+                    AddHumanity();
+                    RegenTimer = 0;
 				}
 			}
 
@@ -88,21 +88,21 @@ namespace XRL.World.Parts
 		void HumanityGameOver()
 		{
 			Popup.ShowFail("Your {{G sequence|Humanity}} is lost forever.\nYou succumb to {{R sequence|the Beast}}.");
-			ParentObject.SetStringProperty(FLAGS.GO, FLAGS.TRUE);
+			ParentObject.SetStringProperty(Flags.GO, Flags.TRUE);
 			GameOver = true;
 			ParentObject.FireEvent(Event.New(Events.GAMEOVER)); //everybody changes their state after gameover, disabling all code related to humanity, and pretty much everythign related to blood (as of right now) except metabolism. frenzycore however becomes extremely active and begins checking the world each turn for targets, while stealth disables itself and stops foreaching the world each turn because it becomes impossible for you to use it.
 		}
 
 		string strings()
 		 =>
-			Score switch
+            Score switch
 			{
-				HUMANITY.CRIT => "{{R sequence|1}}{{Y sequence|/5}}",
-				HUMANITY.LOW => "{{W sequence|2}}{{Y sequence|/5}}",
-				HUMANITY.MID => "{{W sequence|3}}{{Y sequence|/5}}",
-				HUMANITY.HIGH => "{{G sequence|4}}{{Y sequence|/5}}",
-				HUMANITY.MAX => "{{G sequence|5}}{{Y sequence|/5}}",
-				HUMANITY.GAMEOVER => "{{R sequence|0}}",
+                Nexus.Rules.Humanity.CRIT => "{{R sequence|1}}{{Y sequence|/5}}",
+                Nexus.Rules.Humanity.LOW => "{{W sequence|2}}{{Y sequence|/5}}",
+                Nexus.Rules.Humanity.MID => "{{W sequence|3}}{{Y sequence|/5}}",
+                Nexus.Rules.Humanity.HIGH => "{{G sequence|4}}{{Y sequence|/5}}",
+                Nexus.Rules.Humanity.MAX => "{{G sequence|5}}{{Y sequence|/5}}",
+                Nexus.Rules.Humanity.GAMEOVER => "{{R sequence|0}}",
 				_ => OutOfRange()
 			};
 

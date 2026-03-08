@@ -17,26 +17,23 @@ namespace Nexus.Stealth
     [HasGameBasedStaticCache]
     public static class StealthCore
     {
-        public static GameObject Player => The.Player;
+        static GameObject Player => The.Player;
 
-        [GameBasedStaticCache]
+        [GameBasedStaticCache(false)]
         public static LightLevel? LightLevel;
 
         [GameBasedStaticCache]
         static int _trueCount = 0;
         public static int TrueCount => _trueCount;
-        static GameObject[] KeyArray => Nightbeast.KeyArray;
         public static void ScanEnvironment(Zone zone)
         {
-            zone.CombatObjects(x => ValidSentient(x)).ForEach(x => CheckValidity(x));
+            zone.CombatObjects(x => ValidSentient(x)).SafeForEach(x => CheckValidity(x));
         }
         public static void Stealth()
         {
-            _trueCount = default;
-            KeyArray.Where(x => !x?.HasHitpoints() ?? true || !x.InSameZone(The.Player)).ForEach(x => Nightbeast.Witnesses.Remove(x));
-            if (Nightbeast.Witnesses.Count != KeyArray.Length)
-                Nightbeast.UpdateKeys();
-            KeyArray.ForEach(x => Nightbeast.Witnesses[x] = NearbySentient(x) && ActiveWitness(x));
+            GameObject[] invalids = Nightbeast.Witnesses.Keys.Where(x => x == null || !x.HasHitpoints() || !x.InSameZone(Player)).ToArray();
+            invalids.ForEach(x => Nightbeast.Witnesses.Remove(x));
+            Nightbeast.Witnesses.Keys.SafeForEach(x => Nightbeast.Witnesses[x] = NearbySentient(x) && ActiveWitness(x));
             _trueCount = Nightbeast.Witnesses.Count(x => x.Value);
         }
         static void CheckValidity(GameObject obj) //zoneload
@@ -76,7 +73,7 @@ namespace Nexus.Stealth
         /// <returns></returns>
         public static bool NearbySentient(GameObject witness)
         {
-            return witness.HasLOSTo(Player, false) && witness.DistanceTo(Player) <= Nexus.Rules.STEALTH.AI_RADIUS && witness.InSameZone(Player);
+            return witness.HasLOSTo(Player, false) && witness.DistanceTo(Player) <= Nexus.Rules.Stealth.AI_RADIUS && witness.InSameZone(Player);
         }
 
         /// <summary>
@@ -124,14 +121,15 @@ namespace Nexus.Stealth
             return false;
         }
 
-        static bool CheckKey(string key)
+        static bool CheckKey(string key) =>
+        key switch
         {
-            return key == "LivePlant" || key == "Plank" || key == "HangingSupport" || key == "LiveFungus" || key == "ExcludeFromHostiles";
-        }
-
+            "LivePlant" or "Plank" or "HangingSupport" or "LiveFungus" or "ExcludeFromHostiles" => true,
+            _ => false
+        };
         static bool CheckParts(PartRack rack)
         {
-            return rack.Any(x => { var type = x.GetType(); return type == typeof(Harvestable) || type == typeof(PlantProperties) || type == typeof(FungusProperties); });
+            return rack.Any(x => { Type type = x.GetType(); return type == typeof(Harvestable) || type == typeof(PlantProperties) || type == typeof(FungusProperties); });
         }
 
 

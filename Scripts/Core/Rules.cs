@@ -4,7 +4,7 @@ namespace Nexus.Rules
 {
 
 
-    public static class BATFORM
+    public static class Batform
     {
         public const string COMMAND_NAME = "invokeBatform";
 
@@ -14,15 +14,15 @@ namespace Nexus.Rules
 
         public const string FACTION = "Winged Mammals";
     }
-    public static class MOD
+    public static class Mod
     {
-        public const string VERSION = "2";
+        public const string VERSION = "3";
     }
-    static class STEALTH
+    static class Stealth
     {
         public const uint AI_RADIUS = 21;
     }
-    static class EMBRACE
+    static class Embrace
     {
         public const string COMMAND_NAME = "CommandEmbraceSpell";
 
@@ -30,12 +30,12 @@ namespace Nexus.Rules
 
         public const int COOLDOWN = 1000;
     }
-    static class FLEDGLING
+    static class Fledgling
     {
         public const int TIMER = 500;
     }
 
-    static class COFFIN
+    static class Coffin
     {
 
         public const string BLUEPRINT = "VampireCoffin";
@@ -51,7 +51,7 @@ namespace Nexus.Rules
 
         public const int SAVING_THROW_DC = 20;
     }
-    static class GHOUL
+    static class Ghoul
     {
         public const int COOLDOWN = 500;
         public const int REGEN = 5000;
@@ -61,9 +61,10 @@ namespace Nexus.Rules
         public const int BUFFTIME = 500;
     }
 
-    static class OPTIONS //some of these are only referenced once but i hate string literals and i like having them all in one place so i can compare them to my XMLs to make sure there
+    static class ModOptions //some of these are only referenced once but i hate string literals and i like having them all in one place so i can compare them to my XMLs to make sure there
     {                     //are no typos
 
+        public const string TRUE_UNDEAD = "VampirismTrueUndead";
         public const string BLEED_THIRST = "VampireBleedThirst";
         public const string SILVER = "SilverAilment";
         public const string COFFIN = "CoffinAutoWin";
@@ -85,9 +86,8 @@ namespace Nexus.Rules
 
         public const string AUTOSIP_LEVEL = "BloodAutosipLevel";
 
-        public static class AUTOSIP_LEVELS
+        public static class Autosip_Settings
         {
-            public const string GLUT = "Glutted";
             public const string QUENCH = "Gorged";
             public const string THIRSTY = "Thirsty";
             public const string PARCHED = "Fiending";
@@ -98,12 +98,12 @@ namespace Nexus.Rules
         public const string BLOOD_NERF = "vampBloodNerf";
         public const string BLEEDLIQUID = "blood-999,salt-1";
     }
-    static class FEED
+    static class Feed
     {
         public const int DURATION = 5;
         public const int COOLDOWN = 50;
     }
-    static class HUMANITY
+    static class Humanity
     {
         public const int REGEN_TIME = 5000;
         public const int REGEN = 1;
@@ -117,7 +117,7 @@ namespace Nexus.Rules
 
     }
 
-    static class VITAE
+    static class Vitae
     {
 
         public const int BLOOD_MIN = 0;
@@ -127,8 +127,8 @@ namespace Nexus.Rules
         public const int BLOOD_GLUTTONOUS = 40000;
         public const int BLOOD_PUKE = 50000; //equivelant storage values to a stomach
 
-        public static int BLOOD_METAB => Options.GetOptionBool(OPTIONS.HUNTER) ? METAB_TYPES.HUNTER : METAB_TYPES.DEFAULT;
-        static class METAB_TYPES
+        public static int BLOOD_METAB => Options.GetOptionBool(ModOptions.HUNTER) ? Metab_Settings.HUNTER : Metab_Settings.DEFAULT;
+        static class Metab_Settings
         {
             public const int HUNTER = 5;
             public const int DEFAULT = 20; //same value for stomach water metab. funny cause in decompiled code, appears to just be a magic number!!!!

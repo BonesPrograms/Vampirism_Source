@@ -4,7 +4,6 @@ using XRL.World.Parts;
 using Nexus.Properties;
 using Nexus.Core;
 using XRL.World.Parts.Mutation;
-using Nexus.Rules;
 using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Effects
@@ -78,10 +77,10 @@ namespace XRL.World.Effects
 		}
 		public sealed override bool HandleEvent(KilledEvent E) //cannot be KilledEvent because StealthFeed does not count as an actual kill for the feeder
 		{
-			if (UI.Options.GetOptionBool(OPTIONS.HUMANITY) && E?.Killer == Object && E?.Dying != null && E.Dying == other?.Object)
+			if (UI.Options.GetOptionBool(Nexus.Rules.ModOptions.HUMANITY) && E.Killer == Object && E.Dying != null && E.Dying == other?.Object)
 			{
-				if (!vampire && !Object.CheckFlag(FLAGS.GO) && (friendly || other.Object.CheckFlag(FLAGS.INNOCENT)))
-					if (UI.Options.GetOptionBool(Nexus.Rules.OPTIONS.DOUG) && friendly && !other.Object.IsGhoulOf(Object) && !other.Object.IsBeguiledBy(Object))
+				if (!vampire && !Object.CheckFlag(Flags.GO) && (friendly || other.Object.CheckFlag(Flags.INNOCENT)))
+					if (UI.Options.GetOptionBool(Nexus.Rules.ModOptions.DOUG) && friendly && !other.Object.IsGhoulOf(Object) && !other.Object.IsBeguiledBy(Object))
 						return base.HandleEvent(E);
 					else
 						VampireKilled();
@@ -118,7 +117,7 @@ namespace XRL.World.Effects
 
 		void Diablerie()
 		{
-			if (Object != null && (!other?.Object?.HasPart<Fledgling>() ?? false))
+			if (Object != null && (!other?.Object?.HasPart<Parts.Fledgling>() ?? false))
 			{
 				if (AutoLevel || WikiRng.Next(1, 20) == 1)
 				{
@@ -126,7 +125,7 @@ namespace XRL.World.Effects
 					if (Object.IsPlayer())
 					{
 						string msg = WikiRng.Next(1, 2) == 2 ? "Diablerie!" : "Amaranth!";
-						UI.Popup.Show($"{msg} You consume {other.Object.t()}'s soul!");
+                        UI.Popup.Show($"{msg} You consume {other.Object.t()}'s soul!");
 					}
 					var e = Object.GetPart<Vampirism>();
 					e.BaseLevel++;
@@ -184,7 +183,7 @@ namespace XRL.World.Effects
 
 		protected void CheckIfRecognized()
 		{
-			if (!Ghoul && Object.TryGetLongProperty(FLAGS.VICTIM, FLAGS.VICTIM_HOSTILE, out var value) && value > 1000)
+			if (!Ghoul && Object.TryGetLongProperty(Flags.VICTIM, Flags.VICTIM_HOSTILE, out var value) && value > 1000)
 				AddPlayerMessage("You recognize the flavor of this one.");
 		}
 		protected bool Feed()
@@ -193,12 +192,12 @@ namespace XRL.World.Effects
 			Amount = Ghoul ? damage / 2 : damage;
 			if (base.Object.IsPlayer())
 			{
-				if (Vitae.IDontWantToPuke(true, Ghoul))
+				if (Vitae.IDontWantToPuke(true))
 				{
 					Duration = 0;
 					return false;
 				}
-				Vitae.Drink(true, Ghoul);
+				Vitae.Drink(true);
 			}
 			base.Object.Heal(Amount, Message: true, FloatText: true, RandomMinimum: true);
 			return ThrallCheck();
@@ -239,7 +238,7 @@ namespace XRL.World.Effects
 		void VampireKilled()
 		{
 			PlayHumanityMessages(friendly);
-			other.Object.SetStringProperty(FLAGS.DEAD, null); //checking for if they have Hitpoints in Remove() did not work. causes a humanity loss dupe bug because victim = true on death.
+			other.Object.SetStringProperty(Flags.DEAD, null); //checking for if they have Hitpoints in Remove() did not work. causes a humanity loss dupe bug because victim = true on death.
 			Object.GetPart<Humanity>().VampireKilled();
 		}
 		void PlayHumanityMessages(bool friendly)
@@ -261,7 +260,7 @@ namespace XRL.World.Effects
 		{
 			if (isAttacker)
 			{
-				base.Object.SetStringProperty(FLAGS.FEED, FLAGS.TRUE);
+				base.Object.SetStringProperty(Flags.FEED, Flags.TRUE);
 				CheckIfRecognized();
 			}
 			return true;
@@ -283,7 +282,7 @@ namespace XRL.World.Effects
 		{
 			v.FangsObject.DisplayName = "{{r|bloody}} fangs";
 			v.BloodyFangsCounter = 1;
-			base.Object.SetStringProperty(FLAGS.FEED, FLAGS.FALSE);
+			base.Object.SetStringProperty(Flags.FEED, Flags.FALSE);
 		}
 
 		void CleanUpAndFinish()
@@ -320,10 +319,10 @@ namespace XRL.World.Effects
 		{
 			if (!base.Object.HasEffect<Dominated>()) //if the player ever encounters an AI vampire they can go crazy without fear of losing any humanity themselves during feeding
 			{                                       //but only feeding, anything else tracks back to the original player's humanity score
-				if (other?.Object?.CheckFlag(FLAGS.INNOCENT) ?? false)
-					other.Object.SetLongProperty(FLAGS.VICTIM, The.Game.Turns);
+				if (other?.Object?.CheckFlag(Flags.INNOCENT) ?? false)
+					other.Object.SetLongProperty(Flags.VICTIM, The.Game.Turns);
 				else if (other?.Object?.IsFriendly(base.Object) ?? false)
-					other.Object.SetLongProperty(FLAGS.VICTIM_HOSTILE, The.Game.Turns);
+					other.Object.SetLongProperty(Flags.VICTIM_HOSTILE, The.Game.Turns);
 			} //this also serves as a huge security measure: if you are dominating, humanity loss by feeding is local as previously stated
 			  //however, the death penalty system does not check for the Innocence flag, because Hostile Victims are not considered innocent
 		}       //so if dominated targets were able to apply victim, then you would come back and kill them as the original  player and lose humanity

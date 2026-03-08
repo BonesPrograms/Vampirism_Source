@@ -71,7 +71,7 @@ namespace XRL.World.Effects
 
         public override bool WantEvent(int ID, int cascade)
         {
-            if (ID == BeforeRenderEvent.ID && !UI.Options.GetOptionBool(OPTIONS.NIGHTBEAST)) //because nightbeast already does this for you
+            if (ID == BeforeRenderEvent.ID && !UI.Options.GetOptionBool(ModOptions.NIGHTBEAST)) //because nightbeast already does this for you
                 return true;
             if (ID == CommandEvent.ID || ID == AwardedXPEvent.ID)
                 return true;
@@ -338,7 +338,7 @@ namespace XRL.World.Parts
     [Serializable]
     public class BatformSpell : VampiricSpell //the original version used metamorphosis to turn you into a literal bat, but your party would not sync and i didnt feel like trying to fix that
     {                                           //because the alternative is easier: fake transformation as you see in this type. there are also tons of other issues like mutations and stats not easily being synced so this is optimal
-        public override int Cooldown => BATFORM.COOLDOWN;
+        public override int Cooldown => Batform.COOLDOWN;
         public bool Transformed => ParentObject.Blueprint == "Bat";
         static readonly string[] StatNames =
         {
@@ -357,11 +357,11 @@ namespace XRL.World.Parts
 
         public override void AddSpell()
         {
-            SpellID = AddMyActivatedAbility(BATFORM.ABILITY_NAME, BATFORM.COMMAND_NAME, CATEGORY, null, "\u009f");
+            SpellID = AddMyActivatedAbility(Batform.ABILITY_NAME, Batform.COMMAND_NAME, CATEGORY, null, "\u009f");
         }
         public override bool HandleEvent(CommandEvent E)
         {
-            if (E.Command == BATFORM.COMMAND_NAME && Checks.Prerequisites(ParentObject, BATFORM.ABILITY_NAME, "transform"))
+            if (E.Command == Batform.COMMAND_NAME && Checks.Prerequisites(ParentObject, Batform.ABILITY_NAME, "transform"))
             {
                 if (!ParentObject.IsRealityDistortionUsable())
                     RealityStabilized.ShowGenericInterdictMessage(ParentObject);
@@ -403,7 +403,7 @@ namespace XRL.World.Parts
         static void SyncMutations(Mutations part, IEnumerable<(string, int)> mutations) => mutations.ForEach(m => { part.AddMutation(m.Item1, m.Item2); });
         static void SyncVampirism(GameObject bat, GameObject player)
         {
-            if (!player.CheckFlag(FLAGS.GO))
+            if (!player.CheckFlag(Flags.GO))
             {
                 SyncHum(bat, player);
             }
@@ -433,8 +433,8 @@ namespace XRL.World.Parts
         static Humanity SyncHum(GameObject bat, GameObject player)
         {
             Humanity h = bat.GetPart<Humanity>();
-            h.Score = player.GetIntProperty(FLAGS.HUMANITY);
-            h.RegenTimer = player.GetIntProperty(FLAGS.REGEN);
+            h.Score = player.GetIntProperty(Flags.HUMANITY);
+            h.RegenTimer = player.GetIntProperty(Flags.REGEN);
             return h;
         }
         static void MakeBat(GameObject bat, GameObject player)

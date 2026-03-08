@@ -15,40 +15,41 @@ public static class VampirismUpdater
     public static void MyLoadGameCallback()
     {
         if (The.Player.IsVampire())
-            Update.Check(The.Player);
+        {
+            Update.TryUpdatePlayerOnly(The.Player);
+            Update.Spells(The.Player);
+        }
     }
 }
 namespace Nexus.Update
 {
     static class Update
     {
-        public static void Check(GameObject GO)
+        public static void TryUpdatePlayerOnly(GameObject GO)
         {
-            UpdateOldSave(GO); //update rolls once
-            Spells(GO); //this is for the option that turns spells on/off on load
-        }
-
-        public static void UpdateOldSave(GameObject GO)
-        {
-            if (DoUpdate(GO))
+            if (TryUpdateNPCFriendly(GO) || GO.GetStringProperty(Flags.MOD_VERSION) != Mod.VERSION)
             {
-                Popup.Show("Vampirism updated to version 1.5! See steam page for more info.");
-                MarkAsOldSave(GO);
+                Popup.Show("Vampirism mini update: True Undead released! See steam page for more info.");
+                UpdateModVersion(GO);
             }
         }
 
-        public static bool DoUpdate(GameObject GO)
+
+        //MOD_VERSION check was added for updating from vers 2 to 3
+        //during that time its only purpose was to show a popup saying True Undead has been released
+        //however this is also when the "Old Save" property changed to the "Mod Version" flag which is checked every gameload
+        public static bool TryUpdateNPCFriendly(GameObject GO)
         {
             if (CheckCorpse(GO))
             {
-                UpdateProperties(GO);
+                UpdateProperties(GO); //checkcorpse and UpdateProperties are for updating from  vers 1 to 2
                 return true;
             }
             return false;
         }
-        public static void MarkAsOldSave(GameObject GO)
+        public static void UpdateModVersion(GameObject GO)
         {
-            GO.SetStringProperty(FLAGS.OLD_SAVE, MOD.VERSION); //this may serve as a mod version identifier in the future
+            GO.SetStringProperty(Flags.MOD_VERSION, Mod.VERSION); //this may serve as a mod version identifier in the future
         }                                                       //anyone who doesnt have it will get it, anyone who has it and doesnt sync with the version will be updated
                                                                 //furthermore, our WantEvent that checks for OLD_SAVE will compare it against the version, rather than check for it in general
         static bool CheckCorpse(GameObject GO)
@@ -63,16 +64,16 @@ namespace Nexus.Update
 
         static void UpdateProperties(GameObject GO)
         {
-            VampireBuilder.StringProperties.Select(x => x.Item1).Where(x => GO.Property[x] == FLAGS.TRUE_LEGACY).ForEach(x => GO.Property[x] = FLAGS.TRUE);
+            VampireBuilder.StringProperties.Select(x => x.Item1).Where(x => GO.Property[x] == Flags.TRUE_LEGACY).ForEach(x => GO.Property[x] = Flags.TRUE);
         }
         public static void Spells(GameObject GO)
         {
             if (VampireBuilder.ENABLE_SPELLS)
             {
-                bool WantsSpells = Options.GetOptionBool(OPTIONS.SPELLS);
-                if (GO.TryGetStringProperty(FLAGS.SPELLS, out string prop)) //this is just so we dont run through the builder every time you load in or something
+                bool WantsSpells = Options.GetOptionBool(ModOptions.SPELLS);
+                if (GO.TryGetStringProperty(Flags.SPELLS, out string prop)) //this is just so we dont run through the builder every time you load in or something
                 {
-                    if (prop == FLAGS.TRUE)
+                    if (prop == Flags.TRUE)
                     {
                         if (!WantsSpells)
                             VampireBuilder.RemoveSpells(GO);

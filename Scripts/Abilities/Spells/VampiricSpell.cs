@@ -20,7 +20,7 @@ namespace XRL.World.Parts
         public Guid SpellID = Guid.Empty;
         public abstract int Cooldown { get; }
         public int Level => ParentObject.GetPart<Vampirism>().Level;
-        public virtual int Cost => VITAE.BLOOD_PER_SIP; //default 10k  
+        public virtual int Cost => Nexus.Rules.Vitae.BLOOD_PER_SIP; //default 10k  
         public abstract void AddSpell();
         public abstract void CollectStats(Templates.StatCollector stats);
         public override bool WantEvent(int ID, int Cascade)
@@ -57,7 +57,7 @@ namespace XRL.World.Effects
         public const string CATEGORY = VampiricSpell.CATEGORY;
         public Guid SpellID = Guid.Empty;
         public abstract int Cooldown { get; }
-        public virtual int Cost => VITAE.BLOOD_PER_SIP; //default 10k 
+        public virtual int Cost => Nexus.Rules.Vitae.BLOOD_PER_SIP; //default 10k 
         public override bool WantEvent(int ID, int Cascade) //current use of FX is very temporary so there is no need for CollecStats or AbilityManager stuff
         {
             if (ID == PooledEvent<CommandEvent>.ID)
@@ -79,14 +79,14 @@ namespace Nexus.Spells
         public static int Roll(GameObject gameObj, int level) => WikiRng.Next(1, 8) + Math.Max(gameObj.StatMod("Ego"), level) + gameObj.GetStat("Level").Value;
         public static bool EnoughBlood(string text, GameObject parentObj, int cost)
         {
-            if (parentObj.GetIntProperty(FLAGS.BLOOD_VALUE) > cost)
+            if (parentObj.GetIntProperty(Flags.BLOOD_VALUE) > cost)
                 return true;
             else
                 return parentObj.ShowFailure("You don't have enough {{R|blood}} " + text + "!");
         }
         public static bool SunlightInterference(GameObject parentObject)
         {
-            if (Options.GetOptionBool(OPTIONS.NIGHTBEAST))
+            if (Options.GetOptionBool(ModOptions.NIGHTBEAST))
             {
                 if (Calendar.IsDay() && (parentObject.CurrentZone?.IsOutside() ?? false))
                     return true;
@@ -131,7 +131,7 @@ namespace Nexus.Spells
         //ExpendBlood should be invoked after Cast() returns true
         public static void ExpendBlood(GameObject ParentObject, int Cost)
         {
-            ParentObject.GetPart<Vitae>().SubtractBlood(Cost);
+            ParentObject.GetPart<XRL.World.Parts.Vitae>().Blood -= Cost;
         }
     }
 }

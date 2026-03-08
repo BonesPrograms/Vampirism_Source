@@ -65,7 +65,7 @@ namespace Nexus.Stealth
                 IComponent<GameObject>.AddPlayerMessage(Display(count));
                 _stealthStage1 = true;
                 _stealthStage2 = false;
-                Player.SetStringProperty(FLAGS.STEALTH, FLAGS.TRUE);
+                Player.SetStringProperty(Flags.STEALTH, Flags.TRUE);
             }
         }
 
@@ -77,7 +77,7 @@ namespace Nexus.Stealth
                 IComponent<GameObject>.AddPlayerMessage(Display(count));
                 _stealthStage2 = true;
                 _stealthStage1 = false;
-                Player.SetStringProperty(FLAGS.STEALTH, FLAGS.TRUE);
+                Player.SetStringProperty(Flags.STEALTH, Flags.TRUE);
             }
         }
 
@@ -88,7 +88,7 @@ namespace Nexus.Stealth
                 IComponent<GameObject>.AddPlayerMessage(Display(count));
                 _stealthStage2 = false;
                 _stealthStage1 = false;
-                Player.SetStringProperty(FLAGS.STEALTH, FLAGS.FALSE);
+                Player.SetStringProperty(Flags.STEALTH, Flags.FALSE);
             }
         }
         static string Display(int count)

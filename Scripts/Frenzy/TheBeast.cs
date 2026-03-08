@@ -11,6 +11,7 @@ using Nexus.Frenzy;
 using Nexus.Spells;
 
 using SerializeField = UnityEngine.SerializeField;
+using AiUnity.NLog.Core.Targets;
 
 namespace XRL.World.Parts
 {
@@ -36,7 +37,7 @@ namespace XRL.World.Parts
 		public bool Incap() => ParentObject.Incap(true);
 		public bool CantFrenzy()
 		{
-			return Base.Rotschrek || Frenzied || !HasFangs() || Incap() || ParentObject.CheckFlag(FLAGS.FEED) || SpellCore.SunlightInterference(ParentObject);
+			return Base.Rotschrek || Frenzied || !HasFangs() || Incap() || ParentObject.CheckFlag(Flags.FEED) || SpellCore.SunlightInterference(ParentObject);
 		}
 		public override void Register(GameObject Object, IEventRegistrar Registrar)
 		{
@@ -49,7 +50,7 @@ namespace XRL.World.Parts
 			if (E.ID == Events.GAMEOVER && ParentObject.IsPlayer())
 			{
 				GameOver = true;
-				if (!CantFrenzy() && Options.GetOptionBool(Nexus.Rules.OPTIONS.FRENZY))
+				if (!CantFrenzy() && Options.GetOptionBool(Nexus.Rules.ModOptions.FRENZY))
 					Core.Frenzy();
 			}
 			if (E.ID == Events.WISH_HUMANITY)
@@ -61,7 +62,7 @@ namespace XRL.World.Parts
 		{
 
 			if (ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == EnteringZoneEvent.ID)
-				return Options.GetOptionBool(Nexus.Rules.OPTIONS.FRENZY) && ParentObject.IsPlayer();
+				return Options.GetOptionBool(Nexus.Rules.ModOptions.FRENZY) && ParentObject.IsPlayer();
 			return base.WantEvent(ID, cascade);
 		}
 
@@ -69,7 +70,8 @@ namespace XRL.World.Parts
 		{
 			if (GameOver)
 			{
-				TargetRegistry.Keys.Where(x => !x?.InSamePartyAs(ParentObject) ?? true).SafeForEach(x => TargetRegistry.Remove(x));
+				GameObject[] invalids = TargetRegistry.Keys.Where(x => x == null || !x.InSamePartyAs(ParentObject)).ToArray();
+				invalids.ForEach(x=>TargetRegistry.Remove(x));
 				if (TargetRegistry.Count == 0)
 					TargetRegistry = new();
 			}
@@ -93,18 +95,11 @@ namespace XRL.World.Parts
 		{
 			if (WikiRng.Next(1, 100) == 100)
 			{
-				GameObject Key = TargetRegistry.GetRandomElement();
-				AddPlayerMessage("{{R|The Beast}} forgets " + Key.t() + ".");
-				TargetRegistry.Remove(Key);
+				GameObject guy = TargetRegistry.GetRandomElement();
+				AddPlayerMessage("{{R|The Beast}} forgets " + guy.t() + ".");
+				TargetRegistry.Remove(guy);
 			}
 		}
-
-		// public void Clean()
-		// {
-		// 	foreach (GameObject obj in TargetRegistry.KeyArray())
-		// 		if (obj?.CurrentCell?.GetCombatTarget(ParentObject) == null || !obj.HasHitpoints() || !obj.InSameZone(ParentObject))
-		// 			TargetRegistry.Remove(obj);
-		// }
 	}
 
 }

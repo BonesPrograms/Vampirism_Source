@@ -5,14 +5,14 @@ namespace Nexus.Properties
     /// <summary>
     /// Table of string constants for property strings to prevent typos.
     /// </summary>
-    static class FLAGS
+    static class Flags
     {
 
-        public static class MOD
+        public static class Mod
         {
             public const string VERSION_TAG = "VampirismModVersion";
         }
-        public static class EMBRACE
+        public static class Embrace
         {
             public const string EMBRACEABLE = "EmbraceableObject";
 
@@ -21,7 +21,7 @@ namespace Nexus.Properties
         /// <summary>
         /// Constants for the string literal value of BLOOD_STATUS.
         /// </summary>
-        public static class BLOOD
+        public static class Blood
         {
             public const string GLUT = nameof(BloodMetabolism.Glut);
             public const string QUENCHED = nameof(BloodMetabolism.Quenched);
@@ -97,7 +97,7 @@ namespace Nexus.Properties
         /// </summary>
         public const string DEAD = "VampirismModKilledDuringFeed";
 
-        public const string OLD_SAVE = "OldVampirismSaveNeedsUpdate"; //note: this may become a mod version identifier for all vampires on gameload/
+        public const string MOD_VERSION = "OldVampirismSaveNeedsUpdate"; //note: this may become a mod version identifier for all vampires on gameload/
         //                                                              /anyone who doesnt have it will get it, anyone who has it and doesnt sync with the version will be updated
                                                                 //furthermore, our WantEvent that checks for OLD_SAVE will compare it against the version, rather than check for it in genera
     }

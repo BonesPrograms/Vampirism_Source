@@ -30,7 +30,6 @@ namespace XRL.World.Parts
 	public class Nightbeast : IPart
 	{
 		public static Dictionary<GameObject, bool> Witnesses => _witnesses;
-		public static GameObject[] KeyArray => _keyArray;
 
 		[GameBasedStaticCache]
 		public static bool NeedsReactivate = false; //for gamestart
@@ -38,20 +37,12 @@ namespace XRL.World.Parts
 		[GameBasedStaticCache(false)]
 		static Dictionary<GameObject, bool> _witnesses;
 
-		[GameBasedStaticCache(false, true)]
-		static GameObject[] _keyArray = new GameObject[0];
 		//this was throwing nullref errors in Stealth() during gamestart if i didnt create an instance of it prematurely. will need to do some more research as to why late
 		public static bool StealthStage1 => ActiveStealth.StealthStage1;
 		public static bool StealthStage2 => ActiveStealth.StealthStage2;
 
 		//either/or means stealth ATK is valid
 		public static bool Stealthed => StealthStage1 || StealthStage2;
-
-		public static void UpdateKeys()
-		{
-			_keyArray = Witnesses.Keys.ToArray();
-		}
-
 		public override bool WantEvent(int ID, int cascade)
 		{
 			if (ID == AfterPlayerBodyChangeEvent.ID)
@@ -99,7 +90,6 @@ namespace XRL.World.Parts
 			_witnesses = new();
 			StealthCore.LightLevel = The.Player.CurrentCell?.GetLight();
 			StealthCore.ScanEnvironment(zone);
-			UpdateKeys();
 			NeedsReactivate = false;
 		}
 
@@ -107,7 +97,7 @@ namespace XRL.World.Parts
 		{
 			if (The.Player.Target != null)
 				AddPlayerMessage(text);
-			The.Player.SetStringProperty(FLAGS.STEALTH, FLAGS.FALSE);
+			The.Player.SetStringProperty(Flags.STEALTH, Flags.FALSE);
 			ActiveStealth.Halt();
 		}
 		static void RunStealthSystem()

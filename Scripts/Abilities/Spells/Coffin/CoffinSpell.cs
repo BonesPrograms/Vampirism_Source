@@ -12,7 +12,7 @@ namespace XRL.World.Parts
     public class CoffinSpell : VampiricSpell
     {
         public GameObject Coffin;
-        public override int Cooldown => COFFIN.MATERIALIZE_COOLDOWN;
+        public override int Cooldown => Nexus.Rules.Coffin.MATERIALIZE_COOLDOWN;
         public int JauntCooldown;
         public int Timer;
         public bool CoolingOff;
@@ -27,7 +27,7 @@ namespace XRL.World.Parts
         //uses vampirism level like all spells
         public override void AddSpell()
         {
-            SpellID = AddMyActivatedAbility(COFFIN.ABILITY_NAME, COFFIN.COMMAND_NAME, $"{CATEGORY}", null, "\u009f");
+            SpellID = AddMyActivatedAbility(Nexus.Rules.Coffin.ABILITY_NAME, Nexus.Rules.Coffin.COMMAND_NAME, $"{CATEGORY}", null, "\u009f");
         }
 
         public bool UpdateXY(Cell cell)
@@ -102,11 +102,11 @@ namespace XRL.World.Parts
         {
             if (E.Dying == ParentObject && !_tookFireDamage && !SpellCore.SunlightInterference(ParentObject))
             {
-                if ((Roll() >= COFFIN.SAVING_THROW_DC) || UI.Options.GetOptionBool(OPTIONS.COFFIN))
+                if ((Roll() >= Nexus.Rules.Coffin.SAVING_THROW_DC) || UI.Options.GetOptionBool(ModOptions.COFFIN))
                 {
-                    if (RealityCheck(ParentObject.CurrentCell))
+                    if (RealityCheck(base.ParentObject.CurrentCell))
                     {
-                        ParentObject.RestorePristineHealth();
+                        base.ParentObject.RestorePristineHealth();
                         ActivateCoffin(out var cell);
                         E.Dying.TeleportTo(cell);
                         E.Dying.TeleportSwirl(null, "&C", Voluntary: true, null, 'ù', IsOut: true);
@@ -121,7 +121,7 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(BeforeTookDamageEvent E)
         {
-            if (E.Object == ParentObject && UI.Options.GetOptionBool(OPTIONS.FIRE))
+            if (E.Object == ParentObject && UI.Options.GetOptionBool(ModOptions.FIRE))
             {
                 _tookFireDamage = E.Damage.Attributes.Contains("Fire");
             }
@@ -130,20 +130,20 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(CommandEvent E)
         {
-            if (E.Command == COFFIN.COMMAND_NAME && Checks.Prerequisites(ParentObject, COFFIN.ABILITY_NAME, "invoke your coffin"))
+            if (E.Command == Nexus.Rules.Coffin.COMMAND_NAME && Checks.Prerequisites(base.ParentObject, Nexus.Rules.Coffin.ABILITY_NAME, "invoke your coffin"))
             {
-                Cell cell = ParentObject.PickDirection(COFFIN.ABILITY_NAME);
+                Cell cell = base.ParentObject.PickDirection(Nexus.Rules.Coffin.ABILITY_NAME);
                 if (cell != null)
                 {
                     if (cell.IsOpenForPlacement())
                     {
-                        if (!ParentObject.IsRealityDistortionUsable())
-                            RealityStabilized.ShowGenericInterdictMessage(ParentObject);
+                        if (!base.ParentObject.IsRealityDistortionUsable())
+                            RealityStabilized.ShowGenericInterdictMessage(base.ParentObject);
                         else
                             Cast(cell);
                     }
                     else
-                        ParentObject.ShowFailure("You can't invoke your coffin there.");
+                        base.ParentObject.ShowFailure("You can't invoke your coffin there.");
                 }
             }
             return base.HandleEvent(E);
@@ -174,7 +174,7 @@ namespace XRL.World.Parts
 
         void MakeCoffin()
         {
-            GameObject newObject = GameObject.Create(COFFIN.BLUEPRINT);
+            GameObject newObject = GameObject.Create(Nexus.Rules.Coffin.BLUEPRINT);
             VampireCoffin part = new(ParentObject);
             newObject.AddPart(part);
             Coffin = newObject;
@@ -230,7 +230,7 @@ namespace XRL.World.Parts
             _justJaunted = false;
             CoolingOff = true;
             Timer = 0;
-            JauntCooldown = WikiRng.Next(COFFIN.SAVE_FROM_DEATH_MIN, COFFIN.SAVE_FROM_DEATH_MAX);
+            JauntCooldown = WikiRng.Next(Nexus.Rules.Coffin.SAVE_FROM_DEATH_MIN, Nexus.Rules.Coffin.SAVE_FROM_DEATH_MAX);
             ParentObject.ApplyEffect(new Asleep(null, WikiRng.Next(200, 500), true, false, false, true));
         }
 
@@ -244,14 +244,14 @@ namespace XRL.World.Parts
         {
             stats.Set("Save-From-Death Cooldown", JauntCooldown - Timer, true);
             stats.Set("SaveAndChance", Chance(), true);
-            stats.CollectCooldownTurns(MyActivatedAbility(SpellID), COFFIN.MATERIALIZE_COOLDOWN);
+            stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Nexus.Rules.Coffin.MATERIALIZE_COOLDOWN);
 
             string Chance()
             {
-                if (UI.Options.GetOptionBool(OPTIONS.COFFIN))
+                if (UI.Options.GetOptionBool(ModOptions.COFFIN))
                     return "You will always return to your coffin when Save-From-Death is off cooldown.";
                 else
-                    return $"Save-From-Death roll: 1d20 + {Level} versus {COFFIN.SAVING_THROW_DC}";
+                    return $"Save-From-Death roll: 1d20 + {Level} versus {Nexus.Rules.Coffin.SAVING_THROW_DC}";
             }
         }
     }

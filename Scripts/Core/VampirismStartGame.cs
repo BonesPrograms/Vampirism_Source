@@ -6,6 +6,7 @@ using Nexus.Core;
 using XRL.World.Parts;
 using System.Collections.Generic;
 using System.Linq;
+using Nexus.Properties;
 
 [PlayerMutator]
 public class VampirismStartGame : IPlayerMutator
@@ -14,7 +15,7 @@ public class VampirismStartGame : IPlayerMutator
     static void RemoveTorch(GameObject GO)
     {
 
-        if (Options.GetOptionBool(OPTIONS.FIRE) && Options.GetOptionBool(OPTIONS.TORCH))// && GO?.Equipped?.Blueprint == "Torch")
+        if (Options.GetOptionBool(ModOptions.FIRE) && Options.GetOptionBool(ModOptions.TORCH))// && GO?.Equipped?.Blueprint == "Torch")
         {
             var objects = GO.GetEquippedObjects();
             if (objects != null)
@@ -34,19 +35,20 @@ public class VampirismStartGame : IPlayerMutator
 
     static void GiveCanteen(GameObject GO)
     {
-        if (!Options.GetOptionBool(OPTIONS.HUNTER) && Options.GetOptionBool(OPTIONS.BLOODPACK))
+        if (!Options.GetOptionBool(ModOptions.HUNTER) && Options.GetOptionBool(ModOptions.BLOODPACK))
             GO.Inventory.AddObject("BloodCanteen");
     }
 
     static void SetTime()
     {
-        if (Options.GetOptionBool(OPTIONS.NIGHTBEAST))
+        if (Options.GetOptionBool(ModOptions.NIGHTBEAST))
             The.Game.TimeTicks += 600;
     }
     public void mutate(GameObject GO)
     {
         if (GO.IsVampire())
         {
+            GO.SetStringProperty(Flags.MOD_VERSION, Mod.VERSION);
             CallStealthReactivation();
             GiveCanteen(GO);
             SetTime();

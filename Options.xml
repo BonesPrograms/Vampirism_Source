@@ -37,6 +37,13 @@
   Default="No">
   </option>
   <option
+  ID="VampirismTrueUndead"
+  DisplayText="Enable True Undead mode."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="No">
+  </option>
+  <option
     ID="hunterMode"
     DisplayText="Hunter mode - you can only acquire blood from feeding. Metabolism speed reduced."
     Category="Vampirism"
@@ -45,7 +52,7 @@
   </option>
   <option
   ID="NightbeastMode"
-  DisplayText="Night Beast mode - you fear the sun and acquire darkvision. Player only. (Experimental - if you get lost on the overworld map during the day, you might get softlocked)."
+  DisplayText="Night Beast mode - you fear the sun and acquire darkvision. Player only."
   Category="Vampirism"
   Type="Checkbox"
   Default="No">
@@ -109,7 +116,7 @@
     DisplayText="Thirst threshold for automatic drinking"
     Category="Vampirism" 
     Type="Combo" 
-    Values="Ravenous,Fiending,Thirsty,Gorged,Glutted" 
+    Values="Ravenous,Fiending,Thirsty,Gorged" 
     Default="Thirsty">
   </option>
   <option

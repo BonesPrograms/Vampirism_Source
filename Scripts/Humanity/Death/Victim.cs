@@ -29,7 +29,7 @@ namespace Nexus.Death
 
         public bool Victimbool()
         {
-            GiveTurns(FLAGS.VICTIM, out long turns, out long moment);
+            GiveTurns(Flags.VICTIM, out long turns, out long moment);
             if (!MaxTime(turns, moment))
             {
                 string message = Recent(turns, moment) ? "For feeding on the innocent and then murdering them, you lose humanity." : "For murdering one of your former victims, you lose humanity";

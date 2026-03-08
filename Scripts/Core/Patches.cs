@@ -21,7 +21,7 @@ namespace Nexus.Patches
         [HarmonyPostfix]
         public static void Postfix(ref bool __result, GameObject __instance) //prevents you from autogetting silver nuggets and burning yourself to death
         {
-            if (__result == true && __instance.IsSilver() && Options.GetOptionBool(OPTIONS.SILVER))
+            if (__result == true && __instance.IsSilver() && Options.GetOptionBool(ModOptions.SILVER))
                 __result = false;
         }
     }
@@ -32,7 +32,7 @@ namespace Nexus.Patches
         [HarmonyPostfix]
         public static void Postfix(ref bool __result, TorchProperties __instance, InventoryActionEvent E)
         {
-            if (__result == true && E.Command == "TorchLight" && Options.GetOptionBool(OPTIONS.FIRE) && Options.GetOptionBool(OPTIONS.TORCH) && Core.QudExtensions.IsVampire(E.Actor, out var v))
+            if (__result == true && E.Command == "TorchLight" && Options.GetOptionBool(ModOptions.FIRE) && Options.GetOptionBool(ModOptions.TORCH) && Core.QudExtensions.IsVampire(E.Actor, out var v))
             {
                 __result = false;
                 v.FakeDropRotschrek(__instance.ParentObject);
@@ -49,23 +49,23 @@ namespace Nexus.Patches
 
         public static bool Prefix(LiquidVolume Liquid, GameObject Target)
         {
-            if (Target.TryGetPart(out Vitae vitae) && Target.IsPlayer())
+            if (Target.TryGetPart(out XRL.World.Parts.Vitae vitae) && Target.IsPlayer())
             {
                 if (Liquid.IsPureLiquid())
                 {
-                    if (Options.GetOptionBool(OPTIONS.HUNTER))
+                    if (Options.GetOptionBool(ModOptions.HUNTER))
                     {
                         Popup.Show("This does not satisfy - you need living blood.");
                         Target.FireEvent(Event.New("AfterDrank"));
                         return false;
                     }
-                    if (vitae.Blood >= VITAE.SIP_PUKE_WARN)
+                    if (vitae.Blood >= Rules.Vitae.SIP_PUKE_WARN)
                     {
-                        PreventGhostConsumption = vitae.IDontWantToPuke(false, false);
+                        PreventGhostConsumption = vitae.IDontWantToPuke(false);
                         if (PreventGhostConsumption)
                             return false;
                     }
-                    vitae.Drink(false, false);
+                    vitae.Drink(false);
                     Popup.Show(DrinkMessage(Liquid.ParentObject, vitae));
                     return false;
                 }
@@ -87,7 +87,7 @@ namespace Nexus.Patches
             }
         }
 
-        static string DrinkMessage(GameObject Object, Vitae vitae)
+        static string DrinkMessage(GameObject Object, XRL.World.Parts.Vitae vitae)
         {
             return Object?.HasTag("WaterContainer") ?? false ? "Ahh, {{R sequence|refreshing}}! You feel " + vitae.BloodStatus() + "." : "You fall to your knees and sup {{R|blood}} from the ground. You feel " + vitae.BloodStatus() + ".";
 
@@ -101,7 +101,7 @@ namespace Nexus.Patches
         [HarmonyPostfix]
         public static void Postfix(ref string __result)
         {
-            if (The.Player.TryGetPart(out Vitae vitae))
+            if (The.Player.TryGetPart(out XRL.World.Parts.Vitae vitae))
             {
                 __result = vitae.BloodStatus();
             }
@@ -139,14 +139,14 @@ namespace Nexus.Patches
 
         static int GetFreeDramsReplacement(GameObject player)
         {
-            var drams = player?.GetPart<Vitae>();
+            var drams = player?.GetPart<XRL.World.Parts.Vitae>();
             return drams is not null ? (int)drams.BloodDrams : player.GetFreeDrams("water", null, null, null, false);
         }
         //this is the one piece of code i didnt write
         //i have no idea how it works
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            if (Options.GetOptionBool(Rules.OPTIONS.REDTEXT))
+            if (Options.GetOptionBool(Rules.ModOptions.REDTEXT))
             {
                 var codes = new List<CodeInstruction>(instructions);
                 var target = AccessTools.Method(typeof(GameObject), "GetFreeDrams",

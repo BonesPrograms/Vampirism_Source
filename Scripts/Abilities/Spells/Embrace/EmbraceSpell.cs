@@ -42,18 +42,18 @@ namespace XRL.World.Parts
     [Serializable]
     public class EmbraceSpell : VampiricSpell
     {
-        public override int Cooldown => EMBRACE.COOLDOWN;
+        public override int Cooldown => Nexus.Rules.Embrace.COOLDOWN;
         public override void CollectStats(Templates.StatCollector stats)
         {
         }
 
         public override void AddSpell()
         {
-            SpellID = AddMyActivatedAbility(EMBRACE.ABILITY_NAME, EMBRACE.COMMAND_NAME, $"{CATEGORY}", null, "\u009f");
+            SpellID = AddMyActivatedAbility(Nexus.Rules.Embrace.ABILITY_NAME, Nexus.Rules.Embrace.COMMAND_NAME, $"{CATEGORY}", null, "\u009f");
         }
         public override bool HandleEvent(CommandEvent E)
         {
-            if (E.Command == Nexus.Rules.EMBRACE.COMMAND_NAME && Nexus.Core.Checks.Prerequisites(ParentObject, EMBRACE.ABILITY_NAME, "embrace"))
+            if (E.Command == Nexus.Rules.Embrace.COMMAND_NAME && Nexus.Core.Checks.Prerequisites(base.ParentObject, Nexus.Rules.Embrace.ABILITY_NAME, "embrace"))
             {
                 FindEmbraceableObject();
             }
@@ -61,8 +61,8 @@ namespace XRL.World.Parts
         }
         void FindEmbraceableObject()
         {
-            Cell cell = ParentObject.PickDirection(EMBRACE.ABILITY_NAME);
-            bool? value = cell?.Objects?.Any(x => { if (x.TryGetStringProperty(FLAGS.EMBRACE.EMBRACEABLE, out string result)) { CheckEmbraceableObject(x, result); return true; } return false; });
+            Cell cell = base.ParentObject.PickDirection(Nexus.Rules.Embrace.ABILITY_NAME);
+            bool? value = cell?.Objects?.Any(x => { if (x.TryGetStringProperty(Flags.Embrace.EMBRACEABLE, out string result)) { CheckEmbraceableObject(x, result); return true; } return false; });
             if (value == false)
                 UI.Popup.Show("There is nothing there to embrace.");
         }
@@ -74,9 +74,9 @@ namespace XRL.World.Parts
             {
                 UI.Popup.Show($"{Object.t()} is already being embraced.");
             }
-            else if (result == FLAGS.TRUE)
+            else if (result == Flags.TRUE)
             {
-                if (Object.GetIntProperty(FLAGS.EMBRACE.LEVEL_ON_DEATH) < Level + ParentObject.Level)
+                if (Object.GetIntProperty(Flags.Embrace.LEVEL_ON_DEATH) < Level + ParentObject.Level)
                 {
                     if (!ParentObject.IsRealityDistortionUsable())
                         RealityStabilized.ShowGenericInterdictMessage(ParentObject);

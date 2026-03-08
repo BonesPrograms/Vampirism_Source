@@ -42,12 +42,12 @@ namespace Nexus.Death
 
         bool Victim()
         {
-            bool victim = Dying.HasLongProperty(FLAGS.VICTIM);
-            bool hostile = Dying.HasLongProperty(FLAGS.VICTIM_HOSTILE);
+            bool victim = Dying.HasLongProperty(Flags.VICTIM);
+            bool hostile = Dying.HasLongProperty(Flags.VICTIM_HOSTILE);
             if (Killer == The.Player && (victim || hostile && friendly))
             {
                 GetAndDunk();
-                string flag = victim ? FLAGS.VICTIM : FLAGS.VICTIM_HOSTILE;
+                string flag = victim ? Flags.VICTIM : Flags.VICTIM_HOSTILE;
                 Victim Victim = new(Dying);
                 return friendly ? Victim.Friendlybool(flag) : Victim.Victimbool();
             }

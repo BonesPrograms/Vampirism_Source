@@ -25,16 +25,16 @@ namespace XRL.World.Effects
             base.Duration = Duration;
             this.Gameover = Gameover;
         }
-        public override string GetDetails() => Gameover ? "I need more." : Details(base.Object.GetStringProperty(FLAGS.BLOOD_STATUS));
-        public override string GetDescription() => Gameover ? "{{R|bloodlusted}}" : Description(base.Object.GetStringProperty(FLAGS.BLOOD_STATUS));
-        static string Description(string text) => text == FLAGS.BLOOD.MIN ? "{{R sequence|ravenous}}" : "{{R sequence|thirsty}}";
+        public override string GetDetails() => Gameover ? "I need more." : Details(base.Object.GetStringProperty(Flags.BLOOD_STATUS));
+        public override string GetDescription() => Gameover ? "{{R|bloodlusted}}" : Description(base.Object.GetStringProperty(Flags.BLOOD_STATUS));
+        static string Description(string text) => text == Flags.Blood.MIN ? "{{R sequence|ravenous}}" : "{{R sequence|thirsty}}";
         static string Details(string text)
          =>
             text switch
             {
-                FLAGS.BLOOD.THIRSTY => "{{R sequence|The Beast}} within howls to feed.",
-                FLAGS.BLOOD.PARCHED => "If you do not sate {{R sequence|the Beast}}, it will sate itself.",
-                FLAGS.BLOOD.MIN => "{{R sequence|The Beast}} is desperate. It will take control soon.",
+                Flags.Blood.THIRSTY => "{{R sequence|The Beast}} within howls to feed.",
+                Flags.Blood.PARCHED => "If you do not sate {{R sequence|the Beast}}, it will sate itself.",
+                Flags.Blood.MIN => "{{R sequence|The Beast}} is desperate. It will take control soon.",
                 "Error" => OutOfRange(),
                 _ => "Loading... please pass turn.",
             };
@@ -60,8 +60,8 @@ namespace XRL.World.Effects
         }
         public override bool HandleEvent(BeginTakeActionEvent E)
         {
-            int vitae = base.Object.GetIntProperty(FLAGS.BLOOD_VALUE);
-            if (vitae >= VITAE.BLOOD_QUENCHED)
+            int vitae = base.Object.GetIntProperty(Flags.BLOOD_VALUE);
+            if (vitae >= Nexus.Rules.Vitae.BLOOD_QUENCHED)
                 Duration = 0;
             else
                 DiseaseStatus(vitae);
@@ -72,12 +72,12 @@ namespace XRL.World.Effects
         {
             if (!Gameover)
             {
-                switch (base.Object.GetStringProperty(FLAGS.BLOOD_STATUS))
+                switch (base.Object.GetStringProperty(Flags.BLOOD_STATUS))
                 {
-                    case FLAGS.BLOOD.PARCHED:
+                    case Flags.Blood.PARCHED:
                         StageOne();
                         break;
-                    case FLAGS.BLOOD.MIN:
+                    case Flags.Blood.MIN:
                         StageTwo();
                         break;
                 }
@@ -106,18 +106,18 @@ namespace XRL.World.Effects
         }
         void CheckBloodLevel(int vitae)
         {
-            if (vitae > VITAE.BLOOD_PARCHED && stage2)
+            if (vitae > Nexus.Rules.Vitae.BLOOD_PARCHED && stage2)
                 stage2 = false;
-            if (vitae > VITAE.BLOOD_THIRSTY && stage1)
+            if (vitae > Nexus.Rules.Vitae.BLOOD_THIRSTY && stage1)
                 stage1 = false;
         }
 
         public override void Remove(GameObject Object)
         {
-            if (!Object?.CheckFlag(FLAGS.FRENZY) ?? false && Object.IsPlayer())
+            if (!Object.CheckFlag(Flags.FRENZY) && Object.IsPlayer())
                 AddPlayerMessage(Gameover ? "You gorge on as much blood as you can, but your {{r|bloodlust}} will never truly be satiated." : "Your {{R sequence|thirst}} is quenched.");
-            Vitae v = Object?.GetPart<Vitae>();
-            v?.SetBloodlust(false);
+            Parts.Vitae v = Object.GetPart<Parts.Vitae>();
+            v.Bloodlusted = false;
         }
 
         public override bool SameAs(Effect e)
@@ -128,7 +128,7 @@ namespace XRL.World.Effects
         public override bool Apply(GameObject Object)
         {
             AutoAct.Interrupt();
-            if (!Object?.CheckFlag(FLAGS.FRENZY) ?? false && Object.IsPlayer())
+            if (!Object?.CheckFlag(Flags.FRENZY) ?? false && Object.IsPlayer())
                 AddPlayerMessage(Gameover ? "You are {{r|lusting}} for blood." : "You feel {{R sequence|thirsty}}.");
             return true;
         }

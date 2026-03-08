@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Nexus.Core;
 using XRL;
 using System.Linq;
+using System;
 
 namespace Nexus.Blood
 {
@@ -20,15 +21,15 @@ namespace Nexus.Blood
         static List<LiquidVolume> PureBlood = new();
 
         [GameBasedStaticCache(false, true)]
-        static GameObject[] ContainerCache = new GameObject[0];
+        static GameObject[] ContainerCache = Array.Empty<GameObject>();
         const int MAX = 64;
         const string Container = "WaterContainer";
         const string Blood = "blood";
         static bool FoundBlood => PureBlood.Count > 0;
-        public static void Empty()
+        public static void Clear()
         {
             PureBlood = new();
-            ContainerCache = new GameObject[0];
+            ContainerCache = Array.Empty<GameObject>();
         }
         public static void Autogetter()
         {
@@ -46,9 +47,9 @@ namespace Nexus.Blood
         static void ValidateCache()
         {
             var inventory = Player.Inventory.Objects;
-            var query = inventory.Where(x => x != null && CheckTag(x.GetBlueprint())); //if you dont check for null objects, well, you get null objects - not sure what theyre doing in your inventory, but theyre in there
-            if (query.Count() != ContainerCache.Length) //reduces our need to reset or re-instance the containers list over and over, which i expect to not change often
-                ContainerCache = query.ToArray();
+            var query = inventory.Where(x => x != null && CheckTag(x.GetBlueprint())); //AddBlood's query expression throws exceptions if you do not place a null check here
+            if (query.Count() != ContainerCache.Length) //which is strange cause you'd except GetBlueprint to throw
+                ContainerCache = query.ToArray();          //i tested adding null checks to here and AddBlood's query, but i didnt test long enough for any definitive results
         }
         static bool CheckTag(GameObjectBlueprint blueprint)
         {
@@ -112,24 +113,24 @@ namespace Nexus.Blood
             ContainerCache
             .TakeWhile(x => FoundBlood)
             .Select(x => x.GetPart<LiquidVolume>())
-            .Where(x => !x.Sealed && x.Volume < MAX)
-            .ForEach(x => CheckForStoredLiquids(x, x.ParentObject)); //split up for debugging lol
+            .Where(x => !x.Sealed && x.Volume < MAX) //split up for debugging incase anyone gets a rare autoget exception
+            .ForEach(x => CheckForStoredLiquids(x, x.ParentObject));
         }
 
-        static void CheckForStoredLiquids(LiquidVolume Part, GameObject Waterskin)
+        static void CheckForStoredLiquids(LiquidVolume part, GameObject waterskin)
         {
-            if ((Part.ContainsLiquid(Blood) && Part.IsPureLiquid()) || Part.Volume == 0)
+            if ((part.ContainsLiquid(Blood) && part.IsPureLiquid()) || part.Volume == 0)
             {
-                LiquidVolume Pool = PureBlood.GetRandomElement();
-                if (Pool.Volume > 0)
+                LiquidVolume pool = PureBlood.GetRandomElement();
+                if (pool.Volume > 0)
                 {
-                    bool math = Math(Pool, Part, out int deduction);
+                    bool math = Math(pool, part, out int deduction);
                     if (math && deduction > 0)
-                        Collect(Pool, Part, Waterskin, deduction);
+                        Collect(pool, part, waterskin, deduction);
                     else if (!math)
-                        Collect(Pool, Part, Waterskin, Pool.Volume);
+                        Collect(pool, part, waterskin, pool.Volume);
                 }
-                PureBlood.Remove(Pool);
+                PureBlood.Remove(pool);
             }
         }
 
@@ -159,11 +160,11 @@ namespace Nexus.Blood
 
         //yeah im really bad at math i had to proof and re-code this like 10 times
 
-        static bool Math(LiquidVolume Pool, LiquidVolume Part, out int deduction)
+        static bool Math(LiquidVolume pool, LiquidVolume part, out int deduction)
         {
-            if (Pool.Volume + Part.Volume >= MAX)
+            if (pool.Volume + part.Volume >= MAX)
             {
-                deduction = MAX - Part.Volume;
+                deduction = MAX - part.Volume;
                 return true;
             }
             else
@@ -173,11 +174,11 @@ namespace Nexus.Blood
             }
         }
 
-        static void Collect(LiquidVolume Pool, LiquidVolume Part, GameObject Waterskin, int deduction)
+        static void Collect(LiquidVolume pool, LiquidVolume part, GameObject waterskin, int deduction)
         {
-            Part.AddDrams(Blood, deduction);
-            Pool.UseDrams(deduction);
-            IComponent<GameObject>.AddPlayerMessage("You collect " + deduction + " drams of {{r|blood}} " + "in your " + Waterskin.ShortDisplayName + ".");
+            part.AddDrams(Blood, deduction);
+            pool.UseDrams(deduction);
+            IComponent<GameObject>.AddPlayerMessage("You collect " + deduction + " drams of {{r|blood}} " + "in your " + waterskin.ShortDisplayName + ".");
             //if (Pool?.Volume is null || Pool.Volume <= 0 || Pool.IsEmpty())
             //      PureBlood.Remove(Pool);
         }
