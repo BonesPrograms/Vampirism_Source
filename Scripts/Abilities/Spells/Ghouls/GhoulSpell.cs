@@ -2,6 +2,7 @@ using System;
 using XRL.World.Effects;
 using Nexus.Core;
 using Nexus.Rules;
+using Nexus.Spells;
 using XRL.World.AI;
 using System.Collections.Generic;
 using System.Linq;
@@ -187,35 +188,8 @@ namespace XRL.World.Parts
             {
                 obj.Key.RemoveEffect(obj.Value);
             }
-            SyncTarget(ParentObject);
+            MasterCore.SyncTarget(ParentObject, "Ghoul", 6);
             base.RemoveSpell();
-        }
-        public static void SyncTarget(GameObject Beguiler, GameObject Target = null)
-        {
-            if (Beguiler.Brain == null)
-            {
-                return;
-            }
-            int num = GetCompanionLimitEvent.GetFor(Beguiler, "Ghoul");
-            if (Target == null)
-            {
-                num++;
-            }
-            PartyCollection partyMembers = Beguiler.Brain.PartyMembers;
-            int[] array = (from x in partyMembers
-                           where x.Value.Flags.HasBit(2)
-                           orderby Brain.PartyMemberOrder(x) descending
-                           select x.Key).ToArray();
-            int num2 = 0;
-            for (int num3 = array.Length; num3 >= num; num3--)
-            {
-                partyMembers.Remove(array[num2]);
-                num2++;
-            }
-            if (Target != null)
-            {
-                partyMembers[Target] = 2;
-            }
         }
     }
 }

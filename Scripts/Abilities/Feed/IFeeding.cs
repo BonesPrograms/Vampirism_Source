@@ -117,7 +117,7 @@ namespace XRL.World.Effects
 
 		void Diablerie()
 		{
-			if (Object != null && (!other?.Object?.HasPart<Parts.Fledgling>() ?? false))
+			if (Object != null && (!other?.Object?.HasPart<Parts.FledglingVampire>() ?? false))
 			{
 				if (AutoLevel || WikiRng.Next(1, 20) == 1)
 				{

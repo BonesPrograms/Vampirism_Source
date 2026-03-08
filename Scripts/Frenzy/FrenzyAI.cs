@@ -95,7 +95,7 @@ namespace XRL.World.Effects
         {
             AutoAct.Interrupt();
             XRLCore.Core.RenderDelay(100);
-            if (gameover == false) //prevents msg spam since you constantly frenzy
+            if (gameover == false && Object.IsPlayer()) //prevents msg spam since you constantly frenzy
                 Popup.Show("{{R sequence|The Beast}} releases you.");
             Cleanup();
         }

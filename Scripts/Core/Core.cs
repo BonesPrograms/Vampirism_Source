@@ -168,7 +168,7 @@ namespace Nexus.Core
 
 		public static bool IsChildeOf(this GameObject Object, GameObject Target)
 		{
-			var p = Object.GetPart<Fledgling>();
+			var p = Object.GetPart<FledglingVampire>();
 			return p?.IsChildeOf(Target) ?? false;
 		}
 

@@ -49,6 +49,22 @@ namespace XRL.World.Parts
         public override void CollectStats(Templates.StatCollector stats)
         {
         }
+
+        public override bool WantEvent(int ID, int Cascade)
+        {
+            if (ID == PooledEvent<GetCompanionLimitEvent>.ID)
+                return true;
+            return base.WantEvent(ID, Cascade);
+        }
+
+        public override bool HandleEvent(GetCompanionLimitEvent E)
+        {
+            if (E.Means == "Sire" && E.Actor == ParentObject && SpellID != Guid.Empty)
+            {
+                E.Limit= E.Limit + 2;
+            }
+            return base.HandleEvent(E);
+        }
         public override bool HandleEvent(CommandEvent E)
         {
             if (E.Command == Nexus.Rules.Embrace.COMMAND_NAME && Nexus.Core.Checks.Prerequisites(base.ParentObject, Nexus.Rules.Embrace.ABILITY_NAME, "embrace"))
@@ -68,7 +84,7 @@ namespace XRL.World.Parts
 
         void CheckEmbraceableObject(GameObject Object, string result)
         {
-            if (Object.HasEffect<Embraced>())
+            if (Object.HasEffect<AfterEmbracedFX>())
             {
                 UI.Popup.Show($"{Object.t()} is already being embraced.");
             }
@@ -88,7 +104,7 @@ namespace XRL.World.Parts
             }
             else
             {
-                UI.Popup.Show($"You cannot embrace {Object.t()}");
+                UI.Popup.Show($"You cannot embrace {Object.t()}.");
             }
 
         }
@@ -111,7 +127,7 @@ namespace XRL.World.Parts
             Object.CurrentCell.AddObject(obj);
             int time = WikiRng.Next(50, 100);
             obj.ApplyEffect(new Asleep(time, true, false, false, true));
-            obj.ApplyEffect(new Embracing(ParentObject, time, Level));
+            obj.ApplyEffect(new BeingEmbracedFX(ParentObject, time, Level));
             obj.hitpoints = 2;
             Object.Obliterate();
             MessageQueue.Suppress = false;

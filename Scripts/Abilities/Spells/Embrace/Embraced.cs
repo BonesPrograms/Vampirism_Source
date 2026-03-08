@@ -10,21 +10,25 @@ namespace XRL.World.Effects
 
 {
     [Serializable]
-    public class Embracing : IScribedEffect
+    public class BeingEmbracedFX : IScribedEffect
     {
         public GameObjectReference Embracer;
         public bool FailedEmbrace;
         public int Level;
 
-        public Embracing()
+        public BeingEmbracedFX()
         {
-
         }
-        public Embracing(GameObject Embracer, int time, int level)
+        public BeingEmbracedFX(GameObject Embracer, int time, int level)
         {
             this.Embracer = Embracer.Reference();
             base.Duration = time;
             this.Level = level;
+        }
+
+        public override string GetDescription()
+        {
+            return "{{r|embracing}}";
         }
 
         public override bool UseStandardDurationCountdown()
@@ -60,17 +64,20 @@ namespace XRL.World.Effects
 
         public override bool HandleEvent(BeforeApplyDamageEvent E)
         {
-            if (E.Object == Object && E.Damage.Attributes.Contains("Fire") && UI.Options.GetOptionBool(ModOptions.FIRE))
+            if (E.Object == Object)
             {
-                Message($"Fire disrupts the embracing of {Object.t()}!");
-                FailedEmbrace = true;
-                Duration = 0;
-            }
-            if (E.Object == Object && !E.Damage.Attributes.Contains("Fire"))
-            {
-                NotifyTargetImmuneEvent.Send(E.Weapon, E.Object, E.Actor, E.Damage, this);
-                E.Damage.Amount = 0;
-                return false;
+                if (E.Damage.Attributes.Contains("Fire"))
+                {
+                    Message($"Fire disrupts the embracing of {Object.t()}!");
+                    FailedEmbrace = true;
+                    Duration = 0;
+                }
+                else
+                {
+                    NotifyTargetImmuneEvent.Send(E.Weapon, E.Object, E.Actor, E.Damage, this);
+                    E.Damage.Amount = 0;
+                    return false;
+                }
             }
             return base.HandleEvent(E);
         }
@@ -96,12 +103,15 @@ namespace XRL.World.Effects
         {
             if (!FailedEmbrace)
             {
+                Object.RestorePristineHealth(); //not sure if i want them to regenerate limbs, but this is our current fix for Heal not working (they would die after waking up)
+                int paleHP = Object.baseHitpoints / 3; //pale comes at 50% hp so we make it a little lower so it lasts a bit, but not too low! either way they wont be a challenge to kill with such low HP
+                Object.hitpoints = paleHP;
                 Object.RequireMutation<Vampirism>(Level);
-                Parts.Fledgling part = new(Embracer?.Object, false);
+                FledglingVampire part = new(Embracer.Object, Object.IsHostileTowards(Embracer.Object));
                 Object.AddPart(part);
-                Object.ApplyEffect(new Embraced());
+                Object.ApplyEffect(new AfterEmbracedFX());
                 Object.ApplyEffect(new Pale(999));
-                Object.Heal(Object.baseHitpoints / 2);
+
                 Message($"{Object.t()} rises from the dead!");
             }
             else
@@ -117,9 +127,9 @@ namespace XRL.World.Effects
 
     }
     [Serializable]
-    public class Embraced : IScribedEffect
+    public class AfterEmbracedFX : IScribedEffect
     {
-        public Embraced()
+        public AfterEmbracedFX()
         {
             Duration = 9999;
             DisplayName = "";

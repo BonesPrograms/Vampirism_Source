@@ -9,6 +9,8 @@ using XRL.World.Parts.Mutation;
 using XRL.World.Parts;
 using XRL.World;
 using XRL.UI;
+using XRL.World.AI;
+using System.Linq;
 
 namespace XRL.World.Parts
 {
@@ -61,7 +63,7 @@ namespace XRL.World.Effects
     {
 
         public abstract string CommandName { get; }
-        public abstract string AbilityMenuName {get;}
+        public abstract string AbilityMenuName { get; }
         public const string CATEGORY = VampiricSpell.CATEGORY;
         public Guid SpellID = Guid.Empty;
         public virtual int Cost => Nexus.Rules.Vitae.BLOOD_PER_SIP; //default 10k 
@@ -143,6 +145,78 @@ namespace Nexus.Spells
         public static void ExpendBlood(GameObject ParentObject, int Cost)
         {
             ParentObject.GetPart<XRL.World.Parts.Vitae>().Blood -= Cost;
+        }
+
+
+    }
+    public static class MasterCore
+    {
+        public static void SyncTarget(GameObject Beguiler, string means, int mask, GameObject Target = null)
+        {
+            if (Beguiler.Brain == null)
+            {
+                return;
+            }
+            int num = GetCompanionLimitEvent.GetFor(Beguiler, means);
+            if (Target == null)
+            {
+                num++;
+            }
+            XRL.World.AI.PartyCollection partyMembers = Beguiler.Brain.PartyMembers;
+            int[] array = (from x in partyMembers
+                           where x.Value.Flags.HasBit(mask)
+                           orderby Brain.PartyMemberOrder(x) descending
+                           select x.Key).ToArray();
+            int num2 = 0;
+            for (int num3 = array.Length; num3 >= num; num3--)
+            {
+                partyMembers.Remove(array[num2]);
+                num2++;
+            }
+            if (Target != null)
+            {
+                partyMembers[Target] = mask;
+            }
+        }
+
+        public static void Ally<T>(GameObject Object, GameObject Master, string Means, string text, int mask) where T : IAllyReasonSourced, new()
+        {
+            Object.PlayWorldSound("Sounds/StatusEffects/sfx_statusEffect_charm");
+            IComponent<GameObject>.AddPlayerMessage(text);
+            Object.Heartspray();
+            MasterCore.SyncTarget(Master, Means, mask, Object);
+            Object.SetAlliedLeader<T>(Master);
+        }
+
+        public static void Dismiss<T>(GameObject Master, GameObject Object, string text) where T : IAllyReasonSourced
+        {
+            if (GameObject.Validate(ref Master) && Object.PartyLeader == Master && !Master.SupportsFollower(Object, 13))
+            {
+                Object.Brain.PartyLeader = null;
+                Object.Brain.Goals.Clear();
+                if (Object.InSameZone(Master?.CurrentCell))
+                    IComponent<GameObject>.AddPlayerMessage(text);
+            }
+            Object.Brain.RemoveAllegiance<T>(Master?.BaseID ?? 0);
+        }
+
+        public static void AllyOpinion<T>(GameObject Object, GameObject Master) where T : IOpinionSubject, new()
+        {
+            if (Object.Brain != null && GameObject.Validate(ref Master))
+                Object.Brain.AddOpinion<T>(Master);
+        }
+
+        public static void DismissOpinion<T>(GameObject Object, GameObject Master) where T : IOpinionSubject
+        {
+            if (Object.Brain != null && GameObject.Validate(ref Master))
+                Object.Brain.RemoveOpinion<T>(Master);
+        }
+
+        public static bool IsSupported(GameObject Master, GameObject Object, int mask)
+        {
+            if (GameObject.Validate(ref Master) || !Master.HasHitpoints())
+                return Master.SupportsFollower(Object, mask);
+            return false;
         }
     }
 }

@@ -2,15 +2,16 @@ using XRL.World.Parts;
 using XRL.World.AI;
 using System;
 using Nexus.Rules;
+using Nexus.Spells;
 
 namespace XRL.World.Effects
 {
 
-            
-///SUPER IMPORTANT READ
-        ///WANTEVENT NOTE: TORCH taught us a lot about adding actions. I think I could use addinventoryaction or - i think doug told me to use tradeactions.
-        /// We should look into dromads and other traders with Scan wish, see if they have parts that show how to add trade actions
-        /// no not trade actions, i want companion actions... i think beguiling/other party stuff does that then, well see
+
+    ///SUPER IMPORTANT READ
+    ///WANTEVENT NOTE: TORCH taught us a lot about adding actions. I think I could use addinventoryaction or - i think doug told me to use tradeactions.
+    /// We should look into dromads and other traders with Scan wish, see if they have parts that show how to add trade actions
+    /// no not trade actions, i want companion actions... i think beguiling/other party stuff does that then, well see
 
     [Serializable]
     public class EnthralledGhoul : IScribedEffect
@@ -36,25 +37,27 @@ namespace XRL.World.Effects
 
         public override bool WantEvent(int ID, int Cascade)
         {
-            if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID || ID == SingletonEvent<EndTurnEvent>.ID)
+            if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID || ID == SingletonEvent<EndTurnEvent>.ID || ID == SingletonEvent<BeforeBeginTakeActionEvent>.ID)
                 return true;
             return base.WantEvent(ID, Cascade);
         }
+
+        public override bool HandleEvent(BeforeBeginTakeActionEvent E)
+        {
+            if (!MasterCore.IsSupported(Master, Object, 6))
+                Duration = 0;
+            return base.HandleEvent(E);
+        }
         public override bool HandleEvent(EndTurnEvent E)
         {
-            if (!IsSupported())
-                Duration = 0;
+            if (WasFedOn)
+                DelayRegen();
             else
-            {
-                if (WasFedOn)
-                    DelayRegen();
-                else
-                    OriginalRegenTime = 0;
-                if (BuffTime > 0)
-                    BuffTime--;
-                else if (Buffed)
-                    Debuff();
-            }
+                OriginalRegenTime = 0;
+            if (BuffTime > 0)
+                BuffTime--;
+            else if (Buffed)
+                Debuff();
             return base.HandleEvent(E);
         }
 
@@ -119,12 +122,7 @@ namespace XRL.World.Effects
             Buffed = true;
         }
 
-        public bool IsSupported()
-        {
-            if (GameObject.Validate(ref Master) || !Master.HasHitpoints())
-                return Master.SupportsFollower(base.Object, 2);
-            return false;
-        }
+
 
 
         public override bool Apply(GameObject Object)
@@ -139,40 +137,19 @@ namespace XRL.World.Effects
                 return false;
             if (!ApplyEffectEvent.Check(Object, "Beguile", this))
                 return false;
-            Object.PlayWorldSound("Sounds/StatusEffects/sfx_statusEffect_charm");
-            AddPlayerMessage($"You enthrall {Object.t()}'s mind.");
-            Object.Heartspray();
-            GhoulSpell.SyncTarget(Master, Object);
-            Object.SetAlliedLeader<AllyBeguile>(Master);
-            Enthrall();
+            MasterCore.Ally<AllyBeguile>(Object, Master, "Ghoul", $"You enthrall {Object.t()}'s mind.", 6);
+            MasterCore.AllyOpinion<OpinionBeguile>(Object, Master);
             return true;
         }
         public override void Remove(GameObject Object)
         {
-            if (GameObject.Validate(ref Master) && Object.PartyLeader == Master && !Master.SupportsFollower(Object, 13))
-            {
-                Object.Brain.PartyLeader = null;
-                Object.Brain.Goals.Clear();
-                if (Object.InSameZone(Master?.CurrentCell))
-                    AddPlayerMessage("{{R|You free}}" + Object.t() + "'s mind");
-            }
-            Object.Brain.RemoveAllegiance<AllyBeguile>(Master?.BaseID ?? 0);
-            Free();
+            MasterCore.Dismiss<AllyBeguile>(Master, Object, "{{R|You free}}" + Object.t() + "'s mind");
+            MasterCore.DismissOpinion<OpinionBeguile>(Object, Master);
             Master = null;
             base.Remove(Object);
         }
-        void Free()
-        {
-            GhoulSpell spell = Master.GetPart<GhoulSpell>();
-            spell.Ghouls.Remove(Object);
-            if (base.Object.Brain != null && GameObject.Validate(ref Master))
-                base.Object.Brain.RemoveOpinion<OpinionBeguile>(Master);
-        }
 
-        void Enthrall()
-        {
-            if (base.Object.Brain != null && GameObject.Validate(ref Master))
-                base.Object.Brain.AddOpinion<OpinionBeguile>(Master);
-        }
+
+
     }
 }
