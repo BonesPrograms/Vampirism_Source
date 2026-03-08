@@ -34,7 +34,8 @@ namespace XRL.World.Parts.Mutation
 		public int BloodyFangsCounter = default;
 		bool _immune = default;
 		bool _rotschrek = default;
-		int _timeOnWorldMap = 0;
+		int _timeOnWorldMap = 0; //problem with this not serializing is if you quit/save while on world map then it will not advance time. to solve this problem i would probably
+								 //map this value to Stomach.WasOnWorldMap but for now its local
 		bool _wasOnWorldMap => _timeOnWorldMap > 0;
 		//bool AlreadyBurnedWithSilver = default;
 
@@ -54,7 +55,7 @@ namespace XRL.World.Parts.Mutation
 			switch (E.ID)
 			{
 				case "ApplyDisease" or "ApplyDiseaseOnset" or "ApplySpores" or "CanApplySpores" or "CanApplyAshPoison":
-					return false;
+					return !Options.GetOptionBool(ModOptions.TRUE_UNDEAD);
 				case Events.GAMEOVER:
 					GameOver = true;
 					break;
@@ -74,8 +75,10 @@ namespace XRL.World.Parts.Mutation
 		{
 			if (ID == RespiresEvent.ID || ID == ApplyEffectEvent.ID || ID == CanApplyEffectEvent.ID || ID == CheckGasCanAffectEvent.ID || ID == BeforeApplyDamageEvent.ID) //the confusion between ApplyEffectEvent and CanApplyEffectEvent was painful
 				return Options.GetOptionBool(ModOptions.TRUE_UNDEAD);
-			if (ID == EffectAppliedEvent.ID || ID == AfterPlayerBodyChangeEvent.ID || ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == PooledEvent<CommandEvent>.ID || ID == AIGetOffensiveAbilityListEvent.ID || ID == PooledEvent<AfterDismemberEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
+			if (ID == AfterPlayerBodyChangeEvent.ID || ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == PooledEvent<CommandEvent>.ID || ID == AIGetOffensiveAbilityListEvent.ID || ID == PooledEvent<AfterDismemberEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
 				return true;
+			if (ID == EffectAppliedEvent.ID)
+				return Options.GetOptionBool(ModOptions.FIRE);
 			if (ID == EnteredCellEvent.ID)
 				return Options.GetOptionBool(ModOptions.NIGHTBEAST) && ParentObject.IsPlayer();
 			if (ID == SingletonEvent<EndTurnEvent>.ID)
@@ -167,13 +170,13 @@ namespace XRL.World.Parts.Mutation
 			return base.HandleEvent(E);
 		}
 
-		bool IsOutsideDuringTheDay(bool preventOnWorldMap = true) => CheckNightbeast(preventOnWorldMap) && IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false);
+		bool IsOutsideDuringTheDay() => CheckNightbeast() && IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false);
 
-		bool CheckNightbeast(bool preventOnWorldMap = true)
+		bool CheckNightbeast()
 		{
 			if (Options.GetOptionBool(ModOptions.NIGHTBEAST) && ParentObject.IsPlayer())
 			{
-				return !preventOnWorldMap || !ParentObject.OnWorldMap();
+				return !ParentObject.OnWorldMap();
 			}
 			return false;
 
@@ -285,21 +288,6 @@ namespace XRL.World.Parts.Mutation
 			}
 			return base.HandleEvent(E);
 		}
-		public override bool HandleEvent(EffectAppliedEvent E) //the patch is here
-		{
-			if (IsOutsideDuringTheDay(false) && E.Effect.GetType() == typeof(Lost))
-			{
-				AdvanceTimeToNight();
-			}
-			if (E.Effect.GetType() == typeof(Blaze_Tonic))
-			{
-				_immune = true;
-				if (Rotschrek)
-					ParentObject.RemoveEffect<Terrified>();
-			}
-			return base.HandleEvent(E);
-		}
-
 		#endregion
 
 		#region [Debuff] Silver Ailment 
@@ -321,6 +309,18 @@ namespace XRL.World.Parts.Mutation
 				_immune = false;
 			return base.HandleEvent(E);
 		}
+
+		public override bool HandleEvent(EffectAppliedEvent E)
+		{
+			if (E.Effect.GetType() == typeof(Blaze_Tonic))
+			{
+				_immune = true;
+				if (Rotschrek)
+					ParentObject.RemoveEffect<Terrified>();
+			}
+			return base.HandleEvent(E);
+		}
+
 
 		public override bool HandleEvent(TookDamageEvent E)
 		{

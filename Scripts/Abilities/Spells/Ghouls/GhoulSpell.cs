@@ -12,6 +12,9 @@ namespace XRL.World.Parts
     [Serializable]
     public class GhoulSpell : VampiricSpell
     {
+
+        public override string CommandName => Nexus.Rules.Ghoul.COMMAND_NAME;
+        public override string AbilityMenuName => Nexus.Rules.Ghoul.ABILITY_NAME;
         public override int Cooldown => Nexus.Rules.Ghoul.COOLDOWN;
         public Effect Ghoul;
         public Dictionary<GameObject, EnthralledGhoul> Ghouls = new();
@@ -175,11 +178,6 @@ namespace XRL.World.Parts
                     break;
             }
             stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Nexus.Rules.Ghoul.COOLDOWN);
-        }
-
-        public override void AddSpell()
-        {
-            SpellID = AddMyActivatedAbility(Nexus.Rules.Ghoul.ABILITY_NAME, Nexus.Rules.Ghoul.COMMAND_NAME, $"{CATEGORY}", null, "\u009f");
         }
 
         public override void RemoveSpell()

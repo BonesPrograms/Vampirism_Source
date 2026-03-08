@@ -69,7 +69,7 @@ namespace XRL.World.Parts
                 return true;
             if (ID == AfterPlayerBodyChangeEvent.ID)
                 return true;
-            if (ID == SingletonEvent<BeforeTakeActionEvent>.ID && ParentObject.IsPlayer() && !AutoAct.IsResting() && !ParentObject.Incap(false) && !ParentObject.IsInCombat() && Options.GetOptionBool(ModOptions.AUTOGET) && !Options.GetOptionBool(ModOptions.HUNTER) && !ParentObject.CheckFlag(Flags.FRENZY, Flags.FEED) && !ParentObject.IsInBatForm())
+            if (ID == SingletonEvent<BeforeTakeActionEvent>.ID && ParentObject.IsPlayer() && !AutoAct.IsResting() && !ParentObject.Incap(false) && !ParentObject.IsInCombat() && Options.GetOptionBool(ModOptions.AUTOGET) && !Options.GetOptionBool(ModOptions.HUNTER) && !ParentObject.CheckFlag(Flags.FRENZY, Flags.FEED) && !ParentObject.IsPolymorphed())
                 return true;
             if (ID == SingletonEvent<BeginTakeActionEvent>.ID && ParentObject.IsPlayer())
                 return true;
@@ -90,7 +90,7 @@ namespace XRL.World.Parts
             if (AntiPuke && (Blood >= Nexus.Rules.Vitae.SIP_PUKE_WARN || Blood >= Nexus.Rules.Vitae.FEED_PUKE_WARN || Blood >= Nexus.Rules.Vitae.GHOUL_PUKE_WARN))
                 Blood = 1;
             Metab.Cycle();
-            if (!Options.GetOptionBool(ModOptions.HUNTER) && !ParentObject.CheckFlag(Flags.FRENZY, Flags.FEED) && !ParentObject.Incap(false) && !ParentObject.IsInBatForm())
+            if (!Options.GetOptionBool(ModOptions.HUNTER) && !ParentObject.CheckFlag(Flags.FRENZY, Flags.FEED) && !ParentObject.Incap(false) && !ParentObject.IsPolymorphed())
                 BloodAutoSip();
             return base.HandleEvent(E);
         }

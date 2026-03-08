@@ -8,6 +8,7 @@ using XRL.World.Parts.Mutation;
 using System.Linq;
 using System.Collections;
 using static XRL.World.Cell;
+using XRL.World.Anatomy;
 
 namespace Nexus.Core
 {
@@ -143,9 +144,9 @@ namespace Nexus.Core
 			return Object.Blueprint.Contains("silver", StringComparison.OrdinalIgnoreCase);
 		}
 
-		public static bool IsInBatForm(this GameObject Object)
+		public static bool IsPolymorphed(this GameObject Object)
 		{
-			return Object.Blueprint == "Bat";
+			return Object.HasEffectDescendedFrom<BasePolymorphFX>();
 		}
 
 		public static bool IsVampire(this GameObject Object)
@@ -177,9 +178,22 @@ namespace Nexus.Core
 			return Target != null && e?.Beguiler == Target;
 		}
 
+		#endregion
+		#region Faction
+
+		public static void SubtractFactionFeeling(this Brain Brain, string Faction, int Feeling)
+		{
+			Brain.Allegiance[Faction] -= Feeling;
+		}
+
+
+		public static void AddFactionFeeling(this Brain Brain, string Faction, int Feeling)
+		{
+			Brain.Allegiance[Faction] += Feeling;
+		}
+
 
 		#endregion
-
 		#region Mutation
 
 		public static T RequireMutation<T>(this GameObject Object, int level = 1) where T : BaseMutation, new()

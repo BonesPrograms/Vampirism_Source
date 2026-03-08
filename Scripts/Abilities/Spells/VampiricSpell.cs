@@ -16,12 +16,13 @@ namespace XRL.World.Parts
     [Serializable]
     public abstract class VampiricSpell : IScribedPart
     {
-        public const string CATEGORY = "Blood Magic";
         public Guid SpellID = Guid.Empty;
+        public const string CATEGORY = "Blood Magic";
+        public abstract string CommandName { get; }
+        public abstract string AbilityMenuName { get; }
         public abstract int Cooldown { get; }
         public int Level => ParentObject.GetPart<Vampirism>().Level;
         public virtual int Cost => Nexus.Rules.Vitae.BLOOD_PER_SIP; //default 10k  
-        public abstract void AddSpell();
         public abstract void CollectStats(Templates.StatCollector stats);
         public override bool WantEvent(int ID, int Cascade)
         {
@@ -35,6 +36,10 @@ namespace XRL.World.Parts
             return base.HandleEvent(E);
         }
 
+        public virtual void AddSpell()
+        {
+            SpellID = AddMyActivatedAbility(AbilityMenuName, CommandName, CATEGORY, null, "\u009f");
+        }
         public virtual void RemoveSpell()
         {
             RemoveMyActivatedAbility(ref SpellID);
@@ -54,9 +59,11 @@ namespace XRL.World.Effects
     [Serializable]
     public abstract class VampireFX : IScribedEffect
     {
+
+        public abstract string CommandName { get; }
+        public abstract string AbilityMenuName {get;}
         public const string CATEGORY = VampiricSpell.CATEGORY;
         public Guid SpellID = Guid.Empty;
-        public abstract int Cooldown { get; }
         public virtual int Cost => Nexus.Rules.Vitae.BLOOD_PER_SIP; //default 10k 
         public override bool WantEvent(int ID, int Cascade) //current use of FX is very temporary so there is no need for CollecStats or AbilityManager stuff
         {
@@ -66,7 +73,11 @@ namespace XRL.World.Effects
         }
         public bool RealityCheck(Cell cell) => SpellCore.RealityCheck(cell, Object, CATEGORY, this);
         public void ExpendBlood() => SpellCore.ExpendBlood(Object, Cost);
-        public bool Cast(string toDo) => SpellCore.Cast(toDo, Object, this, SpellID, Cooldown, Cost, CATEGORY, ClassName);
+        public bool Cast(string toDo) => SpellCore.Cast(toDo, Object, this, SpellID, default, Cost, CATEGORY, ClassName);
+        public virtual void AddFXSpell()
+        {
+            SpellID = AddMyActivatedAbility(AbilityMenuName, CommandName, CATEGORY, null, "\u0002");
+        }
     }
 }
 

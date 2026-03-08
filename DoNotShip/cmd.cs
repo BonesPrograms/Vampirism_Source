@@ -1008,7 +1008,21 @@ namespace XRL.World.Parts
 
         public static new void Log(string text) => MetricsManager.LogInfo(text);
 
-        public static void msg(string text) => IComponent<GameObject>.AddPlayerMessage(text);
+        public static void pop(string text)
+        {
+            bool original = Popup.Suppress;
+            UI.Popup.Suppress = false;
+            UI.Popup.Show(text);
+            UI.Popup.Suppress = original;
+        }
+
+        public static void msg(string text)
+        {
+            bool original = Messages.MessageQueue.Suppress;
+            Messages.MessageQueue.Suppress = false;
+            AddPlayerMessage(text);
+            Messages.MessageQueue.Suppress = original;
+        }
         public static void msg(string text, char color)
         {
             string message = "{{" + color + "|" + text + "}}";

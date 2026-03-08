@@ -42,14 +42,12 @@ namespace XRL.World.Parts
     [Serializable]
     public class EmbraceSpell : VampiricSpell
     {
+
+        public override string CommandName => Nexus.Rules.Embrace.COMMAND_NAME;
+        public override string AbilityMenuName => Nexus.Rules.Embrace.ABILITY_NAME;
         public override int Cooldown => Nexus.Rules.Embrace.COOLDOWN;
         public override void CollectStats(Templates.StatCollector stats)
         {
-        }
-
-        public override void AddSpell()
-        {
-            SpellID = AddMyActivatedAbility(Nexus.Rules.Embrace.ABILITY_NAME, Nexus.Rules.Embrace.COMMAND_NAME, $"{CATEGORY}", null, "\u009f");
         }
         public override bool HandleEvent(CommandEvent E)
         {
