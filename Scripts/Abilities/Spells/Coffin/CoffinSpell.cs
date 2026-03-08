@@ -5,6 +5,7 @@ using Nexus.Rules;
 using Nexus.Spells;
 using SerializeField = UnityEngine.SerializeField;
 using System.Linq;
+using XRL.World.Parts.Mutation;
 namespace XRL.World.Parts
 {
 
@@ -97,7 +98,7 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(BeforeDieEvent E)
         {
-            if (E.Dying == ParentObject && !_tookFireDamage && !SpellCore.SunlightInterference(ParentObject))
+            if (E.Dying == ParentObject && !_tookFireDamage && !Vampirism.SunlightInterference(ParentObject))
             {
                 if ((Roll() >= Nexus.Rules.Coffin.SAVING_THROW_DC) || UI.Options.GetOptionBool(ModOptions.COFFIN))
                 {

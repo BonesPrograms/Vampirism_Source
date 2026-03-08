@@ -17,10 +17,6 @@ namespace XRL.World.Parts
     {
         [NonSerialized]
         public GameObject Object;
-        public EmbraceableObject()
-        {
-
-        }
 
         public override void Write(GameObject Basis, SerializationWriter Writer)
         {
@@ -32,6 +28,10 @@ namespace XRL.World.Parts
         {
             Object = Reader.ReadGameObject();
             base.Read(Basis, Reader);
+        }
+        public EmbraceableObject()
+        {
+
         }
         public EmbraceableObject(GameObject Object)
         {

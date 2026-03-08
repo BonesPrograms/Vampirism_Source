@@ -6,6 +6,7 @@ using Nexus.Spells;
 using XRL.World.AI;
 using System.Collections.Generic;
 using System.Linq;
+using XRL.World.Parts.Mutation;
 
 namespace XRL.World.Parts
 {
@@ -18,15 +19,16 @@ namespace XRL.World.Parts
         public override string AbilityMenuName => Nexus.Rules.Ghoul.ABILITY_NAME;
         public override int Cooldown => Nexus.Rules.Ghoul.COOLDOWN;
         public List<GameObject> Ghouls = new();
-        int Max => Level switch
-        {
-            <= 5 => 1,
-            <= 10 => 2,
-            <= 15 => 3,
-            <= 20 => 4,
-            <= 25 => 5,
-            > 25 => 6
-        };
+        static int Max => 1; //this may change later but because it costs blood to feed ghouls i figured having 2-3 would be annoying
+        // int Max => Level switch
+        // {
+        //     <= 5 => 1,
+        //     <= 10 => 2,
+        //     <= 15 => 3,
+        //     <= 20 => 4,
+        //     <= 25 => 5,
+        //     > 25 => 6
+        // };
         const string TEXT = "to enthrall";
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
@@ -59,12 +61,11 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(CommandEvent E)
         {
-            // admn.msg($"{ParentObject.Level}, {ParentObject.GetStat("Level").Value} level values");
             if (E.Command == Nexus.Rules.Ghoul.COMMAND_NAME && Checks.Prerequisites(base.ParentObject, Nexus.Rules.Ghoul.ABILITY_NAME, TEXT))
             {
                 if (base.ParentObject.TryGetTarget(Nexus.Rules.Ghoul.ABILITY_NAME, TEXT, out GameObject pick))
                 {
-                    if (Checks.Attackable(pick, TEXT))
+                    if (Checks.Attackable(pick, TEXT) && MasterCore.NotAlreadyUnderEffect(pick))
                     {
                         CheckGhouls();
                         MakeAttack(pick);
@@ -73,6 +74,8 @@ namespace XRL.World.Parts
             }
             return base.HandleEvent(E);
         }
+
+
         public void MakeAttack(GameObject Target)
         {
             if (!ParentObject.IsRealityDistortionUsable())
@@ -182,6 +185,7 @@ namespace XRL.World.Parts
                     break;
             }
             stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Nexus.Rules.Ghoul.COOLDOWN);
+            stats.Set("Max Ghouls", Max.ToString());
         }
 
         public override void RemoveSpell()

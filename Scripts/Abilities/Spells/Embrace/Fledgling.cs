@@ -2,6 +2,8 @@
 using System;
 using Nexus.Spells;
 using XRL.World.AI;
+using XRL.World.Effects;
+using System.Linq;
 
 namespace XRL.World.Parts
 {
@@ -10,45 +12,79 @@ namespace XRL.World.Parts
     {
 
         GameObject _sireCache;
-        public GameObject SireCache => _sireCache ??= GameObject.Find(x => x.ID == SireID);
+        public GameObject Sire => _sireCache ??= GameObject.Find(x => x.ID == SireID);
         public string SireID;
         public long TimeOfSiring;
-        public bool HatesSire;
         public bool IsFollowing;
         public FledglingVampire()
         {
 
         }
 
-        public FledglingVampire(GameObject Sire, bool HatesSire) : this()
+        public FledglingVampire(GameObject Sire) : this()
         {
-            _sireCache = Sire;
             SireID = Sire.ID;
             TimeOfSiring = The.Game.Turns;
-            this.HatesSire = HatesSire;
         }
 
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
+        {
+            Registrar.Register("ApplyProselytize");
+        }
+
+        public override bool FireEvent(Event E)
+        {
+            if (E.ID == "ApplyProselytize")
+            {
+                if (IsFollowing)
+                {
+                    UI.Popup.Show($"{ParentObject.t()} is already your follower.");
+                    return false;
+                }
+            }
+            return base.FireEvent(E);
+        }
         public override bool WantEvent(int ID, int Cascade)
         {
-            if (ID == GetInventoryActionsEvent.ID || ID == InventoryActionEvent.ID || ID == SingletonEvent<BeforeBeginTakeActionEvent>.ID)
+            if (ID == GetInventoryActionsEvent.ID || ID == InventoryActionEvent.ID)
                 return true;
             if (ID == SingletonEvent<BeforeBeginTakeActionEvent>.ID)
+                return IsFollowing;
+            if (ID == CanApplyEffectEvent.ID || ID == ApplyEffectEvent.ID)
                 return IsFollowing;
             return base.WantEvent(ID, Cascade);
         }
 
+        public override bool HandleEvent(ApplyEffectEvent E)
+        {
+            if (E.Name == "Beguile")
+            {
+                UI.Popup.Show($"{ParentObject.t()} is already your follower.");
+                return false;
+            }
+            return base.HandleEvent(E);
+        }
+        public override bool HandleEvent(CanApplyEffectEvent E)
+        {
+            if (E.Name == "Beguile")
+            {
+                UI.Popup.Show($"{ParentObject.t()} is already your follower.");
+                return false;
+            }
+            return base.HandleEvent(E);
+        }
         public override bool HandleEvent(BeforeBeginTakeActionEvent E)
         {
-            if (!MasterCore.IsSupported(SireCache, ParentObject, 5))
+            if (!MasterCore.IsSupported(Sire, ParentObject, 5))
             {
-                Dismiss(SireCache);
+                Dismiss(Sire);
             }
             return base.HandleEvent(E);
         }
 
         public override bool HandleEvent(GetInventoryActionsEvent E)
         {
-            if (!IsFollowing && IsChildeOf(E.Actor) && !HatesSire)
+            if (!IsFollowing && IsChildeOf(E.Actor) && !ParentObject.IsHostileTowards(E.Actor) && MasterCore.NotAlreadyUnderEffect(ParentObject, false))
             {
                 E.AddAction("Follow", "follow", "FledglingFollowSire", null, 'd', FireOnActor: false, 0, 0, Override: false, WorksAtDistance: true);
             }
@@ -61,15 +97,17 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(InventoryActionEvent E)
         {
-            if (!IsFollowing && E.Command == "FledglingFollowSire" && E.Item == ParentObject && IsChildeOf(E.Actor) && !HatesSire)
+            if (!IsFollowing && E.Command == "FledglingFollowSire" && E.Item == ParentObject && IsChildeOf(E.Actor) && !ParentObject.IsHostileTowards(E.Actor))
             {
                 IsFollowing = true;
-                MasterCore.Ally<AllyProselytize>(ParentObject, E.Actor, "Sire", $"{ParentObject.t()} bows before you.", 5);
-                MasterCore.AllyOpinion<OpinionProselytize>(ParentObject, E.Actor);
+                MasterCore.Ally<AllyFledglingChilde>(ParentObject, E.Actor, "Sire", $"{ParentObject.t()} bows before you.", 5);
+                MasterCore.AllyOpinion<OpinionFledglingChilde>(ParentObject, E.Actor);
+                E.RequestInterfaceExit();
             }
             if (IsFollowing && E.Command == "DismissFledgling" && E.Item == ParentObject && IsChildeOf(E.Actor))
             {
                 Dismiss(E.Actor);
+                E.RequestInterfaceExit();
             }
             return base.HandleEvent(E);
         }
@@ -77,16 +115,46 @@ namespace XRL.World.Parts
         void Dismiss(GameObject Actor)
         {
             IsFollowing = false;
-            MasterCore.Dismiss<AllyProselytize>(Actor, ParentObject, $"You dismiss {ParentObject.t()}");
-            MasterCore.DismissOpinion<OpinionProselytize>(ParentObject, Actor);
+            MasterCore.Dismiss<AllyFledglingChilde>(Actor, ParentObject, $"You dismiss {ParentObject.t()}");
+            MasterCore.DismissOpinion<OpinionFledglingChilde>(ParentObject, Actor);
             MasterCore.SyncTarget(Actor, "Sire", 5);
+            var badkey = Actor.Brain.PartyMembers.FirstOrDefault(x => x.Value.Reference.Object.ID == ParentObject.ID);
+            Actor.Brain.PartyMembers.Remove(badkey.Key);
+            ParentObject.Brain.PartyLeader = null;
         }
         public bool IsChildeOf(GameObject Target)
         {
-            return Target.ID == SireID;
+            if (Target.ID == SireID)
+            {
+                _sireCache = Target;
+                return true;
+            }
+            return false;
         }
 
     }
 
 }
 
+namespace XRL.World.AI
+{
+
+    [Serializable]
+    public class AllyFledglingChilde : AllyProselytize
+    {
+        public override string GetText(GameObject Actor)
+        {
+            return "I am a childe to " + Name + ".";
+        }
+    }
+
+    [Serializable]
+    public class OpinionFledglingChilde : OpinionProselytize
+    {
+        public override string GetText(GameObject Actor)
+        {
+            return "Embraced me.";
+        }
+    }
+
+}

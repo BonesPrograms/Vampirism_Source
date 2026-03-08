@@ -43,6 +43,8 @@ namespace XRL.World.Parts.Mutation
 		#region FireEvent/Register
 		//though many of these are duplicates of minevent calls, i added them incase any modders out there preferred string events over minevents for their
 		//custom diseases and spores - see True Undead
+
+		//the only one were missing is CanApplyEffect fireEvent - we should check E.GetStringParameter("Name")
 		public static readonly string[] RegisteredEvents =
 		{ "LungedTarget", Events.GAMEOVER, Events.WISH_HUMANITY, "CanApplySpores", "ApplySpores", "ApplyDiseaseOnset", "ApplyDisease", "CanApplyAshPoison" };
 		public override void Register(GameObject Object, IEventRegistrar Registrar)
@@ -187,6 +189,16 @@ namespace XRL.World.Parts.Mutation
 			while (Calendar.IsDay())
 				The.Game.TimeTicks++;
 		}
+
+        public static bool SunlightInterference(GameObject ParentObject)
+        {
+            if (Options.GetOptionBool(ModOptions.NIGHTBEAST))
+            {
+                if (Calendar.IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false))
+                    return true;
+            }
+            return false;
+        }
 
 
 		#endregion

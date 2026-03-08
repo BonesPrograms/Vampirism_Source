@@ -14,9 +14,13 @@ namespace XRL.World.Effects
 {
 
     [Serializable]
-    public abstract class BasePolymorphFX : VampireFX
+    public abstract class BasePolymorphFX : Effect
     {
-        public abstract string HUDName { get; }
+        public abstract string NewDescription {get;}
+        public abstract string NewDisplayName { get; }
+        public abstract string NewRenderTile { get; }
+        public abstract string NewColorString { get; }
+        public abstract string NewRenderString { get; }
         public abstract string FormName { get; }
         public abstract string BlueprintName { get; }
         public abstract string AnatomyName { get; }
@@ -34,17 +38,6 @@ namespace XRL.World.Effects
 
         [NonSerialized]
         public GameObject OldObject;
-        public BasePolymorphFX()
-        {
-            DisplayName = "";
-            Duration = 9999;
-        }
-
-        public BasePolymorphFX(int Duration)
-        {
-            DisplayName = "";
-            this.Duration = Duration;
-        }
         public override void Write(GameObject Basis, SerializationWriter Writer)
         {
             Writer.Write(OriginallyEquippedObjects.Count);
@@ -63,39 +56,6 @@ namespace XRL.World.Effects
             base.Read(Basis, Reader);
         }
 
-        public override bool WantEvent(int ID, int cascade)
-        {
-            if (ID == BeforeRenderEvent.ID && !UI.Options.GetOptionBool(ModOptions.NIGHTBEAST)) //because nightbeast already does this for you
-                return true;
-            if (ID == CommandEvent.ID)
-                return true;
-            return base.WantEvent(ID, cascade);
-        }
-        public override bool HandleEvent(BeforeRenderEvent E)
-        {
-            AddLight(21, LightLevel.Dimvision);
-            return base.HandleEvent(E);
-        }
-
-        public override bool HandleEvent(CommandEvent E)
-        {
-            if (E.Command == CommandName && Checks.Prerequisites(Object, AbilityMenuName, HUDName))
-            {
-                Cast();
-            }
-            return base.HandleEvent(E);
-        }
-        void Cast()
-        {
-            if (Cast(HUDName))
-            {
-                ExpendBlood();
-                if (RealityCheck(Object.CurrentCell))
-                {
-                    Duration = 0;
-                }
-            }
-        }
 
         public override bool Apply(GameObject Object)
         {
@@ -113,7 +73,6 @@ namespace XRL.World.Effects
         public virtual void Transform()
         {
             Suppress(true);
-            AddFXSpell();
             OriginallyEquippedObjects = UnequipAndGet();
             SaveLook();
             ChangeLook();
@@ -131,7 +90,6 @@ namespace XRL.World.Effects
         public virtual void Revert()
         {
             Suppress(true);
-            RemoveMyActivatedAbility(ref SpellID, Object);
             Unequip();
             RevertLook();
             RevertDescription();
@@ -147,14 +105,13 @@ namespace XRL.World.Effects
 
         #region Transformation
 
-
         void ChangeLook()
         {
 
-            base.Object.DisplayName = "vampiric bat";
-            base.Object.Render.Tile = "Assets_Content_Textures_Creatures_sw_bat.bmp";
-            base.Object.Render.ColorString = "K";
-            base.Object.Render.RenderString = "b";
+            base.Object.DisplayName = NewDisplayName;
+            base.Object.Render.Tile = NewRenderTile;
+            base.Object.Render.ColorString = NewColorString;
+            base.Object.Render.RenderString = NewRenderString;
         }
 
         void SaveLook()
@@ -183,7 +140,7 @@ namespace XRL.World.Effects
             {
                 var Description = base.Object.GetPart<Description>();
                 LastDescriptionShort = Description.Short;
-                Description.Short = "It sheaths itself in filmy wings.";
+                Description.Short = NewDescription;
             }
         }
 

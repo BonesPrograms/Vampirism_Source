@@ -3,32 +3,22 @@ using System;
 using Nexus.Rules;
 using Nexus.Core;
 
-
-    
 namespace XRL.World.Parts
 {
     [Serializable]
     public abstract class BasePolymorphSpell : VampiricSpell //the original version used metamorphosis to turn you into a literal bat, but your party would not sync and i didnt feel like trying to fix that
     {                                           //because the alternative is easier: fake transformation as you see in this type. there are also tons of other issues like mutations and stats and precognition not easily being synced so this is optimal
-        public bool Transformed = false;        
+        public bool Transformed => ParentObject.IsPolymorphed();     
         public abstract string FormName { get; }
         public abstract string HUDName { get; }
         public abstract BasePolymorphFX PolymorphFX { get; }
-        public override bool WantEvent(int ID, int Cascade)
+        public override void AddSpell()
         {
-            if (ID == EffectRemovedEvent.ID && Transformed)
-                return true;
-            return base.WantEvent(ID, Cascade);
+            SpellID = AddMyActivatedAbility(AbilityMenuName, CommandName, CATEGORY, null, "\u009f", Toggleable: true);
         }
         public override void CollectStats(Templates.StatCollector stats)
         {
             stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Cooldown);
-        }
-        public override bool HandleEvent(EffectRemovedEvent E)
-        {
-            if (E.Effect is BasePolymorphFX)
-                Transformed = false;
-            return base.HandleEvent(E);
         }
         public override bool HandleEvent(CommandEvent E)
         {
@@ -39,7 +29,10 @@ namespace XRL.World.Parts
                 else if (!Transformed)
                     Cast();
                 else
-                    UI.Popup.Show($"You are already in {FormName}!");
+                {
+                    ToggleMyActivatedAbility(SpellID, ParentObject, true);
+                    ParentObject.RemoveEffectDescendedFrom<BasePolymorphFX>();
+                }
             }
             return base.HandleEvent(E);
         }
@@ -50,7 +43,7 @@ namespace XRL.World.Parts
                 ExpendBlood();
                 if (RealityCheck(ParentObject.CurrentCell))
                 {
-                    Transformed = true;
+                    ToggleMyActivatedAbility(SpellID, ParentObject, true);
                     ParentObject.ApplyEffect(PolymorphFX);
                 }
             }

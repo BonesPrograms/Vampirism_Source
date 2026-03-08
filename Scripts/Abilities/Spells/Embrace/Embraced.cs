@@ -89,7 +89,7 @@ namespace XRL.World.Effects
 
         public override bool HandleEvent(EndTurnEvent E)
         {
-            if (SpellCore.SunlightInterference(Object))
+            if (Vampirism.SunlightInterference(Object))
             {
                 Message($"Sunlight disrupts the embracing of {Object.t()}!");
                 FailedEmbrace = true;
@@ -103,10 +103,10 @@ namespace XRL.World.Effects
             if (!FailedEmbrace)
             {
                 Object.RestorePristineHealth(); //not sure if i want them to regenerate limbs, but this is our current fix for Heal not working (they would die after waking up)
-                int paleHP = Object.baseHitpoints / 3; //pale comes at 50% hp so we make it a little lower so it lasts a bit, but not too low! either way they wont be a challenge to kill with such low HP
+                int paleHP = Object.baseHitpoints / 4; //pale comes at 50% hp so we make it a little lower so it lasts a bit, but not too low! either way they wont be a challenge to kill with such low HP
                 Object.hitpoints = paleHP;
                 Object.RequireMutation<Vampirism>(Level);
-                FledglingVampire part = new(Embracer.Object, Object.IsHostileTowards(Embracer.Object));
+                FledglingVampire part = new(Embracer.Object);
                 Object.AddPart(part);
                 Object.ApplyEffect(new AfterEmbracedFX());
                 Object.ApplyEffect(new Pale(999));

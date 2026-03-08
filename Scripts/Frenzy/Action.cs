@@ -8,6 +8,7 @@ using Nexus.Attack;
 using XRL.World.Effects;
 using XRL.World.AI.Pathfinding;
 using Nexus.Spells;
+using XRL.World.Parts.Mutation;
 
 namespace Nexus.Frenzy
 {
@@ -29,7 +30,7 @@ namespace Nexus.Frenzy
 
 		bool AICantFrenzy()
 		{
-			return AI.Source.Base.Rotschrek || !AI.Source.HasFangs() || AI.Source.Incap() || SpellCore.SunlightInterference(AI.Object);
+			return AI.Source.Base.Rotschrek || !AI.Source.HasFangs() || AI.Source.Incap() || Vampirism.SunlightInterference(AI.Object);
 		}
         public void Act()
         {

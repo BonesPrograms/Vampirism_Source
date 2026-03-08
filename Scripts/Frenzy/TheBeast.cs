@@ -37,7 +37,7 @@ namespace XRL.World.Parts
 		public bool Incap() => ParentObject.Incap(true);
 		public bool CantFrenzy()
 		{
-			return Base.Rotschrek || Frenzied || !HasFangs() || Incap() || ParentObject.CheckFlag(Flags.FEED) || SpellCore.SunlightInterference(ParentObject);
+			return Base.Rotschrek || Frenzied || !HasFangs() || Incap() || ParentObject.CheckFlag(Flags.FEED) || Vampirism.SunlightInterference(ParentObject);
 		}
 		public override void Register(GameObject Object, IEventRegistrar Registrar)
 		{

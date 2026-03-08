@@ -35,11 +35,45 @@ namespace XRL.World.Effects
             return "{{K|ghoul}}";
         }
 
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
+        {
+            Registrar.Register("ApplyProselytize");
+        }
+
+        public override bool FireEvent(Event E)
+        {
+            if (E.ID == "ApplyProselytize")
+            {
+                UI.Popup.Show($"{Object.t()} is already enthralled.");
+                return false;
+            }
+            return base.FireEvent(E);
+        }
         public override bool WantEvent(int ID, int Cascade)
         {
-            if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID || ID == SingletonEvent<EndTurnEvent>.ID || ID == SingletonEvent<BeforeBeginTakeActionEvent>.ID)
+            if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID || ID == SingletonEvent<EndTurnEvent>.ID || ID == SingletonEvent<BeforeBeginTakeActionEvent>.ID || ID == ApplyEffectEvent.ID || ID == CanApplyEffectEvent.ID)
                 return true;
             return base.WantEvent(ID, Cascade);
+        }
+
+
+        public override bool HandleEvent(ApplyEffectEvent E)
+        {
+            if (E.Name == "Beguile")
+            {
+                UI.Popup.Show($"{Object.t()} is already enthralled.");
+                return false;
+            }
+            return base.HandleEvent(E);
+        }
+        public override bool HandleEvent(CanApplyEffectEvent E)
+        {
+            if (E.Name == "Beguile")
+            {
+                UI.Popup.Show($"{Object.t()} is already enthralled.");
+                return false;
+            }
+            return base.HandleEvent(E);
         }
 
         public override bool HandleEvent(BeforeBeginTakeActionEvent E)
@@ -122,9 +156,6 @@ namespace XRL.World.Effects
             Buffed = true;
         }
 
-
-
-
         public override bool Apply(GameObject Object)
         {
             if (!GameObject.Validate(ref Master))
@@ -137,14 +168,14 @@ namespace XRL.World.Effects
                 return false;
             if (!ApplyEffectEvent.Check(Object, "Beguile", this))
                 return false;
-            MasterCore.Ally<AllyBeguile>(Object, Master, "Ghoul", $"You enthrall {Object.t()}'s mind.", 6);
-            MasterCore.AllyOpinion<OpinionBeguile>(Object, Master);
+            MasterCore.Ally<AllyEnthralledGhoul>(Object, Master, "Ghoul", $"You enthrall {Object.t()}'s mind.", 6);
+            MasterCore.AllyOpinion<OpinionEnthralledGhoul>(Object, Master);
             return true;
         }
         public override void Remove(GameObject Object)
         {
-            MasterCore.Dismiss<AllyBeguile>(Master, Object, "{{R|You free}} " + Object.t() + "'s mind");
-            MasterCore.DismissOpinion<OpinionBeguile>(Object, Master);
+            MasterCore.Dismiss<AllyEnthralledGhoul>(Master, Object, "You release " + Object.t() + "'s mind");
+            MasterCore.DismissOpinion<OpinionEnthralledGhoul>(Object, Master);
             MasterCore.SyncTarget(Master, "Ghoul", 6);
             Master = null;
             base.Remove(Object);
@@ -153,4 +184,27 @@ namespace XRL.World.Effects
 
 
     }
+}
+
+namespace XRL.World.AI
+{
+
+    [Serializable]
+    public class AllyEnthralledGhoul : AllyProselytize
+    {
+        public override string GetText(GameObject Actor)
+        {
+            return "I am a thrall to " + Name + ".";
+        }
+    }
+
+    [Serializable]
+    public class OpinionEnthralledGhoul : OpinionProselytize
+    {
+        public override string GetText(GameObject Actor)
+        {
+            return "Enthralled me.";
+        }
+    }
+
 }

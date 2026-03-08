@@ -37,7 +37,10 @@ namespace XRL.World.Parts
             DescribeMyActivatedAbility(SpellID, CollectStats);
             return base.HandleEvent(E);
         }
-
+        public virtual int Roll()
+        {
+            return WikiRng.Next(1, 8) + Math.Max(ParentObject.StatMod("Ego"), Level) + ParentObject.GetStat("Level").Value;
+        }
         public virtual void AddSpell()
         {
             SpellID = AddMyActivatedAbility(AbilityMenuName, CommandName, CATEGORY, null, "\u009f");
@@ -47,112 +50,79 @@ namespace XRL.World.Parts
             RemoveMyActivatedAbility(ref SpellID);
             ParentObject.RemovePart(this);
         }
-        public virtual int Roll() => SpellCore.Roll(ParentObject, Level);
-        public bool RealityCheck(Cell cell) => SpellCore.RealityCheck(cell, ParentObject, CATEGORY, this);
-        public void ExpendBlood(bool noPopup, string text) => SpellCore.ExpendBlood(noPopup, text, ParentObject, Cost);
-        public void ExpendBlood() => SpellCore.ExpendBlood(ParentObject, Cost);
-        public bool Cast(string toDo) => SpellCore.Cast(toDo, ParentObject, this, SpellID, Cooldown, Cost, CATEGORY, Name);
-    }
-}
-
-namespace XRL.World.Effects
-{
-
-    [Serializable]
-    public abstract class VampireFX : IScribedEffect
-    {
-
-        public abstract string CommandName { get; }
-        public abstract string AbilityMenuName { get; }
-        public const string CATEGORY = VampiricSpell.CATEGORY;
-        public Guid SpellID = Guid.Empty;
-        public virtual int Cost => Nexus.Rules.Vitae.BLOOD_PER_SIP; //default 10k 
-        public override bool WantEvent(int ID, int Cascade) //current use of FX is very temporary so there is no need for CollecStats or AbilityManager stuff
+        public bool EnoughBlood(string text, int cost)
         {
-            if (ID == PooledEvent<CommandEvent>.ID)
-                return true;
-            return base.WantEvent(ID, Cascade);
-        }
-        public bool RealityCheck(Cell cell) => SpellCore.RealityCheck(cell, Object, CATEGORY, this);
-        public void ExpendBlood() => SpellCore.ExpendBlood(Object, Cost);
-        public bool Cast(string toDo) => SpellCore.Cast(toDo, Object, this, SpellID, default, Cost, CATEGORY, ClassName);
-        public virtual void AddFXSpell()
-        {
-            SpellID = AddMyActivatedAbility(AbilityMenuName, CommandName, CATEGORY, null, "\u0002");
-        }
-    }
-}
-
-
-
-namespace Nexus.Spells
-{
-    public static class SpellCore
-    {
-        public static int Roll(GameObject gameObj, int level) => WikiRng.Next(1, 8) + Math.Max(gameObj.StatMod("Ego"), level) + gameObj.GetStat("Level").Value;
-        public static bool EnoughBlood(string text, GameObject parentObj, int cost)
-        {
-            if (parentObj.GetIntProperty(Flags.BLOOD_VALUE) > cost)
+            if (ParentObject.GetIntProperty(Flags.BLOOD_VALUE) > cost)
                 return true;
             else
-                return parentObj.ShowFailure("You don't have enough {{R|blood}} " + text + "!");
+                return ParentObject.ShowFailure("You don't have enough {{R|blood}} " + text + "!");
         }
-        public static bool SunlightInterference(GameObject parentObject)
+        public bool Cast(string toDo)
         {
-            if (Options.GetOptionBool(ModOptions.NIGHTBEAST))
-            {
-                if (Calendar.IsDay() && (parentObject.CurrentZone?.IsOutside() ?? false))
-                    return true;
-            }
-            return false;
-        }
-        public static bool Cast<T>(string toDo, GameObject parentObject, T invoker, Guid spellID, int cooldown, int cost, string category, string typeName) where T : IComponent<GameObject>
-        {
-            if (SunlightInterference(parentObject))
+            if (Vampirism.SunlightInterference(ParentObject))
             {
                 Popup.Show("You are powerless before the gross incandescence of the Sun!");
             }
-            else if (EnoughBlood(toDo, parentObject, cost))
+            else if (EnoughBlood(toDo, Cost))
             {
                 IComponent<GameObject>.AddPlayerMessage("You invoke {{R|blood magic}}.");
-                parentObject.SmallTeleportSwirl(null, "&R");
-                parentObject.UseEnergy(1000, $"{category} {typeName}");
-                invoker.CooldownMyActivatedAbility(spellID, cooldown);
+                ParentObject.SmallTeleportSwirl(null, "&R");
+                ParentObject.UseEnergy(1000, $"{CATEGORY} {AbilityMenuName}");
+                CooldownMyActivatedAbility(SpellID, Cooldown);
                 return true;
             }
             return false;
         }
-        public static bool RealityCheck<T>(Cell cell, GameObject parentObject, string category, T invoker) where T : IComponent<GameObject>
-        {
-            Event E = Event.New("InitiateRealityDistortionTransit", "Object", parentObject, $"{category}", invoker, "Cell", cell);
-            if (!parentObject.FireEvent(E) || !parentObject.CurrentCell.FireEvent(E))
-            {
-                RealityStabilized.ShowGenericInterdictMessage(parentObject);
-                return false;
-            }
-            return true;
-        }
+        public bool RealityCheck(Cell cell) => SpellCore.RealityCheck(cell, ParentObject, CATEGORY, this);
 
-        public static void ExpendBlood(bool noPopup, string text, GameObject parentObj, int cost)
+        public void ExpendBlood(bool noPopup, string text)
         {
             if (noPopup)
                 IComponent<GameObject>.AddPlayerMessage(text);
             else
                 Popup.Show(text);
-            ExpendBlood(parentObj, cost);
+            ExpendBlood();
         }
         //ExpendBlood should be invoked after Cast() returns true
-        public static void ExpendBlood(GameObject ParentObject, int Cost)
+        public void ExpendBlood()
         {
             ParentObject.GetPart<XRL.World.Parts.Vitae>().Blood -= Cost;
         }
-
-
     }
+}
 
+namespace Nexus.Spells
+{
     //mostly based off methods from beguiling/persuasion
+
+    public static class SpellCore
+    {
+        public static bool RealityCheck<T>(Cell cell, GameObject ParentObject, string category, T Invoker) where T : IPart
+        {
+            Event E = Event.New("InitiateRealityDistortionTransit", "Object", ParentObject, $"{category}", Invoker, "Cell", cell);
+            if (!ParentObject.FireEvent(E) || !ParentObject.CurrentCell.FireEvent(E))
+            {
+                RealityStabilized.ShowGenericInterdictMessage(ParentObject);
+                return false;
+            }
+            return true;
+        }
+    }
     public static class MasterCore
     {
+
+        public static bool NotAlreadyUnderEffect(GameObject pick, bool showPopup = true) //for now - i have problems with you trying to mix and match these effects
+        {
+            Effect e = pick.Effects.FirstOrDefault(CheckEffect);
+            if (e != null)
+            {
+                if (showPopup)
+                    XRL.UI.Popup.Show($"{pick.t()} is already your follower.");
+                return false;
+            }
+            return true;
+        }
+        public static bool CheckEffect(Effect e) => e is Beguiled or Proselytized or EnthralledGhoul;
         public static void SyncTarget(GameObject Beguiler, string means, int mask, GameObject Target = null)
         {
             if (Beguiler.Brain == null)

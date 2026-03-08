@@ -14,12 +14,14 @@ namespace XRL.World.Effects
     [Serializable]
     public class BatformFX : BasePolymorphFX
     {
-        public override string CommandName => "cmdTrueFormbat";
-        public override string HUDName => "true form";
-        public override string AbilityMenuName => "True Form";
         public override string FormName => "bat";
         public override string BlueprintName => "Bat";
         public override string AnatomyName => "Quadruped";
+        public override string NewDescription => "It sheaths itself in filmy wings.";
+        public override string NewDisplayName => "vampiric bat";
+        public override string NewRenderTile => "Assets_Content_Textures_Creatures_sw_bat.bmp";
+        public override string NewColorString => "K";
+        public override string NewRenderString => "b";
         public override string TargetFaction => Batform.FACTION;
         public override int FactionFeeling => 100;
         public int OriginalCapOverride;
@@ -27,9 +29,22 @@ namespace XRL.World.Effects
         public bool AlreadyHadWings;
         public bool WasLessThanTen;
 
-        public BatformFX() : base()
+        public BatformFX()
         {
+            DisplayName ="";
+            Duration = 9999;
+        }
 
+        public override bool WantEvent(int ID, int cascade)
+        {
+            if (ID == BeforeRenderEvent.ID && !UI.Options.GetOptionBool(ModOptions.NIGHTBEAST)) //because nightbeast already does this for you
+                return true;
+            return base.WantEvent(ID, cascade);
+        }
+        public override bool HandleEvent(BeforeRenderEvent E)
+        {
+            AddLight(21, LightLevel.Dimvision);
+            return base.HandleEvent(E);
         }
 
         public override void Transform()
