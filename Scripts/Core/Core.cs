@@ -117,7 +117,7 @@ namespace Nexus.Core
 			{
 				for (int x = 0; x < Object.Effects.Count; x++)
 				{
-					if (Object.Effects[x].Duration > 0 && UnawareFX[i] == Object.Effects[x].GetType())
+					if (UnawareFX[i] == Object.Effects[x].GetType())
 					{
 						if (kissing && i == 0)
 							continue;

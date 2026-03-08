@@ -100,16 +100,16 @@ namespace XRL.World.Parts
 
         static void CompareBlueprints(GameObject Dying, GameObject obj, Corpse corpse)
         {
-            if (obj.Blueprint == corpse.CorpseBlueprint)
+            //  if (obj.Blueprint == corpse.CorpseBlueprint)
+            if (obj.Blueprint == "Ash" || obj.Blueprint == corpse.BurntCorpseBlueprint || obj.Blueprint == corpse.VaporizedCorpseBlueprint)
+                obj.SetStringProperty(Flags.Embrace.EMBRACEABLE, Flags.FALSE);
+            else
             {
                 obj.SetIntProperty(Flags.Embrace.LEVEL_ON_DEATH, Dying.Level);
                 obj.SetStringProperty(Flags.Embrace.EMBRACEABLE, Flags.TRUE);
                 EmbraceableObject copy = new(Dying);
                 obj.AddPart(copy);
-
             }
-            else if (obj.Blueprint == corpse.BurntCorpseBlueprint || obj.Blueprint == corpse.VaporizedCorpseBlueprint)
-                obj.SetStringProperty(Flags.Embrace.EMBRACEABLE, Flags.FALSE);
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace XRL.World.Parts
         /// </summary>
         /// <returns></returns>
         public static bool Security() => !Player?.HasHitpoints() ?? true ? FindAndCheckPlayer() : Player.HasPart<Vampirism>();
-                                            //because you can die but still not be null and the system will break if you are domination-hopping to a new body
+        //because you can die but still not be null and the system will break if you are domination-hopping to a new body
         static bool FindAndCheckPlayer()
         {
             _player = PlayerFinder().Reference();

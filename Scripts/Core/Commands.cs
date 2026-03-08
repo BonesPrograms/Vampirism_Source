@@ -6,12 +6,28 @@ using Nexus.Properties;
 using XRL.World;
 using Nexus.Core;
 using XRL.World.Effects;
+using XRL.World.Parts.Mutation;
 
 namespace Nexus.Wish
 {
     [HasWishCommand]
     public static class Commands
     {
+
+
+        [WishCommand(Command = "vamplvl")]
+        public static void PowerUp(string text)
+        {
+            if (int.TryParse(text, out int result))
+            {
+                Vampirism v = The.Player.GetPart<Vampirism>();
+                v.BaseLevel = result;
+                v.CapOverride = result;
+                IComponent<GameObject>.AddPlayerMessage($"Vampirism level set to {result}.");
+            }
+            else
+                XRL.UI.Popup.Show($"{text} is not valid integer!");
+        }
 
         [WishCommand(Command = "bloodpack")]
 

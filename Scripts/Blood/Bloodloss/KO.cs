@@ -18,6 +18,15 @@ namespace XRL.World.Effects
         {
             base.Duration = Duration;
         }
+
+    public KO(int Duration, bool forced = false, bool quicksleep = false, bool Voluntary = false)
+        : this()
+    {
+        base.Duration = Duration;
+        this.forced = forced;
+        this.quicksleep = quicksleep;
+        this.Voluntary = Voluntary;
+    }
         public override bool HandleEvent(IsConversationallyResponsiveEvent E)
         {
             if (E.Speaker == base.Object)

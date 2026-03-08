@@ -50,6 +50,19 @@ namespace XRL.World.Parts
         {
         }
 
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
+        {
+            Registrar.Register("CanCompanionRestorePartyLeader");
+        }
+
+        public override bool FireEvent(Event E)
+        {
+            if(E.ID == "CanCompanionRestorePartyLeader" && ParentObject.SupportsFollower(E.GetGameObjectParameter("Companion"), 5))
+            {
+                return false;
+            }
+            return base.FireEvent(E);
+        }
         public override bool WantEvent(int ID, int Cascade)
         {
             if (ID == PooledEvent<GetCompanionLimitEvent>.ID)
@@ -61,7 +74,7 @@ namespace XRL.World.Parts
         {
             if (E.Means == "Sire" && E.Actor == ParentObject && SpellID != Guid.Empty)
             {
-                E.Limit= E.Limit + 2;
+                E.Limit++;
             }
             return base.HandleEvent(E);
         }
@@ -126,7 +139,7 @@ namespace XRL.World.Parts
             obj.MakeActive();
             Object.CurrentCell.AddObject(obj);
             int time = WikiRng.Next(50, 100);
-            obj.ApplyEffect(new Asleep(time, true, false, false, true));
+            obj.ApplyEffect(new KO(time, true, false));
             obj.ApplyEffect(new BeingEmbracedFX(ParentObject, time, Level));
             obj.hitpoints = 2;
             Object.Obliterate();

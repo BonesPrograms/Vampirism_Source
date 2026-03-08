@@ -22,6 +22,7 @@ namespace XRL.World.Parts
 
         public VampireCoffin(GameObject Object)
         {
+            _ownerCache = Object;
             OwnerID = Object.ID;
         }
         public override bool WantEvent(int ID, int Cascade)

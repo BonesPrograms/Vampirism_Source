@@ -1,10 +1,9 @@
 using XRL.World.Effects;
 using System;
 using Nexus.Rules;
-using Nexus.Core;
 
 
-
+//note to future self: one day, we will sync physical mutations to your new body
 namespace XRL.World.Parts
 {
 

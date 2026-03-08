@@ -149,6 +149,8 @@ namespace Nexus.Spells
 
 
     }
+
+    //mostly based off methods from beguiling/persuasion
     public static class MasterCore
     {
         public static void SyncTarget(GameObject Beguiler, string means, int mask, GameObject Target = null)

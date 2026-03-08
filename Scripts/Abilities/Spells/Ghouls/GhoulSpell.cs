@@ -17,43 +17,49 @@ namespace XRL.World.Parts
         public override string CommandName => Nexus.Rules.Ghoul.COMMAND_NAME;
         public override string AbilityMenuName => Nexus.Rules.Ghoul.ABILITY_NAME;
         public override int Cooldown => Nexus.Rules.Ghoul.COOLDOWN;
-        public Effect Ghoul;
-        public Dictionary<GameObject, EnthralledGhoul> Ghouls = new();
-        int MAX()
-            => Level switch
-            {
-                <= 5 => 2,
-                <= 10 => 2,
-                <= 15 => 3,
-                <= 20 => 4,
-                <= 25 => 5,
-                > 25 => 5
-            };
+        public List<GameObject> Ghouls = new();
+        int Max => Level switch
+        {
+            <= 5 => 1,
+            <= 10 => 2,
+            <= 15 => 3,
+            <= 20 => 4,
+            <= 25 => 5,
+            > 25 => 6
+        };
         const string TEXT = "to enthrall";
+
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
+        {
+            Registrar.Register("CanCompanionRestorePartyLeader");
+        }
+
+        public override bool FireEvent(Event E)
+        {
+            if(E.ID == "CanCompanionRestorePartyLeader" && ParentObject.SupportsFollower(E.GetGameObjectParameter("Companion"), 6))
+            {
+                return false;
+            }
+            return base.FireEvent(E);
+        }
         public override bool WantEvent(int ID, int cascade)
         {
-            if (ID == PooledEvent<GetCompanionLimitEvent>.ID || ID == PooledEvent<GetCompanionStatusEvent>.ID)
+            if (ID == PooledEvent<GetCompanionLimitEvent>.ID)
                 return true;
             return base.WantEvent(ID, cascade);
         }
 
-        public override bool HandleEvent(GetCompanionStatusEvent E)
-        {
-            return base.HandleEvent(E);
-        }
         public override bool HandleEvent(GetCompanionLimitEvent E)
         {
-            if (E.Means == "Ghoul" && E.Actor == ParentObject && SpellID != Guid.Empty)
+            if (E.Actor == ParentObject && SpellID != Guid.Empty && E.Means == "Ghoul")
             {
-               // admn.msg($"First limt {E.Limit}");
-                E.Limit = E.Limit + MAX();
-               // admn.msg($"Limit {E.Limit} Max {MAX()}");
+                E.Limit += Max;
             }
             return base.HandleEvent(E);
         }
         public override bool HandleEvent(CommandEvent E)
         {
-           // admn.msg($"{ParentObject.Level}, {ParentObject.GetStat("Level").Value} level values");
+            // admn.msg($"{ParentObject.Level}, {ParentObject.GetStat("Level").Value} level values");
             if (E.Command == Nexus.Rules.Ghoul.COMMAND_NAME && Checks.Prerequisites(base.ParentObject, Nexus.Rules.Ghoul.ABILITY_NAME, TEXT))
             {
                 if (base.ParentObject.TryGetTarget(Nexus.Rules.Ghoul.ABILITY_NAME, TEXT, out GameObject pick))
@@ -87,7 +93,7 @@ namespace XRL.World.Parts
 
         bool AlreadyEnthralled(GameObject Target, out bool containskey)
         {
-            containskey = Ghouls.ContainsKey(Target);
+            containskey = Ghouls.Contains(Target);
             if (!containskey && Target.HasEffect<EnthralledGhoul>())
             {
                 UI.Popup.Show($"{Target.t()} is already enthralled by someone else.");
@@ -98,7 +104,8 @@ namespace XRL.World.Parts
 
         public void ExpendBlood(GameObject Target, bool iskey)
         {
-            Ghouls[Target].Buff(Roll());
+            var e = Target.GetEffect<EnthralledGhoul>();
+            e.Buff(Roll());
             base.ExpendBlood(iskey, $"You feed {Target.t()} your blood.");
         }
 
@@ -111,10 +118,6 @@ namespace XRL.World.Parts
                     this.ExpendBlood(Target, true);
                 else if (Prerequisites(Target) && Attack(Target))
                 {
-                    //  if (Ghouls.Count == MAX())
-                    //  {
-                    //      Ghouls.ElementAt(0).Key.RemoveEffect<EnthralledGhoul>();
-                    //  }
                     ApplyGhoulEffect(Target);
                 }
             }
@@ -125,7 +128,7 @@ namespace XRL.World.Parts
             EnthralledGhoul ghoul = new(ParentObject);
             if (Target.ApplyEffect(ghoul))
             {
-                Ghouls.Add(Target, ghoul);
+                Ghouls.Add(Target);
                 this.ExpendBlood(Target, false);
             }
         }
@@ -145,7 +148,7 @@ namespace XRL.World.Parts
 
         void CheckGhouls()
         {
-            foreach (var ghoul in Ghouls.Keys.ToArray())
+            foreach (var ghoul in Ghouls.ToArray())
             {
                 if ((!ghoul?.HasHitpoints() ?? true) || !ghoul.HasEffect<EnthralledGhoul>())
                     Ghouls.Remove(ghoul);
@@ -186,7 +189,7 @@ namespace XRL.World.Parts
             CheckGhouls();
             foreach (var obj in Ghouls)
             {
-                obj.Key.RemoveEffect(obj.Value);
+                obj.RemoveEffect<EnthralledGhoul>();
             }
             MasterCore.SyncTarget(ParentObject, "Ghoul", 6);
             base.RemoveSpell();

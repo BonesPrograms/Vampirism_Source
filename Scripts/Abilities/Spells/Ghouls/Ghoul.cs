@@ -143,8 +143,9 @@ namespace XRL.World.Effects
         }
         public override void Remove(GameObject Object)
         {
-            MasterCore.Dismiss<AllyBeguile>(Master, Object, "{{R|You free}}" + Object.t() + "'s mind");
+            MasterCore.Dismiss<AllyBeguile>(Master, Object, "{{R|You free}} " + Object.t() + "'s mind");
             MasterCore.DismissOpinion<OpinionBeguile>(Object, Master);
+            MasterCore.SyncTarget(Master, "Ghoul", 6);
             Master = null;
             base.Remove(Object);
         }

@@ -22,6 +22,7 @@ namespace XRL.World.Parts
 
         public FledglingVampire(GameObject Sire, bool HatesSire) : this()
         {
+            _sireCache = Sire;
             SireID = Sire.ID;
             TimeOfSiring = The.Game.Turns;
             this.HatesSire = HatesSire;
@@ -63,9 +64,8 @@ namespace XRL.World.Parts
             if (!IsFollowing && E.Command == "FledglingFollowSire" && E.Item == ParentObject && IsChildeOf(E.Actor) && !HatesSire)
             {
                 IsFollowing = true;
-                MasterCore.Ally<AllyProselytize>(ParentObject, E.Actor, "Sire", "You command your fledgling to join you.", 5);
+                MasterCore.Ally<AllyProselytize>(ParentObject, E.Actor, "Sire", $"{ParentObject.t()} bows before you.", 5);
                 MasterCore.AllyOpinion<OpinionProselytize>(ParentObject, E.Actor);
-                AddPlayerMessage($"{ParentObject.t()} bows and joins you.");
             }
             if (IsFollowing && E.Command == "DismissFledgling" && E.Item == ParentObject && IsChildeOf(E.Actor))
             {

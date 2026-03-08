@@ -15,7 +15,6 @@ namespace XRL.World.Effects
         public GameObjectReference Embracer;
         public bool FailedEmbrace;
         public int Level;
-
         public BeingEmbracedFX()
         {
         }
@@ -136,7 +135,7 @@ namespace XRL.World.Effects
         }
         public override string GetDescription() => "{{r|embraced}}";
         public sealed override string GetDetails() => "A newly embraced flegling vampire that has yet to feed.";
-        bool Roll => WikiRng.Next(1, 100) == 100; //ridiculously high frenzy chance
+        bool Roll => WikiRng.Next(1, 100) == 100; //ridiculously high frenzy chance. not always instant, enough time for you to back up a bit or something
         TheBeast _Beast;
         public TheBeast Beast => _Beast ??= Object.GetPart<TheBeast>();
         public override bool WantEvent(int ID, int Cascade)
@@ -144,7 +143,7 @@ namespace XRL.World.Effects
             if (ID == EffectAppliedEvent.ID)
                 return true;
             if (Roll && ID == SingletonEvent<BeginTakeActionEvent>.ID)
-                return true;
+                return !Beast.CantFrenzy();
             return base.WantEvent(ID, Cascade);
         }
 
@@ -157,8 +156,7 @@ namespace XRL.World.Effects
 
         public override bool HandleEvent(BeginTakeActionEvent E)
         {
-            if (!Beast.CantFrenzy())
-                Beast.Core.Frenzy();
+            Beast.Core.Frenzy();
             return base.HandleEvent(E);
         }
 

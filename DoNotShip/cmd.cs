@@ -755,7 +755,7 @@ namespace XRL.World.Parts
 
         public static void GiveGlotrot()
         {
-            if(The.Player.TryGetTarget("glotrot", "glotrot", out var pick))
+            if (The.Player.TryGetTarget("glotrot", "glotrot", out var pick))
             {
                 pick.ApplyEffect(new Glotrot());
                 cmd.msg("GlotrotAdded to " + pick.t());
@@ -985,7 +985,9 @@ namespace XRL.World.Parts
 
         static cmd Get()
         {
-            return The.Player.AddPart(new cmd(The.Player.IsVampire()));
+            if (!The.Player.HasPart<cmd>())
+                return The.Player.AddPart(new cmd(The.Player.IsVampire()));
+            return The.Player.GetPart<cmd>();
         }
 
         public static void Log<T>(IList<T> obj)
