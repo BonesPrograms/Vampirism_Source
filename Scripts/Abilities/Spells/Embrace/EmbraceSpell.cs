@@ -40,7 +40,7 @@ namespace XRL.World.Parts
     }
 
     [Serializable]
-    public class EmbraceSpell : VampiricSpell
+    public class EmbraceSpell : BaseVampireSpell
     {
 
         public override string CommandName => Nexus.Rules.Embrace.COMMAND_NAME;
@@ -48,6 +48,8 @@ namespace XRL.World.Parts
         public override int Cooldown => Nexus.Rules.Embrace.COOLDOWN;
         public override void CollectStats(Templates.StatCollector stats)
         {
+            stats.Set("Attack", Level + ParentObject.Level);
+            stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Cooldown);
         }
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)

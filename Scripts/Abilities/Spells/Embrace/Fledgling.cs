@@ -75,7 +75,7 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(BeforeBeginTakeActionEvent E)
         {
-            if (!CompanionCore.IsSupported(Sire, ParentObject, 5))
+            if (!CompanionCore.IsSupported(Sire, ParentObject))
             {
                 Dismiss(Sire);
             }
@@ -115,7 +115,7 @@ namespace XRL.World.Parts
         void Dismiss(GameObject Actor)
         {
             IsFollowing = false;
-            CompanionCore.Dismiss<AllyFledglingChilde>(Actor, ParentObject, $"You dismiss {ParentObject.t()}");
+            CompanionCore.Dismiss<AllyFledglingChilde>(Actor, ParentObject, $"You dismiss {ParentObject.t()}", 5);
             CompanionCore.DismissOpinion<OpinionFledglingChilde>(ParentObject, Actor);
             CompanionCore.SyncTarget(Actor, "Sire", 5);
             var badkey = Actor.Brain.PartyMembers.FirstOrDefault(x => x.Value.Reference.Object.ID == ParentObject.ID);

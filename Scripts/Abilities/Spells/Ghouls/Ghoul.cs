@@ -75,10 +75,10 @@ namespace XRL.World.Effects
             }
             return base.HandleEvent(E);
         }
-
+  
         public override bool HandleEvent(BeforeBeginTakeActionEvent E)
         {
-            if (!CompanionCore.IsSupported(Master, Object, 6))
+            if (!CompanionCore.IsSupported(Master, Object))
                 Duration = 0;
             return base.HandleEvent(E);
         }
@@ -162,19 +162,13 @@ namespace XRL.World.Effects
                 return false;
             if (Object.Brain == null)
                 return false;
-            if (!Object.FireEvent("CanApplyBeguile"))
-                return false;
-            if (!Object.FireEvent("ApplyBeguile"))
-                return false;
-            if (!ApplyEffectEvent.Check(Object, "Beguile", this))
-                return false;
             CompanionCore.Ally<AllyEnthralledGhoul>(Object, Master, "Ghoul", $"You enthrall {Object.t()}'s mind.", 6);
             CompanionCore.AllyOpinion<OpinionEnthralledGhoul>(Object, Master);
             return true;
         }
         public override void Remove(GameObject Object)
         {
-            CompanionCore.Dismiss<AllyEnthralledGhoul>(Master, Object, "You release " + Object.t() + "'s mind");
+            CompanionCore.Dismiss<AllyEnthralledGhoul>(Master, Object, "You release " + Object.t() + "'s mind", 6);
             CompanionCore.DismissOpinion<OpinionEnthralledGhoul>(Object, Master);
             CompanionCore.SyncTarget(Master, "Ghoul", 6);
             Master = null;

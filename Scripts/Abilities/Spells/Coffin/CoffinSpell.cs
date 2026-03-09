@@ -10,7 +10,7 @@ namespace XRL.World.Parts
 {
 
     [Serializable]
-    public class CoffinSpell : VampiricSpell
+    public class CoffinSpell : BaseVampireSpell
     {
         public override string CommandName => Nexus.Rules.Coffin.COMMAND_NAME;
         public override string AbilityMenuName => Nexus.Rules.Coffin.ABILITY_NAME;

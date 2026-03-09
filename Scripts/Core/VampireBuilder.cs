@@ -120,7 +120,7 @@ namespace Nexus.Core
             if (ENABLE_SPELLS)
             {
                 XRL.UI.Popup.Suppress = true;
-                VampiricSpells.Select(x => (VampiricSpell)Activator.CreateInstance(x)).ForEach(x => { GO.AddPart(x); x.AddSpell(); });
+                VampiricSpells.Select(x => (BaseVampireSpell)Activator.CreateInstance(x)).ForEach(x => { GO.AddPart(x); x.AddSpell(); });
                 GO.SetStringProperty(Flags.SPELLS, Flags.TRUE);
                 XRL.UI.Popup.Suppress = false;
             }
@@ -131,7 +131,7 @@ namespace Nexus.Core
         {
             if (ENABLE_SPELLS)
             {
-                VampiricSpells.Select(x => (VampiricSpell)GO.GetPart(x)).ForEach(x => x.RemoveSpell());
+                VampiricSpells.Select(x => (BaseVampireSpell)GO.GetPart(x)).ForEach(x => x.RemoveSpell());
                 GO.SetStringProperty(Flags.SPELLS, Flags.FALSE);
             }
 

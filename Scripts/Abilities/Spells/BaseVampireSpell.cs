@@ -16,7 +16,7 @@ namespace XRL.World.Parts
 {
 
     [Serializable]
-    public abstract class VampiricSpell : IScribedPart
+    public abstract class BaseVampireSpell : IScribedPart
     {
         public Guid SpellID = Guid.Empty;
         public const string CATEGORY = "Blood Magic";
@@ -159,9 +159,9 @@ namespace Nexus.Spells
             Object.SetAlliedLeader<T>(Master);
         }
 
-        public static void Dismiss<T>(GameObject Master, GameObject Object, string text) where T : IAllyReasonSourced
+        public static void Dismiss<T>(GameObject Master, GameObject Object, string text, int mask) where T : IAllyReasonSourced
         {
-            if (GameObject.Validate(ref Master) && Object.PartyLeader == Master && !Master.SupportsFollower(Object, 13))
+            if (GameObject.Validate(ref Master) && Object.PartyLeader == Master && !Master.SupportsFollower(Object, mask))
             {
                 Object.Brain.PartyLeader = null;
                 Object.Brain.Goals.Clear();
@@ -182,11 +182,10 @@ namespace Nexus.Spells
             if (Object.Brain != null && GameObject.Validate(ref Master))
                 Object.Brain.RemoveOpinion<T>(Master);
         }
-
-        public static bool IsSupported(GameObject Master, GameObject Object, int mask)
+        public static bool IsSupported(GameObject Master, GameObject Object)
         {
             if (GameObject.Validate(ref Master) || !Master.HasHitpoints())
-                return Master.SupportsFollower(Object, mask);
+                return Master.SupportsFollower(Object);
             return false;
         }
     }

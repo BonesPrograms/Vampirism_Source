@@ -12,7 +12,7 @@ namespace XRL.World.Parts
 {
 
     [Serializable]
-    public class GhoulSpell : VampiricSpell
+    public class GhoulSpell : BaseVampireSpell
     {
 
         public override string CommandName => Nexus.Rules.Ghoul.COMMAND_NAME;
@@ -55,7 +55,7 @@ namespace XRL.World.Parts
         {
             if (E.Actor == ParentObject && SpellID != Guid.Empty && E.Means == "Ghoul")
             {
-                E.Limit += Max;
+                E.Limit++;
             }
             return base.HandleEvent(E);
         }
@@ -160,7 +160,7 @@ namespace XRL.World.Parts
         bool Enthrall(MentalAttackEvent E)
         {
             GameObject defender = E.Defender;
-            if (E.Penetrations <= 0 || !defender.FireEvent("CanApplyBeguile") || !CanApplyEffectEvent.Check(defender, "Beguile"))
+            if (E.Penetrations <= 0)
             {
                 AddPlayerMessage("{{R|" + defender.t() + "resists your attempts to enthrall their mind!}}");
                 defender.AddOpinion<OpinionDominate>(E.Attacker);

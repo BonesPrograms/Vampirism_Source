@@ -6,7 +6,7 @@ using Nexus.Core;
 namespace XRL.World.Parts
 {
     [Serializable]
-    public abstract class BasePolymorphSpell : VampiricSpell //the original version used metamorphosis to turn you into a literal bat, but your party would not sync and i didnt feel like trying to fix that
+    public abstract class BasePolymorphSpell : BaseVampireSpell //the original version used metamorphosis to turn you into a literal bat, but your party would not sync and i didnt feel like trying to fix that
     {                                           //because the alternative is easier: fake transformation as you see in this type. there are also tons of other issues like mutations and stats and precognition not easily being synced so this is optimal
         public bool Transformed => ParentObject.IsPolymorphed();     
         public abstract string FormName { get; }

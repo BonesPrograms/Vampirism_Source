@@ -16,7 +16,7 @@ namespace XRL.World.Parts
     /// The external part held by all edible targets in the world. Watches for the object's conditions on death - deducts humanity if the player performs an action that violates the rules of humanity.
     /// </summary>
     [Serializable]
-    
+
     [HasGameBasedStaticCache]
     public class DeathHandler : IPart
     {
@@ -82,7 +82,7 @@ namespace XRL.World.Parts
 
         static void MarkForEmbrace(GameObject Dying, bool isvampire) //only "feedable" targets can become vampires, but deathhandler only exists as a part on feedable objects, so the check is already done
         {                                   //corpse objects whose source object didnt have this part wont have the property at all and thus will not be embraceable
-            var obj = Dying.CurrentCell.Objects.FirstOrDefault(x => x.PropertyEquals("SourceID", Dying.ID));
+            var obj = Dying.CurrentCell.Objects.FirstOrDefault(x => x.PropertyEquals("SourceBlueprint", Dying.Blueprint));
             if (obj != null)
                 DetermineEmbraceability(obj, Dying, isvampire);
 

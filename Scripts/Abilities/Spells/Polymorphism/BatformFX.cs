@@ -31,7 +31,7 @@ namespace XRL.World.Effects
 
         public BatformFX()
         {
-            DisplayName ="";
+            DisplayName = "";
             Duration = 9999;
         }
 
@@ -53,6 +53,7 @@ namespace XRL.World.Effects
             Suppress(true);
             ChangeWings();
             CommandEvent.Send(base.Object, Wings.COMMAND_NAME);
+          //  Remutate();
             Suppress(false);
         }
 
@@ -62,6 +63,14 @@ namespace XRL.World.Effects
             RevertWings();
         }
 
+        void Remutate()
+        {
+            var mutations = Object.GetPart<Mutations>();
+            var list = mutations.MutationList;
+            var equipmentMutations = list.Select(x => x as BaseDefaultEquipmentMutation).Where(x => x != null && x is not (Vampirism or Wings) && x.GeneratesEquipment());
+            Body body = Object.Body;
+            equipmentMutations.ForEach(x => x.Mutate(Object, x.Level));
+        }
 
         void RevertWings()
         {

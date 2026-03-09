@@ -447,7 +447,7 @@ namespace XRL.World.Parts
         public static void AddSpell(string text)
         {
             object obj = AddPart(text);
-            if (obj is VampiricSpell spell)
+            if (obj is BaseVampireSpell spell)
                 spell.AddSpell();
             else
                 msg($"{text} is not VampiricSpell or is null : {obj == null}");
@@ -458,7 +458,7 @@ namespace XRL.World.Parts
         public static void RemoveSpell(string text)
         {
             var obj = The.Player.GetPart(text);
-            if (obj is VampiricSpell spell)
+            if (obj is BaseVampireSpell spell)
             {
                 spell.RemoveSpell();
                 msg($"{text} removed");
