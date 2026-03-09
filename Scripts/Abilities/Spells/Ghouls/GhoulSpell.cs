@@ -65,7 +65,7 @@ namespace XRL.World.Parts
             {
                 if (base.ParentObject.TryGetTarget(Nexus.Rules.Ghoul.ABILITY_NAME, TEXT, out GameObject pick))
                 {
-                    if (Checks.Attackable(pick, TEXT) && MasterCore.NotAlreadyUnderEffect(pick))
+                    if (Checks.Attackable(pick, TEXT) && CompanionCore.NotAlreadyUnderEffect(pick))
                     {
                         CheckGhouls();
                         MakeAttack(pick);
@@ -195,7 +195,7 @@ namespace XRL.World.Parts
             {
                 obj.RemoveEffect<EnthralledGhoul>();
             }
-            MasterCore.SyncTarget(ParentObject, "Ghoul", 6);
+            CompanionCore.SyncTarget(ParentObject, "Ghoul", 6);
             base.RemoveSpell();
         }
     }

@@ -108,9 +108,8 @@ namespace Nexus.Spells
             return true;
         }
     }
-    public static class MasterCore
+    public static class CompanionCore
     {
-
         public static bool NotAlreadyUnderEffect(GameObject pick, bool showPopup = true) //for now - i have problems with you trying to mix and match these effects
         {
             Effect e = pick.Effects.FirstOrDefault(CheckEffect);
@@ -156,7 +155,7 @@ namespace Nexus.Spells
             Object.PlayWorldSound("Sounds/StatusEffects/sfx_statusEffect_charm");
             IComponent<GameObject>.AddPlayerMessage(text);
             Object.Heartspray();
-            MasterCore.SyncTarget(Master, Means, mask, Object);
+            CompanionCore.SyncTarget(Master, Means, mask, Object);
             Object.SetAlliedLeader<T>(Master);
         }
 

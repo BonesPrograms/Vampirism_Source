@@ -78,7 +78,7 @@ namespace XRL.World.Effects
 
         public override bool HandleEvent(BeforeBeginTakeActionEvent E)
         {
-            if (!MasterCore.IsSupported(Master, Object, 6))
+            if (!CompanionCore.IsSupported(Master, Object, 6))
                 Duration = 0;
             return base.HandleEvent(E);
         }
@@ -168,15 +168,15 @@ namespace XRL.World.Effects
                 return false;
             if (!ApplyEffectEvent.Check(Object, "Beguile", this))
                 return false;
-            MasterCore.Ally<AllyEnthralledGhoul>(Object, Master, "Ghoul", $"You enthrall {Object.t()}'s mind.", 6);
-            MasterCore.AllyOpinion<OpinionEnthralledGhoul>(Object, Master);
+            CompanionCore.Ally<AllyEnthralledGhoul>(Object, Master, "Ghoul", $"You enthrall {Object.t()}'s mind.", 6);
+            CompanionCore.AllyOpinion<OpinionEnthralledGhoul>(Object, Master);
             return true;
         }
         public override void Remove(GameObject Object)
         {
-            MasterCore.Dismiss<AllyEnthralledGhoul>(Master, Object, "You release " + Object.t() + "'s mind");
-            MasterCore.DismissOpinion<OpinionEnthralledGhoul>(Object, Master);
-            MasterCore.SyncTarget(Master, "Ghoul", 6);
+            CompanionCore.Dismiss<AllyEnthralledGhoul>(Master, Object, "You release " + Object.t() + "'s mind");
+            CompanionCore.DismissOpinion<OpinionEnthralledGhoul>(Object, Master);
+            CompanionCore.SyncTarget(Master, "Ghoul", 6);
             Master = null;
             base.Remove(Object);
         }

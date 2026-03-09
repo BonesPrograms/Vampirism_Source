@@ -75,7 +75,7 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(BeforeBeginTakeActionEvent E)
         {
-            if (!MasterCore.IsSupported(Sire, ParentObject, 5))
+            if (!CompanionCore.IsSupported(Sire, ParentObject, 5))
             {
                 Dismiss(Sire);
             }
@@ -84,7 +84,7 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(GetInventoryActionsEvent E)
         {
-            if (!IsFollowing && IsChildeOf(E.Actor) && !ParentObject.IsHostileTowards(E.Actor) && MasterCore.NotAlreadyUnderEffect(ParentObject, false))
+            if (!IsFollowing && IsChildeOf(E.Actor) && !ParentObject.IsHostileTowards(E.Actor) && CompanionCore.NotAlreadyUnderEffect(ParentObject, false))
             {
                 E.AddAction("Follow", "follow", "FledglingFollowSire", null, 'd', FireOnActor: false, 0, 0, Override: false, WorksAtDistance: true);
             }
@@ -100,8 +100,8 @@ namespace XRL.World.Parts
             if (!IsFollowing && E.Command == "FledglingFollowSire" && E.Item == ParentObject && IsChildeOf(E.Actor) && !ParentObject.IsHostileTowards(E.Actor))
             {
                 IsFollowing = true;
-                MasterCore.Ally<AllyFledglingChilde>(ParentObject, E.Actor, "Sire", $"{ParentObject.t()} bows before you.", 5);
-                MasterCore.AllyOpinion<OpinionFledglingChilde>(ParentObject, E.Actor);
+                CompanionCore.Ally<AllyFledglingChilde>(ParentObject, E.Actor, "Sire", $"{ParentObject.t()} bows before you.", 5);
+                CompanionCore.AllyOpinion<OpinionFledglingChilde>(ParentObject, E.Actor);
                 E.RequestInterfaceExit();
             }
             if (IsFollowing && E.Command == "DismissFledgling" && E.Item == ParentObject && IsChildeOf(E.Actor))
@@ -115,9 +115,9 @@ namespace XRL.World.Parts
         void Dismiss(GameObject Actor)
         {
             IsFollowing = false;
-            MasterCore.Dismiss<AllyFledglingChilde>(Actor, ParentObject, $"You dismiss {ParentObject.t()}");
-            MasterCore.DismissOpinion<OpinionFledglingChilde>(ParentObject, Actor);
-            MasterCore.SyncTarget(Actor, "Sire", 5);
+            CompanionCore.Dismiss<AllyFledglingChilde>(Actor, ParentObject, $"You dismiss {ParentObject.t()}");
+            CompanionCore.DismissOpinion<OpinionFledglingChilde>(ParentObject, Actor);
+            CompanionCore.SyncTarget(Actor, "Sire", 5);
             var badkey = Actor.Brain.PartyMembers.FirstOrDefault(x => x.Value.Reference.Object.ID == ParentObject.ID);
             Actor.Brain.PartyMembers.Remove(badkey.Key);
             ParentObject.Brain.PartyLeader = null;
