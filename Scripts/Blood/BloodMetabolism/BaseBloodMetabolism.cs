@@ -76,11 +76,9 @@ namespace Nexus.Blood
                 }
             }
         }
-        public Stomach SetWater()
+        public void SetWater()
         {
-            Stomach s = Metaboliser.GetPart<Stomach>();
-            s.Water = WATER;
-            return s;
+            Stomach.Water = WATER;
         }
         protected void Vomit() => IBloodMetabolism.Vomit(Metaboliser);
         protected string StatusToString(out BloodLevel bloodLevel)

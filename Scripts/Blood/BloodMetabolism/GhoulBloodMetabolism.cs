@@ -14,7 +14,7 @@ namespace Nexus.Blood
         }
         public override void Cycle()
         {
-            base.SetWater();
+            SetWater();
             if (NotAtMinimum())
             {
                 Source.Blood -= RATE;

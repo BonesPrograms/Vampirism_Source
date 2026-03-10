@@ -27,9 +27,9 @@ namespace Nexus.Blood
 
         void SetStomach()
         {
-            var s = base.SetWater();
-            if (Options.GetOptionBool(ModOptions.TRUE_UNDEAD) && s.HungerLevel != 0)   //most True Undead code is in Vampirism, this is the only one outside of it
-                s.ClearHunger();
+            SetWater();
+            if (Options.GetOptionBool(ModOptions.TRUE_UNDEAD) && Stomach.HungerLevel != 0)   //most True Undead code is in Vampirism, this is the only one outside of it
+                Stomach.ClearHunger();
         }
 
         void SetBloodValue()
