@@ -206,13 +206,7 @@ namespace XRL.World.Effects
 
         public override bool HandleEvent(InduceVomitingEvent E)
         {
-            if (E.Object == Object)
-            {
-                Metab.SetWater();
-                Metab.VomitEventHandler(E.MessageHolder);
-                    Blood -= WikiRng.Next(15000, 25000);
-                E.InterfaceExit = true;
-            }
+            Metab.VomitEventHandler(E);
             return base.HandleEvent(E);
         }
         public override bool HandleEvent(BeforeTakeActionEvent E)

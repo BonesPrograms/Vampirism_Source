@@ -4,6 +4,7 @@ using XRL.World.Effects;
 using System.Text;
 using System.Linq;
 using XRL.UI;
+using Nexus.Core;
 
 
 namespace Nexus.Blood
@@ -48,7 +49,24 @@ namespace Nexus.Blood
             this.Stomach = Metaboliser.GetPart<Stomach>();
         }
         public abstract void Cycle(); //in the event that its ever stored polymorphically as BaseBloodMetabolism<T>
-        public void VomitEventHandler(StringBuilder MessageHolder)
+
+        public void VomitEventHandler(InduceVomitingEvent E, bool CheckPlayer = false)
+        {
+            if (E.Object == Metaboliser)
+            {
+                SetWater();
+                VomitEventHandlerHelper(E.MessageHolder);
+                if (CheckPlayer)
+                {
+                    if (Metaboliser.IsPlayer())
+                        Source.Blood -= WikiRng.Next(15000, 25000);
+                }
+                else
+                    Source.Blood -= WikiRng.Next(15000, 25000);
+                E.InterfaceExit = true;
+            }
+        }
+        public void VomitEventHandlerHelper(StringBuilder MessageHolder)
         {
             ShowStrings(MessageHolder);
             if (Metaboliser.CurrentCell != null && !Metaboliser.OnWorldMap())

@@ -95,32 +95,22 @@ namespace XRL.World.Parts
     
         public override bool HandleEvent(InduceVomitingEvent E)
         {
-            if (E.Object == ParentObject)
-            {
-                Metab.SetWater();
-                Metab.VomitEventHandler(E.MessageHolder);
-                if (E.Object.IsPlayer())
-                    Blood -= WikiRng.Next(15000, 25000);
-                E.InterfaceExit = true;
-            }
+            Metab.VomitEventHandler(E);
             return base.HandleEvent(E);
         }
 
 
         bool ItsTimeToDrink(string option)
         {
-            switch (option)
+            return option switch
             {
-                case ModOptions.Autosip_Settings.QUENCH:
-                    return Blood < Nexus.Rules.Vitae.BLOOD_GLUTTONOUS;
-                case ModOptions.Autosip_Settings.THIRSTY: //in our code, being marked as "thirsty" actually means your blood is > thirsty and < quenched
-                    return Blood < Nexus.Rules.Vitae.BLOOD_QUENCHED;//kind of confusing but i dont care to change it now
-                case ModOptions.Autosip_Settings.PARCHED:
-                    return Blood < Nexus.Rules.Vitae.BLOOD_THIRSTY;
-                case ModOptions.Autosip_Settings.MIN:
-                    return Blood < Nexus.Rules.Vitae.BLOOD_PARCHED;
-            }
-            return false;
+                ModOptions.Autosip_Settings.QUENCH => Blood < Nexus.Rules.Vitae.BLOOD_GLUTTONOUS,
+                //in our code, being marked as "thirsty" actually means your blood is > thirsty and < quenched
+                ModOptions.Autosip_Settings.THIRSTY => Blood < Nexus.Rules.Vitae.BLOOD_QUENCHED,//kind of confusing but i dont care to change it now
+                ModOptions.Autosip_Settings.PARCHED => Blood < Nexus.Rules.Vitae.BLOOD_THIRSTY,
+                ModOptions.Autosip_Settings.MIN => Blood < Nexus.Rules.Vitae.BLOOD_PARCHED,
+                _ => false,
+            };
         }
 
         void BloodAutoSip()
