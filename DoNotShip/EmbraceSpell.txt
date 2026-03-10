@@ -53,6 +53,35 @@ namespace XRL.World.Parts
             stats.Set("Attack", Level + ParentObject.Level);
             stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Cooldown);
         }
+
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
+        {
+            Registrar.Register("CanCompanionRestorePartyLeader");
+        }
+
+        public override bool FireEvent(Event E)
+        {
+            if (E.ID == "CanCompanionRestorePartyLeader" && ParentObject.SupportsFollower(E.GetGameObjectParameter("Companion"), 5))
+            {
+                return false;
+            }
+            return base.FireEvent(E);
+        }
+        public override bool WantEvent(int ID, int Cascade)
+        {
+            if (ID == PooledEvent<GetCompanionLimitEvent>.ID)
+                return true;
+            return base.WantEvent(ID, Cascade);
+        }
+
+        public override bool HandleEvent(GetCompanionLimitEvent E)
+        {
+            if (E.Means == "Sire" && E.Actor == ParentObject && SpellID != Guid.Empty)
+            {
+                E.Limit++;
+            }
+            return base.HandleEvent(E);
+        }
         public override bool HandleEvent(CommandEvent E)
         {
             if (E.Command == Nexus.Rules.Embrace.COMMAND_NAME && Nexus.Core.Checks.Prerequisites(base.ParentObject, Nexus.Rules.Embrace.ABILITY_NAME, "embrace"))

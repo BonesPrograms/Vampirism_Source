@@ -1,0 +1,20 @@
+alrigght so
+
+
+lets say we have
+
+TurnsUntilDeath = 3000;
+
+TimeOfRelinquish = 30,000;
+
+TimeOfDeath = 33,000;
+
+CurrentTurns = 32,5000;
+
+
+okay
+
+TimeOfRelinquish - CurrentTurns = timeremaining
+
+so 33k - 32.5k = 500;
+

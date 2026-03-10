@@ -486,9 +486,9 @@ namespace XRL.World.Parts
         {
             if (The.Player.CmdTarget("badliquid", out var pick))
             {
-                var BadLiquids = new Nexus.Bite.Bite().BadLiquids;
+                var BadLiquids = Nexus.Bite.Bite.GiveBadLiquids();
                 int range = WikiRng.Next(0, BadLiquids.Length - 1);
-                string liquid = BadLiquids[range].Item1;
+                string liquid = BadLiquids[range];
                 pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
                 cmd.msg($"badliquified {pick} {liquid} {range}");
             }
@@ -859,7 +859,7 @@ namespace XRL.World.Parts
             {
                 The.Player.AddBaseStat(stats[i], 100);
             }
-            The.Player.AddSkill<ShortBlades_Bloodletter>();
+            The.Player.AddSkill<ShortBladesBloodletter>();
             The.Player.AddSkill<Physic_AmputateLimb>();
             The.Player.AddSkill<Persuasion_Proselytize>();
             The.Player.Inventory.AddObject("Battle Axe2");

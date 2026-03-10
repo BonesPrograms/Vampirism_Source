@@ -6,8 +6,7 @@ using Nexus.Death;
 using Nexus.Core;
 using Nexus.Rules;
 using XRL.UI;
-using Nexus.Stealth;
-using SerializeField = UnityEngine.SerializeField;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace XRL.World.Parts
@@ -83,11 +82,41 @@ namespace XRL.World.Parts
         static void MarkForEmbrace(GameObject Dying, bool isvampire) //only "feedable" targets can become vampires, but deathhandler only exists as a part on feedable objects, so the check is already done
         {                                   //corpse objects whose source object didnt have this part wont have the property at all and thus will not be embraceable
             var obj = Dying.CurrentCell.Objects.FirstOrDefault(x => x.PropertyEquals("SourceBlueprint", Dying.Blueprint));
-            if (obj != null)
+            if (obj != null)                                    //i want to note we used to check for SourceID, but not every corpse object has a source id property
                 DetermineEmbraceability(obj, Dying, isvampire);
-
+            else
+                DebugFailedEmbrace(Dying.CurrentCell);
+        }
+        static void DebugFailedEmbrace(Cell cell)
+        {
+            var corpses = cell.Objects.Select(x => x.GetPart<Corpse>()).Where(x => x != null);
+            int count = corpses.Count();
+            if (count == 0)
+                return;
+            MetricsManager.LogModError(XRL.ModManager.GetMod("vampirism"), $"Error: Object died, but could not find a corpse object with matching source blueprint in cell.\n Corpse Object Data output to Player.Log. Corpse count: {count}");
+            LogCorpses(corpses);
         }
 
+        static void LogCorpses(IEnumerable<Corpse> corpses)
+        {
+            foreach (var corpse in corpses)
+            {
+                for (int i = 0; i < 5; i++)
+                    MetricsManager.LogInfo("\n");
+
+                MetricsManager.LogInfo($"corpse blueprint: {corpse.CorpseBlueprint}, burnt corpse blueprint: {corpse.BurntCorpseBlueprint}, vaporized corpse blueprint: {corpse.VaporizedCorpseBlueprint}");
+                MetricsManager.LogInfo($"{corpse.ParentObject.DisplayName}, {corpse.ParentObject.Blueprint}, {corpse.ParentObject.ID}.\n\nProperties\n");
+                corpse.ParentObject.Property.ForEach(x => MetricsManager.LogInfo($"{x.Key}, {x.Value}"));
+                MetricsManager.LogInfo($"\n\nIntProperties\n");
+                corpse.ParentObject.IntProperty.ForEach(x => MetricsManager.LogInfo($"{x.Key}, {x.Value}"));
+
+            }
+        }
+        // we had a problem where wished Bears' corpses would not be selected for embraceability the bear having an ID (did you know that bear corpses also have a property that reveals the bear's hidden true name?)
+        //bears consistently did not write a sourceID property to their corpse, though rarely they actually would, it is more consistent
+        //that they didnt, this also occured with wished snapjaws, so the old check would never find their corpse and skip embrace marking
+        //considering that corpses are indiscernible from one another to the player, i realized it doesnt matter anyways which corpse is selected as long as it appears
+        //to be the same corpse as the one the object would normally drop (for cases where an object dies on a cell that already has a corpse that matches their corpse blueprint)
         static void DetermineEmbraceability(GameObject obj, GameObject Dying, bool isvampire)
         {
             if (isvampire)

@@ -12,8 +12,6 @@ namespace XRL.World.Parts
     [Serializable]
     public class CoffinSpell : BaseVampireSpell
     {
-        public override string CommandName => Nexus.Rules.Coffin.COMMAND_NAME;
-        public override string AbilityMenuName => Nexus.Rules.Coffin.ABILITY_NAME;
         public GameObject Coffin;
         public override int Cooldown => Nexus.Rules.Coffin.MATERIALIZE_COOLDOWN;
         public int JauntCooldown;
@@ -26,8 +24,15 @@ namespace XRL.World.Parts
         bool _justJaunted;
         bool _tookFireDamage;
         public static bool ShowDebug;
+
+        public CoffinSpell()
+        {
+            AbilityMenuName = Nexus.Rules.Coffin.ABILITY_NAME;
+            CommandName = Nexus.Rules.Coffin.COMMAND_NAME;
+        }
         public override int Roll() => WikiRng.Next(1, 20) + Level;
         //uses vampirism level like all spells
+        
         public bool UpdateXY(Cell cell)
         {
             if (cell != null)

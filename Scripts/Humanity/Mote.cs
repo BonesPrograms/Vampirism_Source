@@ -21,9 +21,9 @@ namespace XRL.World.Parts
             return base.WantEvent(ID, Cascade);
         }
 
-            public override bool HandleEvent(EndTurnEvent E)
+        public override bool HandleEvent(EndTurnEvent E)
         {
-            if (ParentObject?.CurrentCell != null && ParentObject.InInventory == null && ParentObject.Holder == null && WikiRng.Next(1, 2) == 2)
+            if (ParentObject.CurrentCell != null && ParentObject.InInventory == null && ParentObject.Holder == null && WikiRng.Next(1, 2) == 2)
                 ParentObject.Move(Directions.GetRandomDirection(), true, false, true, false, false, true, null, null, true, null, null, null, true, true, null, null);
             return base.HandleEvent(E);
         }
@@ -42,8 +42,8 @@ namespace XRL.World.Parts
                 if (CheckHumanity(h))
                 {
                     UI.Popup.Show("A chaotic storm of fractured human experience cascades over your mind like a crashing wave. For a moment, you feel alive - then it fades.");
-                    h.AddHumanity();
                     AddPlayerMessage($"You absorb {ParentObject.t()}");
+                    h.AddHumanity();
                     Secrets();
                     ParentObject.Obliterate();
                 }
@@ -53,7 +53,7 @@ namespace XRL.World.Parts
 
         void Secrets() //from mumble mouth
         {
-            if (MoteAutoMemory || WikiRng.Next(1, 5000) <= 5)
+            if (MoteAutoMemory || WikiRng.Next(1, 100) <= 5)
             {
                 IBaseJournalEntry randomUnrevealedNote = JournalAPI.GetRandomUnrevealedNote();
                 JournalMapNote obj = randomUnrevealedNote as JournalMapNote;

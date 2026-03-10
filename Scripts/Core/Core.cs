@@ -159,19 +159,11 @@ namespace Nexus.Core
 			v = Object.GetPart<Vampirism>();
 			return v != null;
 		}
-
 		public static bool IsGhoulOf(this GameObject Object, GameObject Target)
 		{
 			var e = Object.GetEffect<EnthralledGhoul>();
 			return e?.IsGhoulOf(Target) ?? false;
 		}
-
-		public static bool IsChildeOf(this GameObject Object, GameObject Target)
-		{
-			var p = Object.GetPart<FledglingVampire>();
-			return p?.IsChildeOf(Target) ?? false;
-		}
-
 		public static bool IsBeguiledBy(this GameObject Object, GameObject Target)
 		{
 			var e = Object.GetEffect<Beguiled>();

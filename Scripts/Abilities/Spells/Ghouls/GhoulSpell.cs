@@ -14,74 +14,52 @@ namespace XRL.World.Parts
     [Serializable]
     public class GhoulSpell : BaseVampireSpell
     {
-
-        public override string CommandName => Nexus.Rules.Ghoul.COMMAND_NAME;
-        public override string AbilityMenuName => Nexus.Rules.Ghoul.ABILITY_NAME;
         public override int Cooldown => Nexus.Rules.Ghoul.COOLDOWN;
-        public List<GameObject> Ghouls = new();
-        static int Max => 1; //this may change later but because it costs blood to feed ghouls i figured having 2-3 would be annoying
-        // int Max => Level switch
-        // {
-        //     <= 5 => 1,
-        //     <= 10 => 2,
-        //     <= 15 => 3,
-        //     <= 20 => 4,
-        //     <= 25 => 5,
-        //     > 25 => 6
-        // };
         const string TEXT = "to enthrall";
-
-        public override void Register(GameObject Object, IEventRegistrar Registrar)
+        public GhoulSpell()
         {
-            Registrar.Register("CanCompanionRestorePartyLeader");
+            CommandName = Nexus.Rules.Ghoul.COMMAND_NAME;
+            AbilityMenuName = Nexus.Rules.Ghoul.ABILITY_NAME;
         }
 
-        public override bool FireEvent(Event E)
+        public override bool WantEvent(int ID, int Cascade)
         {
-            if(E.ID == "CanCompanionRestorePartyLeader" && ParentObject.SupportsFollower(E.GetGameObjectParameter("Companion"), 6))
-            {
-                return false;
-            }
-            return base.FireEvent(E);
-        }
-        public override bool WantEvent(int ID, int cascade)
-        {
-            if (ID == PooledEvent<GetCompanionLimitEvent>.ID)
+            if (ID == AfterDieEvent.ID)
                 return true;
-            return base.WantEvent(ID, cascade);
-        }
-
-        public override bool HandleEvent(GetCompanionLimitEvent E)
-        {
-            if (E.Actor == ParentObject && SpellID != Guid.Empty && E.Means == "Ghoul")
-            {
-                E.Limit++;
-            }
-            return base.HandleEvent(E);
+            return base.WantEvent(ID, Cascade);
         }
         public override bool HandleEvent(CommandEvent E)
         {
             if (E.Command == Nexus.Rules.Ghoul.COMMAND_NAME && Checks.Prerequisites(base.ParentObject, Nexus.Rules.Ghoul.ABILITY_NAME, TEXT))
             {
-                if (base.ParentObject.TryGetTarget(Nexus.Rules.Ghoul.ABILITY_NAME, TEXT, out GameObject pick))
-                {
-                    if (Checks.Attackable(pick, TEXT) && CompanionCore.NotAlreadyUnderEffect(pick))
-                    {
-                        CheckGhouls();
-                        MakeAttack(pick);
-                    }
-                }
+                if (base.ParentObject.TryGetTarget(AbilityMenuName, TEXT, out GameObject pick) && Checks.Attackable(pick, TEXT) && NotAlreadyFollower(pick))
+                    MakeAttack(pick);
+
             }
             return base.HandleEvent(E);
         }
 
+        public override bool HandleEvent(AfterDieEvent E)
+        {
+            RemoveLastGhoul();
+            return base.HandleEvent(E);
+        }
+        public bool NotAlreadyFollower(GameObject pick) //for now - i have problems with you trying to mix and match these effects
+        {
+            if (pick.InSamePartyAs(ParentObject))
+            {
+                XRL.UI.Popup.Show($"{pick.t()} is already your follower.");
+                return false;
+            }
+            return true;
+        }
 
         public void MakeAttack(GameObject Target)
         {
             if (!ParentObject.IsRealityDistortionUsable())
                 RealityStabilized.ShowGenericInterdictMessage(ParentObject);
-            else if (!AlreadyEnthralled(Target, out bool containskey) && !IsVampire(Target))
-                Cast(Target, containskey);
+            else if (!IsVampire(Target))
+                Cast(Target);
         }
 
         bool IsVampire(GameObject Target)
@@ -94,69 +72,58 @@ namespace XRL.World.Parts
             return false;
         }
 
-        bool AlreadyEnthralled(GameObject Target, out bool containskey)
+        bool AlreadyEnthralled(GameObject Target, out EnthralledGhoul e)
         {
-            containskey = Ghouls.Contains(Target);
-            if (!containskey && Target.HasEffect<EnthralledGhoul>())
-            {
-                UI.Popup.Show($"{Target.t()} is already enthralled by someone else.");
-                return true;
-            }
-            return false;
+            e = Target.GetEffect<EnthralledGhoul>();
+            return e != null;
         }
 
-        public void ExpendBlood(GameObject Target, bool iskey)
+        void CheckEnthrallment(EnthralledGhoul e)
         {
-            var e = Target.GetEffect<EnthralledGhoul>();
+            if (e.Master == ParentObject)
+                ExpendBlood(e, false);
+            else
+                UI.Popup.Show($"{e.Object.t()} already has a master.");
+
+        }
+
+        void ExpendBlood(EnthralledGhoul e, bool showPopup)
+        {
             e.Buff(Roll());
-            base.ExpendBlood(iskey, $"You feed {Target.t()} your blood.");
+            string basemessage = $"You feed {e.Object.t()} your blood";
+            string output = showPopup == true ? $"{basemessage} and enthrall their mind." : $"{basemessage}.";
+            base.ExpendBlood(showPopup, output);
         }
 
 
-        void Cast(GameObject Target, bool containskey)
+        void Cast(GameObject Target)
         {
-            if (base.Cast(TEXT))
+            if (AlreadyEnthralled(Target, out var e))
+                CheckEnthrallment(e);
+            else if (base.Cast(TEXT) && RealityCheck(Target.CurrentCell) && Attack(Target))
             {
-                if (containskey)
-                    this.ExpendBlood(Target, true);
-                else if (Prerequisites(Target) && Attack(Target))
+                RemoveLastGhoul();
+                var ghoul = new EnthralledGhoul(ParentObject);
+                Target.ApplyEffect(ghoul);
+                ExpendBlood(ghoul, true);
+            }
+        }
+        bool Attack(GameObject Target) =>
+        Capabilities.Mental.PerformAttack(Enthrall, base.ParentObject, Target, null, Nexus.Rules.Ghoul.COMMAND_NAME, "1d8", 1, int.MinValue, int.MinValue, base.Roll(), Target.Stat("Level"));
+
+        void RemoveLastGhoul()
+        {
+            foreach (var obj in ParentObject.Brain.PartyMembers.ToArray())
+            {
+                var ghoul = obj.Value.Reference?.Object;
+                if (ghoul?.RemoveEffect<EnthralledGhoul>() ?? false)
                 {
-                    ApplyGhoulEffect(Target);
+                    ParentObject.Brain.PartyMembers.Remove(obj.Key);
+                    return;
                 }
             }
         }
 
-        void ApplyGhoulEffect(GameObject Target)
-        {
-            EnthralledGhoul ghoul = new(ParentObject);
-            if (Target.ApplyEffect(ghoul))
-            {
-                Ghouls.Add(Target);
-                this.ExpendBlood(Target, false);
-            }
-        }
-
-        bool Attack(GameObject Target) =>
-        Capabilities.Mental.PerformAttack(Enthrall, base.ParentObject, Target, null, Nexus.Rules.Ghoul.COMMAND_NAME, "1d8", 1, int.MinValue, int.MinValue, base.Roll(), Target.Stat("Level"));
-
-        public bool Prerequisites(GameObject Target)
-        {
-            if (!Target.FireEvent("CanApplyBeguile") || !CanApplyEffectEvent.Check(Target, "Beguile"))
-            {
-                IComponent<GameObject>.AddPlayerMessage(Target.Does("seem") + " utterly impervious to your charms.");
-                return false;
-            }
-            return base.RealityCheck(Target.CurrentCell);
-        }
-
-        void CheckGhouls()
-        {
-            foreach (var ghoul in Ghouls.ToArray())
-            {
-                if ((!ghoul?.HasHitpoints() ?? true) || !ghoul.HasEffect<EnthralledGhoul>())
-                    Ghouls.Remove(ghoul);
-            }
-        }
         bool Enthrall(MentalAttackEvent E)
         {
             GameObject defender = E.Defender;
@@ -185,17 +152,11 @@ namespace XRL.World.Parts
                     break;
             }
             stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Nexus.Rules.Ghoul.COOLDOWN);
-            stats.Set("Max Ghouls", Max.ToString());
         }
 
         public override void RemoveSpell()
         {
-            CheckGhouls();
-            foreach (var obj in Ghouls)
-            {
-                obj.RemoveEffect<EnthralledGhoul>();
-            }
-            CompanionCore.SyncTarget(ParentObject, "Ghoul", 6);
+            RemoveLastGhoul();
             base.RemoveSpell();
         }
     }

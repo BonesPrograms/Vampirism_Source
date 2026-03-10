@@ -7,7 +7,9 @@ using Nexus.Registry;
 using Nexus.Blood;
 using Nexus.Rules;
 using XRL.World.Capabilities;
-using Nexus.Patches;
+using System.Text;
+using XRL.World.Effects;
+using System.Linq;
 
 namespace XRL.World.Parts
 {
@@ -17,18 +19,26 @@ namespace XRL.World.Parts
     /// </summary>
     [Serializable]
 
-    public class Vitae : IPart
+    public class Vitae : IPart, IBloodMetabolism
     {
 
         [NonSerialized]
         public static List<GameObject> containers = new();
         public int BloodDrams => ParentObject.GetFreeDrams("blood"); //for harmony
-        public int Blood = Nexus.Rules.Vitae.BLOOD_GLUTTONOUS;
+        public int _Blood = Nexus.Rules.Vitae.BLOOD_GLUTTONOUS;
+        public int Blood
+        {
+            get => _Blood;
+            set
+            {
+                _Blood = value;
+            }
+        }
         public bool GameOver;
         public bool Bloodlusted;
         public static bool AntiPuke;
-        BloodMetabolism _Metab; //cant really add new fields (vitae has already been serialized in many peoples saves) so i have not bothered to make this into a serializable object
-        public BloodMetabolism Metab => _Metab ??= new(this);
+        VampireBloodMetabolism _Metab; //cant really add new fields (vitae has already been serialized in many peoples saves) so i have not bothered to make this into a serializable object
+        public VampireBloodMetabolism Metab => _Metab ??= new(this);
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
@@ -41,24 +51,11 @@ namespace XRL.World.Parts
         {
             if (ParentObject.IsPlayer())
             {
-                switch (E.ID)
-                {
-                    case Events.WISH_HUMANITY:
-                        GameOver = false;
-                        break;
-                    case Events.GAMEOVER:
-                        GameOver = true;
-                        break;
-                    case "AfterDrank":
-                        Overrides.Water(ref ParentObject.GetPart<Stomach>().Water);
-                        break;
-                    case "AddWater": //makes it so that you can get dehydrated
-                        object obj = E.GetParameter("Amount");
-                        if (obj is int integer && integer < 0 && ParentObject.IsPlayer())
-                            Blood += integer;
-                        break;
-                }
-
+                if (E.ID == Events.WISH_HUMANITY)
+                    GameOver = false;
+                if (E.ID == Events.GAMEOVER)
+                    GameOver = true;
+                Metab.WaterEvents(E, true);
             }
             return base.FireEvent(E);
         }
@@ -94,18 +91,22 @@ namespace XRL.World.Parts
                 BloodAutoSip();
             return base.HandleEvent(E);
         }
+
+    
         public override bool HandleEvent(InduceVomitingEvent E)
         {
             if (E.Object == ParentObject)
             {
-                Overrides.Water(ref E.Object.GetPart<Stomach>().Water);
-                Overrides.VomitEventHandler(E.Object, E.MessageHolder);
+                Metab.SetWater();
+                Metab.VomitEventHandler(E.MessageHolder);
                 if (E.Object.IsPlayer())
                     Blood -= WikiRng.Next(15000, 25000);
                 E.InterfaceExit = true;
             }
             return base.HandleEvent(E);
         }
+
+
         bool ItsTimeToDrink(string option)
         {
             switch (option)

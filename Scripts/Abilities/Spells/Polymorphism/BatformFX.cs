@@ -14,25 +14,19 @@ namespace XRL.World.Effects
     [Serializable]
     public class BatformFX : BasePolymorphFX
     {
-        public override string FormName => "bat";
-        public override string BlueprintName => "Bat";
-        public override string AnatomyName => "Quadruped";
-        public override string NewDescription => "It sheaths itself in filmy wings.";
-        public override string NewDisplayName => "vampiric bat";
-        public override string NewRenderTile => "Assets_Content_Textures_Creatures_sw_bat.bmp";
-        public override string NewColorString => "K";
-        public override string NewRenderString => "b";
-        public override string TargetFaction => Batform.FACTION;
-        public override int FactionFeeling => 100;
+
         public int OriginalCapOverride;
         public int CurrentWingLevel;
         public bool AlreadyHadWings;
         public bool WasLessThanTen;
 
-        public BatformFX()
+        public BatformFX() : base()
         {
-            DisplayName = "";
-            Duration = 9999;
+            Blueprint = GameObjectFactory.Factory.GetBlueprint("Bat");
+            FormName = "bat";
+            TargetFaction = Batform.FACTION;
+            FactionFeeling = 100;
+
         }
 
         public override bool WantEvent(int ID, int cascade)
@@ -53,25 +47,13 @@ namespace XRL.World.Effects
             Suppress(true);
             ChangeWings();
             CommandEvent.Send(base.Object, Wings.COMMAND_NAME);
-          //  Remutate();
             Suppress(false);
         }
-
         public override void Revert()
         {
             base.Revert();
             RevertWings();
         }
-
-        void Remutate()
-        {
-            var mutations = Object.GetPart<Mutations>();
-            var list = mutations.MutationList;
-            var equipmentMutations = list.Select(x => x as BaseDefaultEquipmentMutation).Where(x => x != null && x is not (Vampirism or Wings) && x.GeneratesEquipment());
-            Body body = Object.Body;
-            equipmentMutations.ForEach(x => x.Mutate(Object, x.Level));
-        }
-
         void RevertWings()
         {
             if (!AlreadyHadWings)

@@ -3,28 +3,173 @@ using XRL.World.AI;
 using System;
 using Nexus.Rules;
 using Nexus.Spells;
+using XRL.World.Effects;
+using Nexus.Blood;
+using Nexus.Core;
 
 namespace XRL.World.Effects
 {
 
+    [Serializable]
+    public class RelinquishedGhoul : IScribedEffect
+    {
+        public string MasterID;
+        public long TimeOfDeath;
+        public long TurnsUntilDeath;
+        public int LastRate;
+        int DebuffRate => PercentTimeRemaining switch
+        {
+            > 75 => 0,
+            > 50 => 2,
+            > 25 => 4,
+            _ => 6
+        };
+        long PercentTimeRemaining => TimeOfDeath - The.Game.Turns / TurnsUntilDeath * 100;
+        public RelinquishedGhoul()
+        {
+            DisplayName = "{{r|bloodstarved}}";
+            Duration = 9999;
+        }
+        public RelinquishedGhoul(GameObject Master) : this()
+        {
+            MasterID = Master.ID;
+            TurnsUntilDeath = WikiRng.Next(1000, 3000); //they will die pretty quickly
+            TimeOfDeath = The.Game.Turns + TurnsUntilDeath;
+        }
+        public override string GetDescription()
+        {
+            return "{{r|bloodstarved}}";
+        }
+        public override bool WantEvent(int ID, int Cascade)
+        {
+            if (ID == EndTurnEvent.ID || ID == ApplyEffectEvent.ID)
+                return Duration > 0;
+            return base.WantEvent(ID, Cascade);
+        }
 
-    ///SUPER IMPORTANT READ
-    ///WANTEVENT NOTE: TORCH taught us a lot about adding actions. I think I could use addinventoryaction or - i think doug told me to use tradeactions.
-    /// We should look into dromads and other traders with Scan wish, see if they have parts that show how to add trade actions
-    /// no not trade actions, i want companion actions... i think beguiling/other party stuff does that then, well see
+        public override bool HandleEvent(ApplyEffectEvent E)
+        {
+            if (E.Effect is EnthralledGhoul ghoul)
+            {
+                if (ghoul.Master.ID == MasterID)
+                {
+                    Duration = 0;
+                    return true;
+                }
+                else
+                {
+                    UI.Popup.Show($"You are not {Object.t()}'s master and {Object.it} does not desire your blood.");
+                    return false;
+                }
+            }
+            return base.HandleEvent(E);
+        }
+        public override bool HandleEvent(EndTurnEvent E)
+        {
+            if (The.Game.Turns == TimeOfDeath)
+                Object.Die();
+            else if (CheckDebuffRate())
+                Weaken();
+            return base.HandleEvent(E);
+        }
+
+        public override void Remove(GameObject Object)
+        {
+            foreach (var obj in EnthralledGhoul.BuffedStats)
+                StatShifter.RemoveStatShift(Object, obj);
+        }
+
+        bool CheckDebuffRate()
+        {
+            int debuff = DebuffRate;
+            if (LastRate == debuff) //so the ghoul only experiences debuffs in the same moment that the debuff rate increases
+                return false;
+            LastRate = debuff;
+            if (The.Player.HasLOSTo(Object))
+                AddPlayerMessage($"{Object.t()} is starving for " + "{{r|blood}}!");
+            return true;
+        }
+
+        void Weaken()
+        {
+            int debuff = DebuffRate;
+            foreach (var obj in EnthralledGhoul.BuffedStats)
+            {
+                StatShifter.SetStatShift(obj, debuff);
+            }
+        }
+    }
+    [Serializable]
+
+    public class BuffedEnthralledGhoul : IScribedEffect
+    {
+        public int BuffTime = Ghoul.BUFFTIME;
+
+        public BuffedEnthralledGhoul()
+        {
+            DisplayName = "{{r|blooddrunk}}";
+        }
+
+        public override string GetDescription()
+        {
+            return "{{r|blooddrunk}}";
+        }
+
+        public override bool WantEvent(int ID, int Cascade)
+        {
+            if (ID == EndTurnEvent.ID)
+                return true;
+            return base.WantEvent(ID, Cascade);
+        }
+
+        public override bool HandleEvent(EndTurnEvent E)
+        {
+            if (BuffTime > 0)
+                BuffTime--;
+            else
+                Debuff();
+            return base.HandleEvent(E);
+        }
+
+        public override void Remove(GameObject Object)
+        {
+            Object.GetEffect<EnthralledGhoul>().Buffed = false;
+        }
+
+        void Debuff()
+        {
+            foreach (var obj in EnthralledGhoul.BuffedStats)
+                StatShifter.RemoveStatShift(Object, obj);
+            Duration = 0;
+        }
+
+    }
+
 
     [Serializable]
-    public class EnthralledGhoul : IScribedEffect
+    public class EnthralledGhoul : IScribedEffect, IBloodMetabolism
     {
+        public static string[] BuffedStats = { "Strength", "Agility", "Toughness", "Willpower", "Ego", "Hitpoints" };
         public GameObject Master;
-        public Effect CurrentFeed;
-        public int CurrentRegen;
-        public int RegenTime;
-        public int OriginalRegenTime;
-        public int BuffTime;
         public bool Buffed;
-        public bool WasFedOn => RegenTime > 0;
-        public EnthralledGhoul() => DisplayName = "{{K|ghoul}}";
+        public int _Blood = Nexus.Rules.Vitae.BLOOD_GLUTTONOUS;
+        public int Blood
+        {
+            get => _Blood;
+            set
+            {
+                _Blood = value;
+            }
+        }
+
+        public bool Bloodstarved;
+        public string LastStatus; //used by Metab but i store it here for easy serialization : otherwise you will get notifications about ghoul bloodlevel every time you join if theyre thirsty
+        GhoulBloodMetabolism _Metab;
+        GhoulBloodMetabolism Metab => _Metab ??= new(this);
+        public EnthralledGhoul()
+        {
+            DisplayName = "{{r|ghoul}}";
+        }
         public EnthralledGhoul(GameObject Master) : this()
         {
             this.Master = Master;
@@ -32,12 +177,14 @@ namespace XRL.World.Effects
         }
         public override string GetDescription()
         {
-            return "{{K|ghoul}}";
+            return "{{r|ghoul}}";
         }
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
             Registrar.Register("ApplyProselytize");
+            Registrar.Register("AfterDrank");
+            Registrar.Register("AddWater");
         }
 
         public override bool FireEvent(Event E)
@@ -47,15 +194,26 @@ namespace XRL.World.Effects
                 UI.Popup.Show($"{Object.t()} is already enthralled.");
                 return false;
             }
+            Metab.WaterEvents(E);
             return base.FireEvent(E);
         }
         public override bool WantEvent(int ID, int Cascade)
         {
-            if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID || ID == SingletonEvent<EndTurnEvent>.ID || ID == SingletonEvent<BeforeBeginTakeActionEvent>.ID || ID == ApplyEffectEvent.ID || ID == CanApplyEffectEvent.ID)
+            if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID || ID == SingletonEvent<EndTurnEvent>.ID || ID == SingletonEvent<BeforeBeginTakeActionEvent>.ID || ID == ApplyEffectEvent.ID || ID == CanApplyEffectEvent.ID || ID == SingletonEvent<BeginTakeActionEvent>.ID)
                 return true;
             return base.WantEvent(ID, Cascade);
         }
 
+        public override bool HandleEvent(BeforeTakeActionEvent E)
+        {
+            Metab.Cycle();
+            return base.HandleEvent(E);
+        }
+
+        void CheckBloodStatus()
+        {
+
+        }
 
         public override bool HandleEvent(ApplyEffectEvent E)
         {
@@ -75,24 +233,14 @@ namespace XRL.World.Effects
             }
             return base.HandleEvent(E);
         }
-  
-        public override bool HandleEvent(BeforeBeginTakeActionEvent E)
+
+        public void Buff(int Roll)
         {
-            if (!CompanionCore.IsSupported(Master, Object))
-                Duration = 0;
-            return base.HandleEvent(E);
-        }
-        public override bool HandleEvent(EndTurnEvent E)
-        {
-            if (WasFedOn)
-                DelayRegen();
-            else
-                OriginalRegenTime = 0;
-            if (BuffTime > 0)
-                BuffTime--;
-            else if (Buffed)
-                Debuff();
-            return base.HandleEvent(E);
+            foreach (var obj in EnthralledGhoul.BuffedStats)
+                StatShifter.SetStatShift(obj, Roll);
+            Object.Heal(Roll);
+            Object.ApplyEffect(new BuffedEnthralledGhoul());
+            Buffed = true;
         }
 
         public bool IsGhoulOf(GameObject Target)
@@ -100,105 +248,22 @@ namespace XRL.World.Effects
             return Target == Master;
         }
 
-        void Debuff()
-        {
-            StatShifter.RemoveStatShift(Object, "Hitpoints");
-            Buffed = false;
-        }
-        void DelayRegen()
-        {
-            CurrentRegen++;
-            RegenTime--;
-            int percent = CurrentRegen / OriginalRegenTime * 100;
-            int newhp = percent / 100 * base.Object.baseHitpoints;
-            newhp = newhp <= 0 ? 1 : newhp;
-            base.Object.hitpoints = newhp;
-            AddPlayerMessage($"{Object.hitpoints}, {newhp}, {percent}");
-
-        }
-
-        public override bool HandleEvent(EffectAppliedEvent E)
-        {
-            if (E.Effect is IFeeding feed)
-            {
-                if (!feed.isAttacker && feed.other.Object == Master && feed.Object == Object)
-                    CurrentFeed = feed;
-            }
-            return base.HandleEvent(E);
-        }
-
-        // public override bool HandleEvent(EffectRemovedEvent E)
-        // {
-        //     if (E.Effect is IFeeding feed && feed == CurrentFeed)
-        //     {
-        //         int bonus = Roll() * 100;
-        //         int time = GHOUL.REGEN - bonus;
-        //         RegenTime = time < GHOUL.MIN ? GHOUL.MIN : time;
-        //         RegenTime = 500;
-        //         OriginalRegenTime = RegenTime;
-        //         CurrentFeed = null;
-        //     }
-        //     return base.HandleEvent(E);
-        // }
-
-        public override bool HandleEvent(DeathEvent E)
-        {
-            GhoulSpell spell = Master?.GetPart<GhoulSpell>();
-            spell?.Ghouls?.Remove(Object);
-            return base.HandleEvent(E);
-        }
-
-        public void Buff(int Roll)
-        {
-            StatShifter.SetStatShift("Hitpoints", Roll); //"Hitpoints"
-            Object.Heal(Roll);
-            BuffTime = Ghoul.BUFFTIME;
-            Buffed = true;
-        }
-
         public override bool Apply(GameObject Object)
         {
-            if (!GameObject.Validate(ref Master))
+            if (!GameObject.Validate(Master))
                 return false;
             if (Object.Brain == null)
                 return false;
-            CompanionCore.Ally<AllyEnthralledGhoul>(Object, Master, "Ghoul", $"You enthrall {Object.t()}'s mind.", 6);
-            CompanionCore.AllyOpinion<OpinionEnthralledGhoul>(Object, Master);
+            Object.BecomeCompanionOf(Master);
             return true;
         }
         public override void Remove(GameObject Object)
         {
-            CompanionCore.Dismiss<AllyEnthralledGhoul>(Master, Object, "You release " + Object.t() + "'s mind", 6);
-            CompanionCore.DismissOpinion<OpinionEnthralledGhoul>(Object, Master);
-            CompanionCore.SyncTarget(Master, "Ghoul", 6);
-            Master = null;
+            Object.PartyLeader = null;
+            Object.Target = null;
+            Object.ApplyEffect(new RelinquishedGhoul(Master));
             base.Remove(Object);
         }
 
-
-
     }
-}
-
-namespace XRL.World.AI
-{
-
-    [Serializable]
-    public class AllyEnthralledGhoul : AllyProselytize
-    {
-        public override string GetText(GameObject Actor)
-        {
-            return "I am a thrall to " + Name + ".";
-        }
-    }
-
-    [Serializable]
-    public class OpinionEnthralledGhoul : OpinionProselytize
-    {
-        public override string GetText(GameObject Actor)
-        {
-            return "Enthralled me.";
-        }
-    }
-
 }

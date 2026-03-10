@@ -23,18 +23,18 @@ namespace Nexus.Properties
         /// </summary>
         public static class Blood
         {
-            public const string GLUT = nameof(BloodMetabolism.Glut);
-            public const string QUENCHED = nameof(BloodMetabolism.Quenched);
-            public const string THIRSTY = nameof(BloodMetabolism.Thirsty);
-            public const string PARCHED = nameof(BloodMetabolism.Parched);
-            public const string MIN = nameof(BloodMetabolism.Min);
+            public const string GLUT = nameof(VampireBloodMetabolism.Glut);
+            public const string QUENCHED = nameof(VampireBloodMetabolism.Quenched);
+            public const string THIRSTY = nameof(VampireBloodMetabolism.Thirsty);
+            public const string PARCHED = nameof(VampireBloodMetabolism.Parched);
+            public const string MIN = nameof(VampireBloodMetabolism.Min);
         }
         public static string TRUE = bool.TrueString;
         public static string FALSE = bool.FalseString;
         public const string TRUE_LEGACY = "true";
         ///compatibility for when the literal was "true" instead of bool.TrueString
 		//the innocent flag is immutable so anyone who played before the change
-		//will have objects that have the old literal
+		//will have objects that have the old litera
 
         public const string SPELLS = "HasVampirismSpells";
 
@@ -96,6 +96,8 @@ namespace Nexus.Properties
         /// Special flag used to prevent DeathEventHandler from duplicating humanity losses if a true innocent or companion dies during feeding, due to the automatic application of VICTIM on feed removal.
         /// </summary>
         public const string DEAD = "VampirismModKilledDuringFeed";
+
+        public const string FLEDGLING = "VampireFledgingMod";
 
         public const string MOD_VERSION = "OldVampirismSaveNeedsUpdate"; //note: this may become a mod version identifier for all vampires on gameload/
         //                                                              /anyone who doesnt have it will get it, anyone who has it and doesnt sync with the version will be updated

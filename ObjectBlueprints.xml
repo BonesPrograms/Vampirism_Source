@@ -54,6 +54,6 @@
    		 <tag Name="OverlayColor" Value="&amp;G^k" />
    		<part Name="Physics" Organic="false" Takeable="true" Solid="false" Weight="1"/>
 		<part Name="LightSource" Lit="true" Radius="1" />
-		<part Name="Description" Short="A shadow of memories left behind by the decay of life force. Joy, disgust, desire and misery homogenize into a writhing dark miasma, seeping with feeling. It whispers echoes of a fragmented past into your mind."/>
+		<part Name="Description" Short="A shadow of memories left behind by the decay of life force. Joy, disgust, desire and misery homogenize into a writhing dark miasma, swirling and seeping with feeling. It whispers echoes of a fragmented past into your mind."/>
 	</object>
 </objects>

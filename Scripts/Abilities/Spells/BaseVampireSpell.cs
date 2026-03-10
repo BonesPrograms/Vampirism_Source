@@ -11,6 +11,7 @@ using XRL.World;
 using XRL.UI;
 using XRL.World.AI;
 using System.Linq;
+using UnityEngine.UI;
 
 namespace XRL.World.Parts
 {
@@ -20,11 +21,12 @@ namespace XRL.World.Parts
     {
         public Guid SpellID = Guid.Empty;
         public const string CATEGORY = "Blood Magic";
-        public abstract string CommandName { get; }
-        public abstract string AbilityMenuName { get; }
-        public abstract int Cooldown { get; }
+        public string CommandName; //should be assigned in public parameterless constructor
+        public string AbilityMenuName;
         public int Level => ParentObject.GetPart<Vampirism>().Level;
         public virtual int Cost => Nexus.Rules.Vitae.BLOOD_PER_SIP; //default 10k  
+        public abstract int Cooldown { get; } //these are getter-only so that they can be easily changed in the future if i want
+        public virtual bool Toggled => false; //this is only for AddMyActivatedAbility. you need to track the actual toggled on/off state yourself
         public abstract void CollectStats(Templates.StatCollector stats);
         public override bool WantEvent(int ID, int Cascade)
         {
@@ -43,7 +45,11 @@ namespace XRL.World.Parts
         }
         public virtual void AddSpell()
         {
-            SpellID = AddMyActivatedAbility(AbilityMenuName, CommandName, CATEGORY, null, "\u009f");
+            if (CommandName.IsNullOrEmpty())
+                throw new Exception($"CommandName not assigned to {GetType().Name}!");
+            if (AbilityMenuName.IsNullOrEmpty())
+                throw new Exception($"AbiltiyMenuName not assigned to {GetType().Name}!");
+            SpellID = AddMyActivatedAbility(AbilityMenuName, CommandName, CATEGORY, null, "\u009f", Toggleable: Toggled);
         }
         public virtual void RemoveSpell()
         {
@@ -110,17 +116,7 @@ namespace Nexus.Spells
     }
     public static class CompanionCore
     {
-        public static bool NotAlreadyUnderEffect(GameObject pick, bool showPopup = true) //for now - i have problems with you trying to mix and match these effects
-        {
-            Effect e = pick.Effects.FirstOrDefault(CheckEffect);
-            if (e != null)
-            {
-                if (showPopup)
-                    XRL.UI.Popup.Show($"{pick.t()} is already your follower.");
-                return false;
-            }
-            return true;
-        }
+
         public static bool CheckEffect(Effect e) => e is Beguiled or Proselytized or EnthralledGhoul;
         public static void SyncTarget(GameObject Beguiler, string means, int mask, GameObject Target = null)
         {

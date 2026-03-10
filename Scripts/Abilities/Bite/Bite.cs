@@ -24,19 +24,16 @@ namespace Nexus.Bite
         public bool IsPoisoned => Poisons.Any(x => x.Item2);
         readonly Vampirism _vampirism;
         readonly BiteSimulator _sim;
-
-        /// <summary>
-        /// For debug only. Used to access the arrays.
-        /// </summary>
-        public Bite() : base()
+        public static string[] GiveBadLiquids() //for debugging
         {
+            return new Bite(null, null).BadLiquids.Select(x => x.Item1).ToArray();
         }
         public Bite(GameObject Biter, Vampirism Vampirism) : base(Biter)
         {
             this._vampirism = Vampirism;
             _sim = new(Biter, this);
         }
-        public (string,bool)[] Flags => new (string,bool)[]
+        public (string, bool)[] Flags => new (string, bool)[]
         {
             (nameof(IsOnFire),IsOnFire), (nameof(HasPlasma), HasPlasma), (nameof(HasBadLiquid), HasBadLiquid), (nameof(HasDisease), HasDisease), (nameof(IsPoisoned), IsPoisoned)
         };
@@ -70,7 +67,7 @@ namespace Nexus.Bite
         bool VomitEnding(GameObject Target)
         {
             Fail(Target);
-            Blood.Overrides.Vomit(Biter);
+            Nexus.Blood.IBloodMetabolism.Vomit(Biter);
             return true;
         }
 
@@ -184,7 +181,7 @@ namespace Nexus.Bite
         }
         static void CheckEffects(GameObject Target, (Type, bool)[] source)
         {
-            for(int i = 0; i < source.Length; i++)
+            for (int i = 0; i < source.Length; i++)
             {
                 source[i].Item2 = Target.HasEffect(source[i].Item1);
             }

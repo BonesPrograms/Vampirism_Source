@@ -16,16 +16,13 @@ namespace XRL.World.Effects
     [Serializable]
     public abstract class BasePolymorphFX : Effect
     {
-        public abstract string NewDescription {get;}
-        public abstract string NewDisplayName { get; }
-        public abstract string NewRenderTile { get; }
-        public abstract string NewColorString { get; }
-        public abstract string NewRenderString { get; }
-        public abstract string FormName { get; }
-        public abstract string BlueprintName { get; }
-        public abstract string AnatomyName { get; }
-        public virtual string TargetFaction { get; }
-        public virtual int FactionFeeling { get; }
+        [NonSerialized]
+        public GameObjectBlueprint Blueprint; //does not need to be serialized, just needs to be there on initialization for Transform to access
+        public string FormName;
+        public string TargetFaction;
+        public int FactionFeeling;
+        //4 fields above may be assigned in constructor
+        //fields below will be overwritten
         public string OldTile;
         public string OldDisplayName;
         public string OldColorString; //changing color isnt actually working right now but it will one day i assure ye
@@ -38,6 +35,13 @@ namespace XRL.World.Effects
 
         [NonSerialized]
         public GameObject OldObject;
+
+        public BasePolymorphFX()
+        {
+            Duration = 9999;
+            DisplayName = "";
+        }
+
         public override void Write(GameObject Basis, SerializationWriter Writer)
         {
             Writer.Write(OriginallyEquippedObjects.Count);
@@ -56,9 +60,20 @@ namespace XRL.World.Effects
             base.Read(Basis, Reader);
         }
 
-
+        void VerifyInitialization()
+        {
+            if (FormName.IsNullOrEmpty())
+                throw new Exception($"FormName not assigned in {GetType().Name}!");
+            if (Blueprint == null)
+                throw new Exception($"Blueprint not assigned in {GetType().Name}!");
+            if (!Blueprint.DescendsFrom("Creature"))
+                throw new Exception($"Blueprint does not descend from Creature in {GetType().Name}!");
+            if (Blueprint.GetPart(nameof(Body)) == null)
+                throw new Exception($"Blueprint does not have a body.");
+        }
         public override bool Apply(GameObject Object)
         {
+            VerifyInitialization();
             Transform();
             return true;
         }
@@ -108,12 +123,11 @@ namespace XRL.World.Effects
         void ChangeLook()
         {
 
-            base.Object.DisplayName = NewDisplayName;
-            base.Object.Render.Tile = NewRenderTile;
-            base.Object.Render.ColorString = NewColorString;
-            base.Object.Render.RenderString = NewRenderString;
+            base.Object.DisplayName = Blueprint.DisplayName();
+            base.Object.Render.Tile = Blueprint.GetPartParameter<string>(nameof(Parts.Render), "Tile");
+            base.Object.Render.ColorString = Blueprint.GetPartParameter<string>(nameof(Parts.Render), "TileColor");
+            base.Object.Render.RenderString = Blueprint.GetPartParameter<string>(nameof(Parts.Render), "DetailColor");
         }
-
         void SaveLook()
         {
             OldColorString = base.Object.Render.ColorString;
@@ -125,22 +139,22 @@ namespace XRL.World.Effects
         void ChangeBody()
         {
             OldObject = Object.DeepCopy(CopyID: true);
-            base.Object.Body.Anatomy = AnatomyName;
+            base.Object.Body.Anatomy = Blueprint.GetPartParameter<string>(nameof(Body), "Anatomy");
         }
 
         void ChangeBlueprint()
         {
             OriginalBlueprint = Object.Blueprint;
-            Object.SetBlueprint(GameObjectFactory.Factory.Blueprints[BlueprintName]); //final piece of the puzzle, this allows you to get bat sounds which are stored as tags and only accessible through their blueprint
+            Object.SetBlueprint(Blueprint); //final piece of the puzzle, this allows you to get bat sounds which are stored as tags and only accessible through their blueprint
         }
 
         void ChangeDescription()
         {
             if (VerifyObject())
             {
-                var Description = base.Object.GetPart<Description>();
-                LastDescriptionShort = Description.Short;
-                Description.Short = NewDescription;
+                var description = base.Object.GetPart<Description>();
+                LastDescriptionShort = description.Short;
+                description.Short = Blueprint.GetPartParameter<string>(nameof(Description), "Short");
             }
         }
 

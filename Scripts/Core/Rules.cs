@@ -30,11 +30,6 @@ namespace Nexus.Rules
 
         public const int COOLDOWN = 1000;
     }
-    static class Fledgling
-    {
-        public const int TIMER = 500;
-    }
-
     static class Coffin
     {
 
@@ -128,7 +123,7 @@ namespace Nexus.Rules
         public const int BLOOD_PUKE = 50000; //equivelant storage values to a stomach
 
         public static int BLOOD_METAB => Options.GetOptionBool(ModOptions.HUNTER) ? Metab_Settings.HUNTER : Metab_Settings.DEFAULT;
-        static class Metab_Settings
+        public static class Metab_Settings
         {
             public const int HUNTER = 5;
             public const int DEFAULT = 20; //same value for stomach water metab. funny cause in decompiled code, appears to just be a magic number!!!!
@@ -141,8 +136,8 @@ namespace Nexus.Rules
 
         public const int GHOUL_PUKE_WARN = BLOOD_PUKE - BLOOD_PER_GHOUL;
 
-        public const int BLOOD_PER_BLOODLOSS = 100;
-        public const int BLOOD_PER_BLOODLOSS_FEED = 100; //used to be a different number but im experimenting with values rn, may become a diff number again one day
+        public const int BLOOD_PERBloodLOSS = 100;
+        public const int BLOOD_PERBloodLOSS_FEED = 100; //used to be a different number but im experimenting with values rn, may become a diff number again one day
                                                             //used to be 500 but i got complaints so now its 100
     }
 }
