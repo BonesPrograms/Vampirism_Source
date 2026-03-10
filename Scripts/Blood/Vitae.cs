@@ -91,7 +91,7 @@ namespace XRL.World.Parts
                 BloodAutoSip();
             return base.HandleEvent(E);
         }
-
+    
     
         public override bool HandleEvent(InduceVomitingEvent E)
         {
@@ -104,8 +104,7 @@ namespace XRL.World.Parts
         {
             return option switch
             {
-                ModOptions.Autosip_Settings.QUENCH => Blood < Nexus.Rules.Vitae.BLOOD_GLUTTONOUS,
-                //in our code, being marked as "thirsty" actually means your blood is > thirsty and < quenched
+                ModOptions.Autosip_Settings.QUENCH => Blood < Nexus.Rules.Vitae.BLOOD_GLUTTONOUS, //in our code, being marked as "thirsty" actually means your blood is > thirsty and < quenched
                 ModOptions.Autosip_Settings.THIRSTY => Blood < Nexus.Rules.Vitae.BLOOD_QUENCHED,//kind of confusing but i dont care to change it now
                 ModOptions.Autosip_Settings.PARCHED => Blood < Nexus.Rules.Vitae.BLOOD_THIRSTY,
                 ModOptions.Autosip_Settings.MIN => Blood < Nexus.Rules.Vitae.BLOOD_PARCHED,

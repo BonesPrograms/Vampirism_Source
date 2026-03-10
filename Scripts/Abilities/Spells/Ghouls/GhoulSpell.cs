@@ -2,11 +2,11 @@ using System;
 using XRL.World.Effects;
 using Nexus.Core;
 using Nexus.Rules;
-using Nexus.Spells;
 using XRL.World.AI;
 using System.Collections.Generic;
 using System.Linq;
 using XRL.World.Parts.Mutation;
+using Nexus.Blood;
 
 namespace XRL.World.Parts
 {
@@ -81,7 +81,13 @@ namespace XRL.World.Parts
         void CheckEnthrallment(EnthralledGhoul e)
         {
             if (e.Master == ParentObject)
-                ExpendBlood(e, false);
+            {
+                e.Metab.StatusToString(out BloodLevel level);
+                if (level == BloodLevel.GLUT)
+                    AddPlayerMessage($"{e.Object.t()} is already gorged on " + "{{r|blood}}.");
+                else
+                    ExpendBlood(e, false);
+            }
             else
                 UI.Popup.Show($"{e.Object.t()} already has a master.");
 

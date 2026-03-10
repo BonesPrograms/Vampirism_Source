@@ -2,7 +2,6 @@ using XRL.World.Parts;
 using XRL.World.AI;
 using System;
 using Nexus.Rules;
-using Nexus.Spells;
 using XRL.World.Effects;
 using Nexus.Blood;
 using Nexus.Core;
@@ -162,10 +161,10 @@ namespace XRL.World.Effects
             }
         }
 
-        public bool Bloodstarved;
+        public bool Bloodstarved; //also only used by Metab but it occurs to me now that metabolism is 50% of the functionality so its ok
         public string LastStatus; //used by Metab but i store it here for easy serialization : otherwise you will get notifications about ghoul bloodlevel every time you join if theyre thirsty
         GhoulBloodMetabolism _Metab;
-        GhoulBloodMetabolism Metab => _Metab ??= new(this);
+        public GhoulBloodMetabolism Metab => _Metab ??= new(this);
         public EnthralledGhoul()
         {
             DisplayName = "{{r|ghoul}}";

@@ -190,6 +190,7 @@ namespace XRL.World.Parts.Mutation
 				The.Game.TimeTicks++;
 		}
 
+		//this method is used across the board by everyone except this type itself
         public static bool SunlightInterference(GameObject ParentObject)
         {
             if (Options.GetOptionBool(ModOptions.NIGHTBEAST))

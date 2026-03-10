@@ -34,14 +34,14 @@ namespace Nexus.Blood
 
         void SetBloodValue()
         {
-            Source.Blood -= Rules.Vitae.BLOOD_METAB;
+            Blood -= Rules.Vitae.BLOOD_METAB;
             Metaboliser.SetStringProperty(Flags.BLOOD_STATUS, StatusToString(out _));
-            Metaboliser.SetIntProperty(Flags.BLOOD_VALUE, Source.Blood);
+            Metaboliser.SetIntProperty(Flags.BLOOD_VALUE, Blood);
         }
 
         void Overfed()
         {
-            if (Source.Blood >= Rules.Vitae.BLOOD_PUKE && !Metaboliser.CheckFlag(Flags.FRENZY))
+            if (Blood >= Rules.Vitae.BLOOD_PUKE && !Metaboliser.CheckFlag(Flags.FRENZY))
             {
                 Popup.Show("You overfed!");
                 Vomit();
@@ -52,14 +52,14 @@ namespace Nexus.Blood
         {
             if (Metaboliser.HasEffect<Bleeding>() && Options.GetOptionBool(ModOptions.BLEED_THIRST))
             {
-                Source.Blood -= Metaboliser.CheckFlag(Flags.FEED) ? Rules.Vitae.BLOOD_PERBloodLOSS_FEED : Rules.Vitae.BLOOD_PERBloodLOSS;
+                Blood -= Metaboliser.CheckFlag(Flags.FEED) ? Rules.Vitae.BLOOD_PERBloodLOSS_FEED : Rules.Vitae.BLOOD_PERBloodLOSS;
                 IComponent<GameObject>.AddPlayerMessage("Bloodloss makes you {{R|thistier}}!");
             }
         }
 
         void CheckForBloodlust()
         {
-            if (!Source.Bloodlusted && Source.Blood < Rules.Vitae.BLOOD_QUENCHED)
+            if (!Source.Bloodlusted && Blood < Rules.Vitae.BLOOD_QUENCHED)
             {
                 Source.Bloodlusted = true;
                 Metaboliser.ApplyEffect(new Bloodlust(9999, Source.GameOver));

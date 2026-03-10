@@ -17,7 +17,7 @@ namespace Nexus.Blood
             SetWater();
             if (NotAtMinimum())
             {
-                Source.Blood -= RATE;
+                Blood -= RATE;
                 if (StatusChange(out var status))
                     CheckStatus(status);
             }

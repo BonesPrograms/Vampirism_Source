@@ -4,7 +4,6 @@ using Nexus.Rules;
 using XRL.World.Effects;
 using Nexus.Core;
 using Nexus.Properties;
-using Nexus.Spells;
 using XRL.World.Parts.Mutation;
 using XRL.World.Parts;
 using XRL.World;
@@ -79,7 +78,7 @@ namespace XRL.World.Parts
             }
             return false;
         }
-        public bool RealityCheck(Cell cell) => SpellCore.RealityCheck(cell, ParentObject, CATEGORY, this);
+        public bool RealityCheck(Cell cell) => RealityCheck(cell, CATEGORY, this); //i already made this and im lazy and dont feel like rewriting all my reality checks for the static method
 
         public void ExpendBlood(bool noPopup, string text)
         {
@@ -94,97 +93,17 @@ namespace XRL.World.Parts
         {
             ParentObject.GetPart<XRL.World.Parts.Vitae>().Blood -= Cost;
         }
-    }
-}
 
-namespace Nexus.Spells
-{
-    //mostly based off methods from beguiling/persuasion
-
-    public static class SpellCore
-    {
-        public static bool RealityCheck<T>(Cell cell, GameObject ParentObject, string category, T Invoker) where T : IPart
+        public static bool RealityCheck<T>(Cell cell, string category, T invoker) where T : IPart
         {
-            Event E = Event.New("InitiateRealityDistortionTransit", "Object", ParentObject, $"{category}", Invoker, "Cell", cell);
-            if (!ParentObject.FireEvent(E) || !ParentObject.CurrentCell.FireEvent(E))
+            GameObject parentObject = invoker.ParentObject;
+            Event E = Event.New("InitiateRealityDistortionTransit", "Object", parentObject, $"{category}", invoker, "Cell", cell);
+            if (!parentObject.FireEvent(E) || !parentObject.CurrentCell.FireEvent(E))
             {
-                RealityStabilized.ShowGenericInterdictMessage(ParentObject);
+                RealityStabilized.ShowGenericInterdictMessage(parentObject);
                 return false;
             }
             return true;
         }
     }
-    public static class CompanionCore
-    {
-
-        public static bool CheckEffect(Effect e) => e is Beguiled or Proselytized or EnthralledGhoul;
-        public static void SyncTarget(GameObject Beguiler, string means, int mask, GameObject Target = null)
-        {
-            if (Beguiler.Brain == null)
-            {
-                return;
-            }
-            int num = GetCompanionLimitEvent.GetFor(Beguiler, means);
-            if (Target == null)
-            {
-                num++;
-            }
-            XRL.World.AI.PartyCollection partyMembers = Beguiler.Brain.PartyMembers;
-            int[] array = (from x in partyMembers
-                           where x.Value.Flags.HasBit(mask)
-                           orderby Brain.PartyMemberOrder(x) descending
-                           select x.Key).ToArray();
-            int num2 = 0;
-            for (int num3 = array.Length; num3 >= num; num3--)
-            {
-                partyMembers.Remove(array[num2]);
-                num2++;
-            }
-            if (Target != null)
-            {
-                partyMembers[Target] = mask;
-            }
-        }
-
-        public static void Ally<T>(GameObject Object, GameObject Master, string Means, string text, int mask) where T : IAllyReasonSourced, new()
-        {
-            Object.PlayWorldSound("Sounds/StatusEffects/sfx_statusEffect_charm");
-            IComponent<GameObject>.AddPlayerMessage(text);
-            Object.Heartspray();
-            CompanionCore.SyncTarget(Master, Means, mask, Object);
-            Object.SetAlliedLeader<T>(Master);
-        }
-
-        public static void Dismiss<T>(GameObject Master, GameObject Object, string text, int mask) where T : IAllyReasonSourced
-        {
-            if (GameObject.Validate(ref Master) && Object.PartyLeader == Master && !Master.SupportsFollower(Object, mask))
-            {
-                Object.Brain.PartyLeader = null;
-                Object.Brain.Goals.Clear();
-                if (Object.InSameZone(Master?.CurrentCell))
-                    IComponent<GameObject>.AddPlayerMessage(text);
-            }
-            Object.Brain.RemoveAllegiance<T>(Master?.BaseID ?? 0);
-        }
-
-        public static void AllyOpinion<T>(GameObject Object, GameObject Master) where T : IOpinionSubject, new()
-        {
-            if (Object.Brain != null && GameObject.Validate(ref Master))
-                Object.Brain.AddOpinion<T>(Master);
-        }
-
-        public static void DismissOpinion<T>(GameObject Object, GameObject Master) where T : IOpinionSubject
-        {
-            if (Object.Brain != null && GameObject.Validate(ref Master))
-                Object.Brain.RemoveOpinion<T>(Master);
-        }
-        public static bool IsSupported(GameObject Master, GameObject Object)
-        {
-            if (GameObject.Validate(ref Master) || !Master.HasHitpoints())
-                return Master.SupportsFollower(Object);
-            return false;
-        }
-    }
 }
-
-

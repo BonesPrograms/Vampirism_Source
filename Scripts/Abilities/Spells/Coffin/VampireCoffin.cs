@@ -1,5 +1,4 @@
 using System;
-using Nexus.Spells;
 
 namespace XRL.World.Parts
 {
@@ -63,7 +62,7 @@ namespace XRL.World.Parts
             if (E.Actor?.ID != OwnerID && !E.Damage.Attributes.Contains("Fire"))
             {
                 Cell cell = ParentObject.CurrentZone?.GetEmptyCells()?.GetRandomElement();
-                if (cell != null && SpellCore.RealityCheck(cell, ParentObject, BaseVampireSpell.CATEGORY, this))
+                if (cell != null && BaseVampireSpell.RealityCheck(cell, BaseVampireSpell.CATEGORY, this))
                 {
                     NotifyTargetImmuneEvent.Send(E.Weapon, E.Object, E.Actor, E.Damage, this);
                     ParentObject.ParticleBlip("&R\u000f", 10, 0L);

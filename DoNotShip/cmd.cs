@@ -859,7 +859,7 @@ namespace XRL.World.Parts
             {
                 The.Player.AddBaseStat(stats[i], 100);
             }
-            The.Player.AddSkill<ShortBladesBloodletter>();
+            The.Player.AddSkill<ShortBlades_Bloodletter>();
             The.Player.AddSkill<Physic_AmputateLimb>();
             The.Player.AddSkill<Persuasion_Proselytize>();
             The.Player.Inventory.AddObject("Battle Axe2");
