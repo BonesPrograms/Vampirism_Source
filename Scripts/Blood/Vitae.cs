@@ -37,8 +37,8 @@ namespace XRL.World.Parts
         public bool GameOver;
         public bool Bloodlusted;
         public static bool AntiPuke;
-        VampireBloodMetabolism _Metab; //cant really add new fields (vitae has already been serialized in many peoples saves) so i have not bothered to make this into a serializable object
-        public VampireBloodMetabolism Metab => _Metab ??= new(this);
+        VampireMetabolism _Metab; //cant really add new fields (vitae has already been serialized in many peoples saves) so i have not bothered to make this into a serializable object
+        public VampireMetabolism Metab => _Metab ??= new(this);
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {

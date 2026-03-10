@@ -6,10 +6,10 @@ using Nexus.Rules;
 
 namespace Nexus.Blood
 {
-    public class GhoulBloodMetabolism : BaseBloodMetabolism<EnthralledGhoul>
+    public class GhoulMetabolism : BaseBloodMetabolism<EnthralledGhoul>
     {
         const int RATE = Vitae.Metab_Settings.DEFAULT;
-        public GhoulBloodMetabolism(EnthralledGhoul ghoul) : base(ghoul)
+        public GhoulMetabolism(EnthralledGhoul ghoul) : base(ghoul)
         {
         }
         public override void Cycle()

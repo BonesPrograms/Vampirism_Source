@@ -48,6 +48,16 @@ namespace Nexus.Blood
         public readonly T Source;
         public readonly GameObject Metaboliser;
         public readonly Stomach Stomach;
+        public BloodLevel Status
+        {
+            get => _status;
+            private set
+            {
+                StatusToString(out value);
+                _status = value;
+            }
+        }
+        BloodLevel _status;
         public bool Glut => Blood >= Rules.Vitae.BLOOD_GLUTTONOUS;
         public bool Quenched => Blood >= Rules.Vitae.BLOOD_QUENCHED && Blood < Rules.Vitae.BLOOD_GLUTTONOUS;
         public bool Thirsty => Blood >= Rules.Vitae.BLOOD_THIRSTY && Blood < Rules.Vitae.BLOOD_QUENCHED;
@@ -107,7 +117,7 @@ namespace Nexus.Blood
                 }
             }
         }
-        public string StatusToString(out BloodLevel bloodLevel)//so many different ways to track blood... booleans, strings, enums, integers - choose your favorite!
+        protected string StatusToString(out BloodLevel bloodLevel)//so many different ways to track blood... booleans, strings, enums, integers - choose your favorite!
         {                                                       //strings: legacy, what i initially came up with, abstracted value of what your bloodlevel generally is tracked in GameObject.Property as string labels
             if (Glut)                                           //raw integer - legacy, what i initially came up with, you compare the value against my constants for integer blood levels, tracked in GameObject.IntProperty
             {                                                   //enum - super combo: strings dont work for comparison

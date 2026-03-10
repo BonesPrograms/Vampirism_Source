@@ -8,9 +8,9 @@ using Nexus.Rules;
 namespace Nexus.Blood
 {
 
-    public class VampireBloodMetabolism : BaseBloodMetabolism<XRL.World.Parts.Vitae>
+    public class VampireMetabolism : BaseBloodMetabolism<XRL.World.Parts.Vitae>
     {
-        public VampireBloodMetabolism(XRL.World.Parts.Vitae Source) : base(Source)
+        public VampireMetabolism(XRL.World.Parts.Vitae Source) : base(Source)
         {
         }
         public override void Cycle()

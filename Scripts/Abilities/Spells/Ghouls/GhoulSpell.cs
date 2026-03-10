@@ -82,7 +82,7 @@ namespace XRL.World.Parts
         {
             if (e.Master == ParentObject)
             {
-                e.Metab.StatusToString(out BloodLevel level);
+                var level = e.Metab.Status;
                 if (level == BloodLevel.GLUT)
                     AddPlayerMessage($"{e.Object.t()} is already gorged on " + "{{r|blood}}.");
                 else

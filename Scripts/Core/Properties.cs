@@ -23,11 +23,11 @@ namespace Nexus.Properties
         /// </summary>
         public static class Blood
         {
-            public const string GLUT = nameof(VampireBloodMetabolism.Glut);
-            public const string QUENCHED = nameof(VampireBloodMetabolism.Quenched);
-            public const string THIRSTY = nameof(VampireBloodMetabolism.Thirsty);
-            public const string PARCHED = nameof(VampireBloodMetabolism.Parched);
-            public const string MIN = nameof(VampireBloodMetabolism.Min);
+            public const string GLUT = nameof(VampireMetabolism.Glut);
+            public const string QUENCHED = nameof(VampireMetabolism.Quenched);
+            public const string THIRSTY = nameof(VampireMetabolism.Thirsty);
+            public const string PARCHED = nameof(VampireMetabolism.Parched);
+            public const string MIN = nameof(VampireMetabolism.Min);
         }
         public static string TRUE = bool.TrueString;
         public static string FALSE = bool.FalseString;
