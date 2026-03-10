@@ -1,6 +1,6 @@
 
 using System;
-using Nexus.Spells;
+
 using XRL.World.AI;
 using XRL.World.Effects;
 using System.Linq;

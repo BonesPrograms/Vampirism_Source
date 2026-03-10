@@ -8,7 +8,7 @@ using Nexus.Core;
 using Nexus.Registry;
 using XRL.World.Parts.Mutation;
 using Nexus.Frenzy;
-using Nexus.Spells;
+
 
 using SerializeField = UnityEngine.SerializeField;
 using AiUnity.NLog.Core.Targets;

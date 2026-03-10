@@ -8,7 +8,7 @@ namespace XRL.World.Parts
     [Serializable]
     public abstract class BasePolymorphSpell : BaseVampireSpell //the original version used metamorphosis to turn you into a literal bat, but your party would not sync and i didnt feel like trying to fix that
     {                                           //because the alternative is easier: fake transformation as you see in this type. there are also tons of other issues like mutations and stats and precognition not easily being synced so this is optimal
-        public bool Transformed => ParentObject.IsPolymorphed();
+        public bool Transformed;
         public override bool Toggled => true;
         public string FormName;
         public string HUDName;
@@ -36,8 +36,9 @@ namespace XRL.World.Parts
                     Cast();
                 else
                 {
+                    Transformed = false;
                     ToggleMyActivatedAbility(SpellID, ParentObject, true);
-                    ParentObject.RemoveEffectDescendedFrom<BasePolymorphFX>();
+                    ParentObject.RemoveEffect(GetType());
                 }
             }
             return base.HandleEvent(E);
@@ -49,6 +50,7 @@ namespace XRL.World.Parts
                 ExpendBlood();
                 if (RealityCheck(ParentObject.CurrentCell))
                 {
+                    Transformed = true;
                     ToggleMyActivatedAbility(SpellID, ParentObject, true);
                     ParentObject.ApplyEffect(PolymorphFX);
                 }

@@ -2,7 +2,7 @@ using System;
 using XRL.World.Effects;
 using Nexus.Core;
 using Nexus.Rules;
-using Nexus.Spells;
+
 using SerializeField = UnityEngine.SerializeField;
 using System.Linq;
 using XRL.World.Parts.Mutation;

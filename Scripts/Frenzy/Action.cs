@@ -7,7 +7,7 @@ using Nexus.Properties;
 using Nexus.Attack;
 using XRL.World.Effects;
 using XRL.World.AI.Pathfinding;
-using Nexus.Spells;
+
 using XRL.World.Parts.Mutation;
 
 namespace Nexus.Frenzy

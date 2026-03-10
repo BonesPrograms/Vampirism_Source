@@ -5,6 +5,7 @@ using System.Text;
 using System.Linq;
 using XRL.UI;
 using Nexus.Core;
+using System;
 
 
 namespace Nexus.Blood
@@ -26,13 +27,12 @@ namespace Nexus.Blood
         public static readonly string[] VomitStrings = { "You vomit!", "You vomit {{R sequence|blood!}}" };
         public static void Vomit(GameObject bloodMetaboliser) //this is a force-vomit invoker for blooddrinkers, if you want them to vomit at a certain threshold, invoke this
         {                                                      //all inheritors of BaseBloodMetabolism<T> have access to an instance version of Vomit(GameObject)
-            StringBuilder MessageHolder = new();
             if (bloodMetaboliser.IsPlayer())
                 Popup.Show(VomitStrings[1]);
             else
                 IComponent<GameObject>.AddPlayerMessage($"{bloodMetaboliser.t()} vomits " + "{{R|blood}}!");
             bool ExitInterface = false;
-            InduceVomitingEvent.Send(bloodMetaboliser, ref ExitInterface, MessageHolder);
+            InduceVomitingEvent.Send(bloodMetaboliser, ref ExitInterface, new StringBuilder());
         }
     }
     public abstract class BaseBloodMetabolism<T> where T : IComponent<GameObject>, IBloodMetabolism
@@ -119,7 +119,7 @@ namespace Nexus.Blood
                 bloodLevel = BloodLevel.QUENCHED;               //so it was completely inaccessible and its values could only be accessed through abstraction from it's output: 
                 return nameof(Quenched);                        //it wrote the two properties to the GameObject and also wrote to Vitae.Blood and Bloodlusted. 
             }                                                   //but now it is possible for other classes to access BloodMetabolism and directly retrieve a clean enum representation of blood level
-            if (Thirsty)                                         // because of the complicated booleans, i dont even think the string property is that useful, and it may be converted to a 1-5 int property of "generalized" level
+            if (Thirsty)                                         // because of the complicated booleans, i dont even think the string property is that useful, and it may be converted to a 0-5 int property of "generalized" level
             {                                                   ///as i intend to keep the properties so that other mods can access them w/o dependency or reflection
                 bloodLevel = BloodLevel.THIRSTY;                //the booleans: obviously always important
                 return nameof(Thirsty);

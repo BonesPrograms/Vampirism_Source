@@ -23,7 +23,6 @@ namespace XRL.World.Effects
         public BatformFX() : base()
         {
             Blueprint = GameObjectFactory.Factory.GetBlueprint("Bat");
-            FormName = "bat";
             TargetFaction = Batform.FACTION;
             FactionFeeling = 100;
 

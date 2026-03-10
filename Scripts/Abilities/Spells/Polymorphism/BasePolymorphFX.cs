@@ -14,15 +14,15 @@ namespace XRL.World.Effects
 {
 
     [Serializable]
-    public abstract class BasePolymorphFX : Effect
+    public abstract class BasePolymorphFX : IScribedEffect
     {
         [NonSerialized]
-        public GameObjectBlueprint Blueprint; //does not need to be serialized, just needs to be there on initialization for Transform to access
+        public GameObjectBlueprint Blueprint; //does not need to be serialized, just needs to be there on application for Transform to access
         public string FormName;
         public string TargetFaction;
         public int FactionFeeling;
         //4 fields above may be assigned in constructor
-        //fields below will be overwritten
+        //fields below will be overwritten, do not assign
         public string OldTile;
         public string OldDisplayName;
         public string OldColorString; //changing color isnt actually working right now but it will one day i assure ye
@@ -62,23 +62,19 @@ namespace XRL.World.Effects
 
         void VerifyInitialization()
         {
-            if (FormName.IsNullOrEmpty())
-                throw new Exception($"FormName not assigned in {GetType().Name}!");
             if (Blueprint == null)
-                throw new Exception($"Blueprint not assigned in {GetType().Name}!");
+                throw new Exception($"Blueprint not assigned in {GetType().Name}'s constructor!");
             if (!Blueprint.DescendsFrom("Creature"))
-                throw new Exception($"Blueprint does not descend from Creature in {GetType().Name}!");
-            if (Blueprint.GetPart(nameof(Body)) == null)
-                throw new Exception($"Blueprint does not have a body.");
+                throw new Exception($"Blueprint assigned in {GetType().Name} does not descend from Creature!");
         }
-        public override bool Apply(GameObject Object)
+        public override sealed bool Apply(GameObject Object)
         {
             VerifyInitialization();
             Transform();
             return true;
         }
 
-        public override void Remove(GameObject Object)
+        public override sealed void Remove(GameObject Object)
         {
             Revert();
         }
@@ -97,6 +93,7 @@ namespace XRL.World.Effects
             Object.Body.UpdateBodyParts();
             AutoEquip();
             Suppress(false);
+            VerifyFormName();
             AddPlayerMessage($"You assume the form of a {FormName}.");
             base.Object.ParticleBlip("&K-", 10, 0L);
             if (TargetFaction != null)
@@ -120,13 +117,21 @@ namespace XRL.World.Effects
 
         #region Transformation
 
+        void VerifyFormName()
+        {
+            if (FormName.IsNullOrEmpty())
+            {
+                FormName = Object.DisplayName;
+                MetricsManager.LogModInfo(ModManager.GetMod("vampirism"), $"{GetType().Name}: FormName not assigned, defaulting to displayname.");
+            }
+        }
         void ChangeLook()
         {
-
-            base.Object.DisplayName = Blueprint.DisplayName();
-            base.Object.Render.Tile = Blueprint.GetPartParameter<string>(nameof(Parts.Render), "Tile");
-            base.Object.Render.ColorString = Blueprint.GetPartParameter<string>(nameof(Parts.Render), "TileColor");
-            base.Object.Render.RenderString = Blueprint.GetPartParameter<string>(nameof(Parts.Render), "DetailColor");
+            var part = Blueprint.GetPart(nameof(Parts.Render));
+            base.Object.DisplayName = part.GetParameterString("DisplayName");
+            base.Object.Render.Tile = part.GetParameterString("Tile");
+            base.Object.Render.ColorString = part.GetParameterString("TileColor");
+            base.Object.Render.RenderString = part.GetParameterString("DetailColor");
         }
         void SaveLook()
         {
