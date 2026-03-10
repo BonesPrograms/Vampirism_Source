@@ -95,7 +95,7 @@ namespace XRL.World.Parts
     
         public override bool HandleEvent(InduceVomitingEvent E)
         {
-            Metab.VomitEventHandler(E);
+            Metab.VomitEventHandler(E, true);
             return base.HandleEvent(E);
         }
 
