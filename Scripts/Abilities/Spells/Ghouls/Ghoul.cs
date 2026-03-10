@@ -199,22 +199,27 @@ namespace XRL.World.Effects
         }
         public override bool WantEvent(int ID, int Cascade)
         {
-            if (ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID || ID == SingletonEvent<EndTurnEvent>.ID || ID == SingletonEvent<BeforeBeginTakeActionEvent>.ID || ID == ApplyEffectEvent.ID || ID == CanApplyEffectEvent.ID || ID == SingletonEvent<BeginTakeActionEvent>.ID)
+            if (ID == InduceVomitingEvent.ID || ID == EffectAppliedEvent.ID || ID == EffectRemovedEvent.ID || ID == SingletonEvent<EndTurnEvent>.ID || ID == SingletonEvent<BeforeBeginTakeActionEvent>.ID || ID == ApplyEffectEvent.ID || ID == CanApplyEffectEvent.ID || ID == SingletonEvent<BeginTakeActionEvent>.ID)
                 return true;
             return base.WantEvent(ID, Cascade);
         }
 
+        public override bool HandleEvent(InduceVomitingEvent E)
+        {
+            if (E.Object == Object)
+            {
+                Metab.SetWater();
+                Metab.VomitEventHandler(E.MessageHolder);
+                    Blood -= WikiRng.Next(15000, 25000);
+                E.InterfaceExit = true;
+            }
+            return base.HandleEvent(E);
+        }
         public override bool HandleEvent(BeforeTakeActionEvent E)
         {
             Metab.Cycle();
             return base.HandleEvent(E);
         }
-
-        void CheckBloodStatus()
-        {
-
-        }
-
         public override bool HandleEvent(ApplyEffectEvent E)
         {
             if (E.Name == "Beguile")
