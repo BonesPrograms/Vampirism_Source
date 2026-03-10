@@ -23,10 +23,9 @@ namespace Nexus.Blood
     }
     public abstract class BaseBloodMetabolism<T> where T : IComponent<GameObject>, IBloodMetabolism
     {
-        public T Source { get; protected set; } //will be readonly later but im busy rn and cant write the new base constructor
-        public GameObject Metaboliser { get; protected set; }
-        public Stomach Stomach => _Stomach ??= Metaboliser.GetPart<Stomach>();
-        Stomach _Stomach;
+        public readonly T Source;
+        public readonly GameObject Metaboliser;
+        public readonly Stomach Stomach;
         public bool Glut => Source.Blood >= Rules.Vitae.BLOOD_GLUTTONOUS;
         public bool Quenched => Source.Blood >= Rules.Vitae.BLOOD_QUENCHED && Source.Blood < Rules.Vitae.BLOOD_GLUTTONOUS;
         public bool Thirsty => Source.Blood >= Rules.Vitae.BLOOD_THIRSTY && Source.Blood < Rules.Vitae.BLOOD_QUENCHED;
@@ -46,6 +45,7 @@ namespace Nexus.Blood
         {
             this.Source = Source;
             this.Metaboliser = Source.GetBasisGameObject();
+            this.Stomach = Metaboliser.GetPart<Stomach>();
         }
         public abstract void Cycle(); //in the event that its ever stored polymorphically as BaseBloodMetabolism<T>
         public void VomitEventHandler(StringBuilder MessageHolder)
