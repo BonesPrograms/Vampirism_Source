@@ -530,7 +530,7 @@ namespace XRL.World.Parts.Mutation
 		}
 		static void Update(Zone zone)
 		{
-			zone.CombatObjects(x => x.IsVampire() && !x.IsPlayer()).SafeForEach(x => VampirismSys.Update.Update.TryUpdateNPCFriendly(x));
+			zone.CombatObjects(x => x.IsVampire() && !x.IsPlayer()).SafeForEach(x => VampirismSys.Update.Update.TryUpdateNPC(x));
 			zone.SetZoneProperty(Flags.Mod.VERSION_TAG, Mod.VERSION);
 		}
 		#endregion

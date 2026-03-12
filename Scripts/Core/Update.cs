@@ -19,13 +19,13 @@ namespace VampirismSys.Update
         {
             if (The.Player.IsVampire())
             {
-                Update.TryUpdatePlayerOnly(The.Player);
+                Update.TryUpdatePlayer(The.Player);
                 Update.Spells(The.Player);
             }
         }
-        internal static void TryUpdatePlayerOnly(GameObject GO)
+        static void TryUpdatePlayer(GameObject GO)
         {
-            if (TryUpdateNPCFriendly(GO) || GO.GetStringProperty(Flags.MOD_VERSION) != Mod.VERSION)
+            if (TryUpdateNPC(GO) || GO.GetStringProperty(Flags.MOD_VERSION) != Mod.VERSION)
             {
                 Popup.Show("Vampirism mini update: True Undead released! See steam page for more info.");
                 UpdateModVersion(GO);
@@ -36,7 +36,7 @@ namespace VampirismSys.Update
         //MOD_VERSION check was added for updating from vers 2 to 3
         //during that time its only purpose was to show a popup saying True Undead has been released
         //however this is also when the "Old Save" property changed to the "Mod Version" flag which is checked every gameload
-        internal static bool TryUpdateNPCFriendly(GameObject GO)
+        internal static bool TryUpdateNPC(GameObject GO)
         {
             if (CheckCorpse(GO))
             {
@@ -45,7 +45,7 @@ namespace VampirismSys.Update
             }
             return false;
         }
-        internal static void UpdateModVersion(GameObject GO)
+        static void UpdateModVersion(GameObject GO)
         {
             GO.SetStringProperty(Flags.MOD_VERSION, Mod.VERSION); //this may serve as a mod version identifier in the future
         }                                                       //anyone who doesnt have it will get it, anyone who has it and doesnt sync with the version will be updated
