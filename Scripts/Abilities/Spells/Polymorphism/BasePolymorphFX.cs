@@ -18,10 +18,12 @@ namespace XRL.World.Effects
     {
         [NonSerialized]
         public GameObjectBlueprint Blueprint; //does not need to be serialized, just needs to be there on application for Transform to access
+
+        //Blueprint MUST be assigned or will get exception
         public string FormName;
         public string TargetFaction;
         public int FactionFeeling;
-        //4 fields above may be assigned in constructor
+        //3 fields above may be assigned in constructor
         //fields below will be overwritten, do not assign
         public string OldTile;
         public string OldDisplayName;

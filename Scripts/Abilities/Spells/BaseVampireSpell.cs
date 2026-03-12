@@ -21,7 +21,7 @@ namespace XRL.World.Parts
         public Guid SpellID = Guid.Empty;
         public const string CATEGORY = "Blood Magic";
         public string CommandName; //should be assigned in public parameterless constructor
-        public string AbilityMenuName;
+        public string AbilityMenuName; //otherwise will throw exception
         public int Level => ParentObject.GetPart<Vampirism>().Level;
         public virtual int Cost => VampirismSys.Rules.Vitae.BLOOD_PER_SIP; //default 10k  
         public abstract int Cooldown { get; } //these are getter-only so that they can be easily changed in the future if i want
@@ -44,11 +44,16 @@ namespace XRL.World.Parts
         }
         public virtual void AddSpell()
         {
+            VerifyInitialization();
+            SpellID = AddMyActivatedAbility(AbilityMenuName, CommandName, CATEGORY, null, "\u009f", Toggleable: Toggled);
+        }
+
+        void VerifyInitialization()
+        {
             if (CommandName.IsNullOrEmpty())
                 throw new Exception($"CommandName not assigned to {GetType().Name}!");
             if (AbilityMenuName.IsNullOrEmpty())
                 throw new Exception($"AbiltiyMenuName not assigned to {GetType().Name}!");
-            SpellID = AddMyActivatedAbility(AbilityMenuName, CommandName, CATEGORY, null, "\u009f", Toggleable: Toggled);
         }
         public virtual void RemoveSpell()
         {
@@ -80,7 +85,7 @@ namespace XRL.World.Parts
         }
         public bool RealityCheck(Cell cell) => RealityCheck(cell, CATEGORY, this); //i already made this and im lazy and dont feel like rewriting all my reality checks for the static method
 
-        public void ExpendBlood(bool noPopup , string text)
+        public void ExpendBlood(bool noPopup, string text)
         {
             if (noPopup)
                 IComponent<GameObject>.AddPlayerMessage(text);

@@ -1,6 +1,5 @@
 using XRL;
 using XRL.World;
-using VampirismSys.Update;
 using VampirismSys.Core;
 using VampirismSys.Rules;
 using XRL.UI;
@@ -8,23 +7,22 @@ using XRL.World.Parts;
 using VampirismSys.Properties;
 using System.Linq;
 
-[HasCallAfterGameLoaded]
-internal static class VampirismUpdater
-{
-    [CallAfterGameLoaded]
-    internal static void MyLoadGameCallback()
-    {
-        if (The.Player.IsVampire())
-        {
-            Update.TryUpdatePlayerOnly(The.Player);
-            Update.Spells(The.Player);
-        }
-    }
-}
 namespace VampirismSys.Update
 {
+
+    [HasCallAfterGameLoaded]
     internal static class Update
     {
+
+        [CallAfterGameLoaded]
+        internal static void MyLoadGameCallback()
+        {
+            if (The.Player.IsVampire())
+            {
+                Update.TryUpdatePlayerOnly(The.Player);
+                Update.Spells(The.Player);
+            }
+        }
         internal static void TryUpdatePlayerOnly(GameObject GO)
         {
             if (TryUpdateNPCFriendly(GO) || GO.GetStringProperty(Flags.MOD_VERSION) != Mod.VERSION)
