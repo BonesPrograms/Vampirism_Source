@@ -1,19 +1,18 @@
 using XRL.World.Parts;
 using XRL.Wish;
 using XRL;
-using Nexus.Registry;
-using Nexus.Properties;
+using VampirismSys.Registry;
+using VampirismSys.Properties;
 using XRL.World;
-using Nexus.Core;
+using VampirismSys.Core;
 using XRL.World.Effects;
 using XRL.World.Parts.Mutation;
 
-namespace Nexus.Wish
+namespace VampirismSys.Wish
 {
     [HasWishCommand]
     public static class Commands
     {
-
 
         [WishCommand(Command = "vamplvl")]
         public static void PowerUp(string text)
@@ -30,8 +29,7 @@ namespace Nexus.Wish
         }
 
         [WishCommand(Command = "bloodpack")]
-
-        public static void bloodpack() => The.Player.Inventory.AddObject("BloodCanteen");
+        public static void Bloodpack() => The.Player.Inventory.AddObject("BloodCanteen");
 
         [WishCommand(Command = "frenzy")]
         public static void Frenzy()
@@ -48,7 +46,7 @@ namespace Nexus.Wish
         {
             if (Security())
             {
-                Vitae Vitae = The.Player.GetPart<Vitae>();
+                VampireBloodMetabolism Vitae = The.Player.GetPart<VampireBloodMetabolism>();
                 Vitae.Blood = 1;
             }
         }
@@ -66,7 +64,7 @@ namespace Nexus.Wish
         }
 
         [WishCommand(Command = "humanity")]
-        public static void Gameover()
+        public static void ReverseGameOver()
         {
             if (Security())
             {
@@ -82,8 +80,8 @@ namespace Nexus.Wish
         {
             if (Security())
             {
-                Vitae Vitae = The.Player.GetPart<Vitae>();
-                Vitae.Blood = Nexus.Rules.Vitae.BLOOD_GLUTTONOUS;
+                VampireBloodMetabolism Vitae = The.Player.GetPart<VampireBloodMetabolism>();
+                Vitae.Blood = VampirismSys.Rules.Vitae.BLOOD_GLUTTONOUS;
                 The.Player.SetIntProperty(Flags.BLOOD_VALUE, Rules.Vitae.BLOOD_GLUTTONOUS);
                 The.Player.SetStringProperty(Flags.BLOOD_STATUS, Flags.Blood.GLUT);
                 IComponent<GameObject>.AddPlayerMessage("{{G sequence|Thirst removed.}}");
@@ -98,7 +96,7 @@ namespace Nexus.Wish
             }
             else
             {
-                IComponent<GameObject>.AddPlayerMessage("Not a vampire!");
+                XRL.UI.Popup.Show("Not a vampire!");
                 return false;
             }
 

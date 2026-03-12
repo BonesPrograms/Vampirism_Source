@@ -1,11 +1,13 @@
-using Nexus.Blood;
+using System;
+using VampirismSys.Blood;
+using XRL.World.Parts;
 
-namespace Nexus.Properties
+namespace VampirismSys.Properties
 {
     /// <summary>
     /// Table of string constants for property strings to prevent typos.
     /// </summary>
-    static class Flags
+    public static class Flags
     {
 
         public static class Mod
@@ -23,14 +25,22 @@ namespace Nexus.Properties
         /// </summary>
         public static class Blood
         {
-            public const string GLUT = nameof(VampireMetabolism.Glut);
-            public const string QUENCHED = nameof(VampireMetabolism.Quenched);
-            public const string THIRSTY = nameof(VampireMetabolism.Thirsty);
-            public const string PARCHED = nameof(VampireMetabolism.Parched);
-            public const string MIN = nameof(VampireMetabolism.Min);
+            public const string GLUT = nameof(BaseBloodMetabolism.Glut);
+
+            public const string QUENCHED = nameof(BaseBloodMetabolism.Quenched);
+
+            public const string THIRSTY = nameof(BaseBloodMetabolism.Thirsty);
+
+            public const string PARCHED = nameof(BaseBloodMetabolism.Parched);
+
+            public const string MIN = nameof(BaseBloodMetabolism.Min);
         }
         public static string TRUE = bool.TrueString;
+
         public static string FALSE = bool.FalseString;
+
+
+        [Obsolete("Use Flags.TRUE")]
         public const string TRUE_LEGACY = "true";
         ///compatibility for when the literal was "true" instead of bool.TrueString
 		//the innocent flag is immutable so anyone who played before the change

@@ -1,7 +1,7 @@
 using System;
 using XRL.World.Effects;
-using Nexus.Core;
-using Nexus.Rules;
+using VampirismNexus.Core;
+using VampirismNexus.Rules;
 
 using XRL.World.AI;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace XRL.World.Parts
     [Serializable]
     public class GhoulSpell : BaseVampireSpell
     {
-        public override int Cooldown => Nexus.Rules.Ghoul.COOLDOWN;
+        public override int Cooldown => VampirismNexus.Rules.Ghoul.COOLDOWN;
         public List<GameObject> Ghouls = new();
         static int Max => 1; //this may change later but because it costs blood to feed ghouls i figured having 2-3 would be annoying
         // int Max => Level switch
@@ -30,8 +30,8 @@ namespace XRL.World.Parts
 
         public GhoulSpell()
         {
-            CommandName = Nexus.Rules.Ghoul.COMMAND_NAME;
-            AbilityMenuName = Nexus.Rules.Ghoul.ABILITY_NAME;
+            CommandName = VampirismNexus.Rules.Ghoul.COMMAND_NAME;
+            AbilityMenuName = VampirismNexus.Rules.Ghoul.ABILITY_NAME;
         }
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
@@ -64,9 +64,9 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(CommandEvent E)
         {
-            if (E.Command == Nexus.Rules.Ghoul.COMMAND_NAME && Checks.Prerequisites(base.ParentObject, Nexus.Rules.Ghoul.ABILITY_NAME, TEXT))
+            if (E.Command == VampirismNexus.Rules.Ghoul.COMMAND_NAME && Checks.Prerequisites(base.ParentObject, VampirismNexus.Rules.Ghoul.ABILITY_NAME, TEXT))
             {
-                if (base.ParentObject.TryGetTarget(Nexus.Rules.Ghoul.ABILITY_NAME, TEXT, out GameObject pick))
+                if (base.ParentObject.TryGetTarget(VampirismNexus.Rules.Ghoul.ABILITY_NAME, TEXT, out GameObject pick))
                 {
                     if (Checks.Attackable(pick, TEXT) && CompanionCore.NotAlreadyUnderEffect(pick))
                     {
@@ -140,7 +140,7 @@ namespace XRL.World.Parts
         }
 
         bool Attack(GameObject Target) =>
-        Capabilities.Mental.PerformAttack(Enthrall, base.ParentObject, Target, null, Nexus.Rules.Ghoul.COMMAND_NAME, "1d8", 1, int.MinValue, int.MinValue, base.Roll(), Target.Stat("Level"));
+        Capabilities.Mental.PerformAttack(Enthrall, base.ParentObject, Target, null, VampirismNexus.Rules.Ghoul.COMMAND_NAME, "1d8", 1, int.MinValue, int.MinValue, base.Roll(), Target.Stat("Level"));
 
         public bool Prerequisites(GameObject Target)
         {
@@ -187,7 +187,7 @@ namespace XRL.World.Parts
                     stats.Set("Attack", "1d8" + num, !stats.mode.Contains("ability"));
                     break;
             }
-            stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Nexus.Rules.Ghoul.COOLDOWN);
+            stats.CollectCooldownTurns(MyActivatedAbility(SpellID), VampirismNexus.Rules.Ghoul.COOLDOWN);
             stats.Set("Max Ghouls", Max.ToString());
         }
 

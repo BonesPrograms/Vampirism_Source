@@ -1,6 +1,6 @@
 using XRL.World.Effects;
 using System;
-using Nexus.Rules;
+using VampirismSys.Rules;
 
 
 

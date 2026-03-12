@@ -2,23 +2,23 @@ using XRL.World;
 using XRL.World.Effects;
 using XRL;
 using XRL.World.Parts;
-using Nexus.Properties;
-using Nexus.Core;
+using VampirismSys.Properties;
+using VampirismSys.Core;
 
-namespace Nexus.Death
+namespace VampirismSys.Death
 {
 
     /// <summary>
     /// Collection of types of deaths that can reduce humanity.
     /// </summary>
-    class Deaths
+    internal class Deaths
     {
         readonly GameObject Player;
         readonly GameObject Dying;
         readonly GameObject Killer;
         readonly bool friendly;
         readonly bool hostile;
-        public Deaths(GameObject Player, GameObject Dying, GameObject Killer, bool friendly, bool hostile)
+        internal Deaths(GameObject Player, GameObject Dying, GameObject Killer, bool friendly, bool hostile)
         {
             this.Player = Player;
             this.Dying = Dying;
@@ -28,7 +28,7 @@ namespace Nexus.Death
         }
 
         void GetAndDunk() => Player.GetPart<Humanity>().VampireKilled();
-        public void Possibilities()
+        internal void Possibilities()
         {
             if (Fractus())
                 return;

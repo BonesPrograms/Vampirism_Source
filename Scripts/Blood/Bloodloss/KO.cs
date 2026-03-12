@@ -1,6 +1,6 @@
 using System;
 using XRL.World.Capabilities;
-using Nexus.Core;
+using VampirismSys.Core;
 
 namespace XRL.World.Effects
 {

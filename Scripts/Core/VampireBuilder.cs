@@ -1,25 +1,25 @@
 using XRL.World.Parts;
 using XRL.World.Effects;
 using XRL.World;
-using Nexus.Properties;
-using Nexus.Rules;
+using VampirismSys.Properties;
+using VampirismSys.Rules;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using Nexus.Core;
+using VampirismSys.Core;
 
-namespace Nexus.Core
+namespace VampirismSys.Core
 {
     /// <summary>
     /// Assigns properties, adds parts and effects to Vampires.
     /// </summary>
     /// 
 
-    static class VampireBuilder
+    public static class VampireBuilder
     {
-        public static bool ENABLE_SPELLS = false;
+        internal static bool ENABLE_SPELLS = false;
         public const string CORPSE = "Ashes";
-        static readonly (string, int)[] IntProperties =
+        public static readonly (string, int)[] IntProperties =
         {
             (Flags.BLOOD_VALUE, Rules.Vitae.BLOOD_GLUTTONOUS), (Flags.HUMANITY, Rules.Humanity.MAX), (Flags.REGEN, default)
         };
@@ -29,16 +29,16 @@ namespace Nexus.Core
             (Flags.GO, Flags.FALSE), (Flags.FEED, Flags.FALSE), (Flags.FRENZY, Flags.FALSE),
             (Flags.BLOOD_STATUS, Flags.Blood.GLUT), (Flags.STEALTH, Flags.FALSE)
         };
-        static readonly Type[] IParts =
+        public static readonly Type[] IParts =
         {
-            typeof(XRL.World.Parts.Humanity), typeof(XRL.World.Parts.Vitae), typeof(Nightbeast), typeof(TheBeast)
-        };
-        static readonly Type[] VampiricSpells =
+            typeof(XRL.World.Parts.Humanity), typeof(XRL.World.Parts.VampireBloodMetabolism), typeof(Nightbeast), typeof(TheBeast)
+        }; //on request i would make these lists so other types can be added at runtime
+        public static readonly Type[] VampiricSpells =
         {
             typeof(GhoulSpell), typeof(CoffinSpell), typeof(EmbraceSpell), typeof(BatformSpell)
         };
 
-        public static void Make(GameObject GO)
+        internal static void Make(GameObject GO)
         {
             SetGameProperties(GO);
             SetVampireProperties(GO);
@@ -46,7 +46,7 @@ namespace Nexus.Core
             ChangeCorpse(GO);
         }
 
-        public static void Unmake(GameObject GO)
+        internal static void Unmake(GameObject GO)
         {
             RemoveGameProperties(GO);
             RemoveVampireProperties(GO);
@@ -115,7 +115,7 @@ namespace Nexus.Core
                 RemoveSpells(GO);
         }
 
-        public static void RequireSpells(GameObject GO)
+        internal static void RequireSpells(GameObject GO)
         {
             if (ENABLE_SPELLS)
             {
@@ -127,7 +127,7 @@ namespace Nexus.Core
         }
 
 
-        public static void RemoveSpells(GameObject GO)
+        internal static void RemoveSpells(GameObject GO)
         {
             if (ENABLE_SPELLS)
             {
@@ -153,7 +153,7 @@ namespace Nexus.Core
                 GO.AddPart(ashes.Revert());
             GO.RemovePart(ashes);
         }
-        public static void ChangeCorpse(GameObject GO)
+        internal static void ChangeCorpse(GameObject GO)
         {
             if (GO.TryGetPart<Corpse>(out var Corpse))
             {
@@ -213,7 +213,7 @@ namespace XRL.World.Parts
             OldVaporizedCorpseChance = VaporizedCorpseChance;
             HasCopyData = true;
         }
-        public Corpse Revert()
+        internal Corpse Revert()
         {
             Corpse corpse = new()
             {

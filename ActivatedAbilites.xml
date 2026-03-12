@@ -36,13 +36,12 @@
 
   <ability Command="CommandGhoulSpell">
     <description>
-      <p>You enthrall the mind of a nearby creature.</p>      
+      <p>You feed a nearby creature your blood.</p>      
       <br />
-      <p>Mental attack vs creature with blood.</p>
+      <p>Mental attack if not already a ghoul.</p>
 			<p>Attack roll: <stat Name="Attack" /> vs. defender MA + level.</p>
-      <p>Bloodloss: <stat Name="Bloodloss"/> </p>
-      <p>Max Ghouls: <stat Name="Max Ghouls"/> </p>
-      <p>Attack bonus increases with EGO mod or Vampirism level (whichever is higher) and player level.</p>
+      <p>Grants Stat bonuses to ghouls. Stat bonus increases with EGO mod or Vampirism level (whichever is higher).</p>
+      <p>Attack bonus increases with EGO mod or Vampirism level (whichever is higher) + player level.</p>
       <statline Name="Cooldown" />
     </description>  
     <UITile Tile="vampirism/vampfangs.png" Foreground="w" Detail="R" />

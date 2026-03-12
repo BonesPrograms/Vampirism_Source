@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using XRL.UI;
 using XRL.World.Effects;
 using System.Linq;
-using Nexus.Properties;
-using Nexus.Core;
-using Nexus.Registry;
+using VampirismSys.Properties;
+using VampirismSys.Core;
+using VampirismSys.Registry;
 using XRL.World.Parts.Mutation;
-using Nexus.Frenzy;
+using VampirismSys.Frenzy;
 
 
 using SerializeField = UnityEngine.SerializeField;
@@ -25,16 +25,27 @@ namespace XRL.World.Parts
 	{
 
 		public Dictionary<GameObject, int> TargetRegistry = new();
-		public FrenzyCore Core => _Core ??= new FrenzyCore(this, new Search(this));
+
 		public Vampirism Base => _Base ??= ParentObject.GetPart<Vampirism>();
+
+		public FrenzyCore Core => _Core ??= new FrenzyCore(this);
+
 		FrenzyCore _Core;
+
 		Vampirism _Base;
+
 		public bool GameOver;
+
 		public bool Wassail;
+
 		public bool Frenzied;
+
 		public const int FLAG_AVOID = 150; //arbitrary value assigned to targets to prevent them from being re-targetted
+
 		public bool HasFangs() => Base.HasFangs();
+
 		public bool Incap() => ParentObject.Incap(true);
+
 		public bool CantFrenzy()
 		{
 			return Base.Rotschrek || Frenzied || !HasFangs() || Incap() || ParentObject.CheckFlag(Flags.FEED) || Vampirism.SunlightInterference(ParentObject);
@@ -50,7 +61,7 @@ namespace XRL.World.Parts
 			if (E.ID == Events.GAMEOVER && ParentObject.IsPlayer())
 			{
 				GameOver = true;
-				if (!CantFrenzy() && Options.GetOptionBool(Nexus.Rules.ModOptions.FRENZY))
+				if (!CantFrenzy() && Options.GetOptionBool(VampirismSys.Rules.ModOptions.FRENZY))
 					Core.Frenzy();
 			}
 			if (E.ID == Events.WISH_HUMANITY)
@@ -62,7 +73,7 @@ namespace XRL.World.Parts
 		{
 
 			if (ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == EnteringZoneEvent.ID)
-				return Options.GetOptionBool(Nexus.Rules.ModOptions.FRENZY) && ParentObject.IsPlayer();
+				return Options.GetOptionBool(VampirismSys.Rules.ModOptions.FRENZY) && ParentObject.IsPlayer();
 			return base.WantEvent(ID, cascade);
 		}
 
@@ -71,7 +82,7 @@ namespace XRL.World.Parts
 			if (GameOver)
 			{
 				GameObject[] invalids = TargetRegistry.Keys.Where(x => x == null || !x.InSamePartyAs(ParentObject)).ToArray();
-				invalids.ForEach(x=>TargetRegistry.Remove(x));
+				invalids.ForEach(x => TargetRegistry.Remove(x));
 				if (TargetRegistry.Count == 0)
 					TargetRegistry = new();
 			}
@@ -81,8 +92,7 @@ namespace XRL.World.Parts
 		}
 		public override bool HandleEvent(BeginTakeActionEvent E)
 		{
-			if (!CantFrenzy())
-				Core.FrenzyChances();
+			Core.FrenzyChances();
 			if (GameOver && TargetRegistry.Count != 0 && !Frenzied)
 				Timer();
 			return base.HandleEvent(E);

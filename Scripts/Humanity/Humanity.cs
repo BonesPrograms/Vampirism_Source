@@ -1,9 +1,9 @@
 using System;
 using XRL.UI;
-using Nexus.Properties;
-using Nexus.Core;
-using Nexus.Registry;
-using Nexus.Rules;
+using VampirismSys.Properties;
+using VampirismSys.Core;
+using VampirismSys.Registry;
+using VampirismSys.Rules;
 using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Parts
@@ -17,8 +17,8 @@ namespace XRL.World.Parts
 	public class Humanity : IPart //AI do not experience humanity on their own, but if dominated, 
 								  //they can lose humanity by killing people via feeding, and enter a gameover state.
 	{                               //Other forms of humanity loss covered by DeathEvents all track back to the original player instead.
-		bool State_GO => Score <= Nexus.Rules.Humanity.GAMEOVER;
-		public int Score = Nexus.Rules.Humanity.MAX;
+		bool State_GO => Score <= VampirismSys.Rules.Humanity.GAMEOVER;
+		public int Score = VampirismSys.Rules.Humanity.MAX;
 		public int RegenTimer;
 		public bool GameOver;
 
@@ -27,7 +27,7 @@ namespace XRL.World.Parts
 		{
 			if (E.ID == Events.WISH_HUMANITY)
 			{
-                Score = Nexus.Rules.Humanity.MAX;
+                Score = VampirismSys.Rules.Humanity.MAX;
 				GameOver = false;
 			}
 			return base.FireEvent(E);
@@ -39,9 +39,9 @@ namespace XRL.World.Parts
 
 		public void VampireKilled()
 		{
-            Score -= Nexus.Rules.Humanity.LOSS_PER_KILL;
+            Score -= VampirismSys.Rules.Humanity.LOSS_PER_KILL;
 			ParentObject.SetIntProperty(Flags.HUMANITY, Score);
-			if (Score > Nexus.Rules.Humanity.GAMEOVER)
+			if (Score > VampirismSys.Rules.Humanity.GAMEOVER)
                 AddPlayerMessage("{{R|HUMANITY LOST!}}\nYou have " + strings() + " {{G sequence|Humanity}}.");
 		}
 		public override bool WantEvent(int ID, int cascade)
@@ -68,16 +68,16 @@ namespace XRL.World.Parts
 
 		public void AddHumanity()
 		{
-            Score += Nexus.Rules.Humanity.REGEN;
+            Score += VampirismSys.Rules.Humanity.REGEN;
 			AddPlayerMessage("{{G sequence|Humanity}} gained!\nYou have " + strings() + " {{G sequence|Humanity.}}");
 		}
 
 		void Regenerate()
 		{
-			if (Score < Nexus.Rules.Humanity.MAX)
+			if (Score < VampirismSys.Rules.Humanity.MAX)
 			{
                 RegenTimer++;
-				if (RegenTimer >= Nexus.Rules.Humanity.REGEN_TIME)
+				if (RegenTimer >= VampirismSys.Rules.Humanity.REGEN_TIME)
 				{
                     AddHumanity();
                     RegenTimer = 0;
@@ -97,12 +97,12 @@ namespace XRL.World.Parts
 		 =>
             Score switch
 			{
-                Nexus.Rules.Humanity.CRIT => "{{R sequence|1}}{{Y sequence|/5}}",
-                Nexus.Rules.Humanity.LOW => "{{W sequence|2}}{{Y sequence|/5}}",
-                Nexus.Rules.Humanity.MID => "{{W sequence|3}}{{Y sequence|/5}}",
-                Nexus.Rules.Humanity.HIGH => "{{G sequence|4}}{{Y sequence|/5}}",
-                Nexus.Rules.Humanity.MAX => "{{G sequence|5}}{{Y sequence|/5}}",
-                Nexus.Rules.Humanity.GAMEOVER => "{{R sequence|0}}",
+                VampirismSys.Rules.Humanity.CRIT => "{{R sequence|1}}{{Y sequence|/5}}",
+                VampirismSys.Rules.Humanity.LOW => "{{W sequence|2}}{{Y sequence|/5}}",
+                VampirismSys.Rules.Humanity.MID => "{{W sequence|3}}{{Y sequence|/5}}",
+                VampirismSys.Rules.Humanity.HIGH => "{{G sequence|4}}{{Y sequence|/5}}",
+                VampirismSys.Rules.Humanity.MAX => "{{G sequence|5}}{{Y sequence|/5}}",
+                VampirismSys.Rules.Humanity.GAMEOVER => "{{R sequence|0}}",
 				_ => OutOfRange()
 			};
 
@@ -111,7 +111,6 @@ namespace XRL.World.Parts
 			MetricsManager.LogModError(XRL.ModManager.GetMod("vampirism"), "Error @ Humanity.strings() -- player humanity value is out of range!");
 			return "Error - see Player.log";
 		}
-
 
 	}
 }

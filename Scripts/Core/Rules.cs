@@ -1,6 +1,6 @@
 using XRL.UI;
 
-namespace Nexus.Rules
+namespace VampirismSys.Rules
 {
 
 
@@ -18,11 +18,11 @@ namespace Nexus.Rules
     {
         public const string VERSION = "3";
     }
-    static class Stealth
+    public static class Stealth
     {
         public const uint AI_RADIUS = 21;
     }
-    static class Embrace
+    public static class Embrace
     {
         public const string COMMAND_NAME = "CommandEmbraceSpell";
 
@@ -30,7 +30,7 @@ namespace Nexus.Rules
 
         public const int COOLDOWN = 1000;
     }
-    static class Coffin
+    public static class Coffin
     {
 
         public const string BLUEPRINT = "VampireCoffin";
@@ -46,7 +46,7 @@ namespace Nexus.Rules
 
         public const int SAVING_THROW_DC = 20;
     }
-    static class Ghoul
+    public static class Ghoul
     {
         public const int COOLDOWN = 500;
         public const int REGEN = 5000;
@@ -56,7 +56,7 @@ namespace Nexus.Rules
         public const int BUFFTIME = 500;
     }
 
-    static class ModOptions //some of these are only referenced once but i hate string literals and i like having them all in one place so i can compare them to my XMLs to make sure there
+    public static class ModOptions //some of these are only referenced once but i hate string literals and i like having them all in one place so i can compare them to my XMLs to make sure there
     {                     //are no typos
 
         public const string TRUE_UNDEAD = "VampirismTrueUndead";
@@ -93,12 +93,12 @@ namespace Nexus.Rules
         public const string BLOOD_NERF = "vampBloodNerf";
         public const string BLEEDLIQUID = "blood-999,salt-1";
     }
-    static class Feed
+    public static class Feed
     {
         public const int DURATION = 5;
         public const int COOLDOWN = 50;
     }
-    static class Humanity
+    public static class Humanity
     {
         public const int REGEN_TIME = 5000;
         public const int REGEN = 1;
@@ -112,7 +112,7 @@ namespace Nexus.Rules
 
     }
 
-    static class Vitae
+    public static class Vitae
     {
 
         public const int BLOOD_MIN = 0;
@@ -138,6 +138,6 @@ namespace Nexus.Rules
 
         public const int BLOOD_PERBloodLOSS = 100;
         public const int BLOOD_PERBloodLOSS_FEED = 100; //used to be a different number but im experimenting with values rn, may become a diff number again one day
-                                                            //used to be 500 but i got complaints so now its 100
+                                                        //used to be 500 but i got complaints so now its 100
     }
 }

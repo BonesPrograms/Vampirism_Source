@@ -1,7 +1,7 @@
 using XRL.World.Effects;
 using System;
-using Nexus.Rules;
-using Nexus.Core;
+using VampirismSys.Rules;
+using VampirismSys.Core;
 
 namespace XRL.World.Parts
 {
@@ -32,27 +32,30 @@ namespace XRL.World.Parts
             {
                 if (!ParentObject.IsRealityDistortionUsable())
                     RealityStabilized.ShowGenericInterdictMessage(ParentObject);
-                else if (!Transformed)
-                    Cast();
                 else
-                {
-                    Transformed = false;
-                    ToggleMyActivatedAbility(SpellID, ParentObject, true);
-                    ParentObject.RemoveEffect(GetType());
-                }
+                    Cast();
             }
             return base.HandleEvent(E);
         }
         void Cast()
         {
-            if (Cast(HUDName))
+            if (base.Cast(HUDName))
             {
                 ExpendBlood();
-                if (RealityCheck(ParentObject.CurrentCell))
+                if (RealityCheck(ParentObject.CurrentCell)) //you can get trapped in batform
                 {
-                    Transformed = true;
-                    ToggleMyActivatedAbility(SpellID, ParentObject, true);
-                    ParentObject.ApplyEffect(PolymorphFX);
+                    if (!Transformed)
+                    {
+                        Transformed = true;
+                        ToggleMyActivatedAbility(SpellID, ParentObject, true);
+                        ParentObject.ApplyEffect(PolymorphFX);
+                    }
+                    else
+                    {
+                        Transformed = false;
+                        ToggleMyActivatedAbility(SpellID, ParentObject, true);
+                        ParentObject.RemoveEffect(GetType());
+                    }
                 }
             }
         }

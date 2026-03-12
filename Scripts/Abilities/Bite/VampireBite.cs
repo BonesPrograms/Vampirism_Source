@@ -3,9 +3,9 @@ using XRL.World.Parts.Mutation;
 using XRL.World.Effects;
 using System.Collections.Generic;
 using System.Linq;
-using Nexus.Core;
+using VampirismSys.Core;
 
-namespace Nexus.Bite
+namespace VampirismSys.Biting
 {
 
     /// <summary>
@@ -13,27 +13,28 @@ namespace Nexus.Bite
     /// </summary>
     /// 
     /// 
-
-
-    public abstract class VampireBite
+    public enum Ending
     {
+        VOMIT = 4,
+        FAIL = 3,
+        PAIN_TOLERANCE = 2,
+        SUCCESS = 1,
+        OUT_OF_RANGE = 0
+    }
 
-        public enum Ending
-        {
-            VOMIT = 4,
-            FAIL = 3,
-            PAIN_TOLERANCE = 2,
-            SUCCESS = 1,
-            OUT_OF_RANGE = 0
-        }
+    public abstract class BaseBite
+    {
+        public static int Save = 13; //may add some logic to this later and make it instance-based, for now its globally 13
         readonly protected GameObject Biter;
-
-        protected VampireBite()
+        protected BaseBite()
         {
         }
-        protected VampireBite(GameObject Biter) => this.Biter = Biter;
+        protected BaseBite(GameObject Biter)
+        {
+            this.Biter = Biter;
+        }
         protected bool PainTolerance() => Biter.HasEffect<HulkHoney_Tonic>() || Biter.HasPart<Analgesia>();
-        protected Ending MakeSave(string text) => Biter.MakeSave("Toughness", 13, null, null, text) ? Ending.SUCCESS : Ending.FAIL;
+        protected Ending MakeSave(string text) => Biter.MakeSave("Toughness", Save, null, null, text) ? Ending.SUCCESS : Ending.FAIL;
         protected Ending Result(IEnumerable<Ending> endresults) => endresults.Count() > 0 ? endresults.Max() : Ending.OUT_OF_RANGE;
         //default enum value is 0. ever since we switched to arrays we use Max() instead. higher numbers take priority and indicate failure.
         //thus if your Max() value is 0 you know something has gone wrong and it wasnt just a normal failure

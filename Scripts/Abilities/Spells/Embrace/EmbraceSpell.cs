@@ -1,10 +1,10 @@
 using System;
-using Nexus.Rules;
-using Nexus.Properties;
+using VampirismSys.Rules;
+using VampirismSys.Properties;
 using XRL.World.Effects;
 using System.Linq;
 
-using Nexus.Core;
+using VampirismSys.Core;
 using XRL.Messages;
 
 using SerializeField = UnityEngine.SerializeField;
@@ -17,6 +17,8 @@ namespace XRL.World.Parts
     {
         [NonSerialized]
         public GameObject Object;
+
+
 
         public override void Write(GameObject Basis, SerializationWriter Writer)
         {
@@ -42,11 +44,16 @@ namespace XRL.World.Parts
     [Serializable]
     public class EmbraceSpell : BaseVampireSpell
     {
-        public override int Cooldown => Nexus.Rules.Embrace.COOLDOWN;
+        public override int Cooldown => VampirismSys.Rules.Embrace.COOLDOWN;
+
+        bool Roll(GameObject Object)
+        {
+            return Object.GetIntProperty(Flags.Embrace.LEVEL_ON_DEATH) < Level + ParentObject.Level;
+        }
         public EmbraceSpell()
         {
-            CommandName = Nexus.Rules.Embrace.COMMAND_NAME;
-            AbilityMenuName = Nexus.Rules.Embrace.ABILITY_NAME;
+            CommandName = VampirismSys.Rules.Embrace.COMMAND_NAME;
+            AbilityMenuName = VampirismSys.Rules.Embrace.ABILITY_NAME;
         }
         public override void CollectStats(Templates.StatCollector stats)
         {
@@ -55,7 +62,7 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(CommandEvent E)
         {
-            if (E.Command == Nexus.Rules.Embrace.COMMAND_NAME && Nexus.Core.Checks.Prerequisites(base.ParentObject, Nexus.Rules.Embrace.ABILITY_NAME, "embrace"))
+            if (E.Command == VampirismSys.Rules.Embrace.COMMAND_NAME && VampirismSys.Core.Checks.Prerequisites(base.ParentObject, VampirismSys.Rules.Embrace.ABILITY_NAME, "embrace"))
             {
                 FindEmbraceableObject();
             }
@@ -63,7 +70,7 @@ namespace XRL.World.Parts
         }
         void FindEmbraceableObject()
         {
-            Cell cell = base.ParentObject.PickDirection(Nexus.Rules.Embrace.ABILITY_NAME);
+            Cell cell = base.ParentObject.PickDirection(VampirismSys.Rules.Embrace.ABILITY_NAME);
             bool? value = cell?.Objects?.Any(x => { if (x.TryGetStringProperty(Flags.Embrace.EMBRACEABLE, out string result)) { CheckEmbraceableObject(x, result); return true; } return false; });
             if (value == false)
                 UI.Popup.Show("There is nothing there to embrace.");
@@ -78,7 +85,7 @@ namespace XRL.World.Parts
             }
             else if (result == Flags.TRUE)
             {
-                if (Object.GetIntProperty(Flags.Embrace.LEVEL_ON_DEATH) < Level + ParentObject.Level)
+                if (Roll(Object))
                 {
                     if (!ParentObject.IsRealityDistortionUsable())
                         RealityStabilized.ShowGenericInterdictMessage(ParentObject);

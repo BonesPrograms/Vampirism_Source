@@ -5,7 +5,7 @@ using XRL.World.Effects;
 using XRL.World;
 using System;
 
-namespace Nexus.Tests
+namespace VampirismSys.Tests
 {
     [HasWishCommand]
 

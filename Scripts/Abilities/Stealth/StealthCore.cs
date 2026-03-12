@@ -1,7 +1,7 @@
 using XRL.World;
 using System.Collections.Generic;
 using XRL.World.Parts.Mutation;
-using Nexus.Core;
+using VampirismSys.Core;
 using XRL.World.Effects;
 using XRL.World.Parts;
 using XRL;
@@ -9,7 +9,7 @@ using System;
 using XRL.Collections;
 using System.Linq;
 
-namespace Nexus.Stealth
+namespace VampirismSys.Stealth
 {
     /// <summary>
     /// Scans the environment and constantly updates the lists used in Nightbeast.
@@ -20,16 +20,16 @@ namespace Nexus.Stealth
         static GameObject Player => The.Player;
 
         [GameBasedStaticCache(false)]
-        public static LightLevel? LightLevel;
+        internal static LightLevel? LightLevel;
 
         [GameBasedStaticCache]
         static int _trueCount = 0;
-        public static int TrueCount => _trueCount;
-        public static void ScanEnvironment(Zone zone)
+        internal static int TrueCount => _trueCount;
+        internal static void ScanEnvironment(Zone zone)
         {
             zone.CombatObjects(x => ValidSentient(x)).SafeForEach(x => CheckValidity(x));
         }
-        public static void Stealth()
+        internal static void Stealth()
         {
             GameObject[] invalids = Nightbeast.Witnesses.Keys.Where(x => x == null || !x.HasHitpoints() || !x.InSameZone(Player)).ToArray();
             invalids.ForEach(x => Nightbeast.Witnesses.Remove(x));
@@ -66,6 +66,14 @@ namespace Nexus.Stealth
         //  allies do not fight back if you kill them. therefore, you are allowed a free feed on anyone who is considered an ally
         // however, because allies were showing up as witnesses, they would expose the farmer and become hostile
 
+        //This explanation is confusing me on the second read but I assure you this is the fix
+        //I believe it was not an ally exposing you but someone else
+        //and the way it works is it automatically sets everyone nearby to hostile so people who arent in your party will become hostile, even if theyre allied
+        //so you would feed, no one would notice, and then the mechanimist priest would notice, expose you, and everyone would try to kill you
+
+        //I think it looks wierd so allies now count as witnesses.
+        //We already have an overload for allies, allied people are considered vulnerable and will not resist
+
         /// <summary>
         /// The evaluation that separates a NearbySentient from a ValidSentient. It restricts by AI RADIUS and LOS.
         /// </summary>
@@ -73,7 +81,7 @@ namespace Nexus.Stealth
         /// <returns></returns>
         public static bool NearbySentient(GameObject witness)
         {
-            return witness.HasLOSTo(Player, false) && witness.DistanceTo(Player) <= Nexus.Rules.Stealth.AI_RADIUS && witness.InSameZone(Player);
+            return witness.HasLOSTo(Player, false) && witness.DistanceTo(Player) <= VampirismSys.Rules.Stealth.AI_RADIUS && witness.InSameZone(Player);
         }
 
         /// <summary>
@@ -88,10 +96,10 @@ namespace Nexus.Stealth
             //   && witness.IsCombatObject()
             && !Inanimate(witness); //insamezone check cannot go here because we use this to check nextzone in EZ event and i dont feel like adding a zone parameter
         public static bool Inanimate(GameObject witness)
-     =>
-        witness.Body?.Anatomy == "Echinoid"
-        || CheckTags(witness.GetBlueprint())
-        || CheckParts(witness.PartsList);
+          =>
+            witness.Body?.Anatomy == "Echinoid"
+            || CheckTags(witness.GetBlueprint())
+            || CheckParts(witness.PartsList);
 
         /// <summary>
         /// It is recommended to exclude plants from your lists of witnesses (you'll see me do it often in Alert and Spotter), because being spotted by vines, roots and

@@ -1,11 +1,11 @@
 using XRL.World;
 using XRL.World.Parts;
-using Nexus.Core;
+using VampirismNexus.Core;
 using System.Collections.Generic;
 using System.Linq;
 using XRL.World.Effects;
 
-namespace Nexus.Stealth
+namespace VampirismNexus.Stealth
 {
 
     /// <summary>

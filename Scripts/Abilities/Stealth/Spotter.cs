@@ -1,6 +1,6 @@
 using XRL.World.AI.Pathfinding;
-using Nexus.Core;
-using Nexus.Properties;
+using VampirismSys.Core;
+using VampirismSys.Properties;
 using XRL.World.Capabilities;
 using System;
 using System.Linq;
@@ -11,9 +11,9 @@ using XRL.World;
 using XRL.World.Parts;
 
 
-namespace Nexus.Stealth
+namespace VampirismSys.Stealth
 {
-    enum Spot
+    public enum Spot
     {
         /// <summary>
         /// If this value is returned, then no one on the list was able to path to the player.
@@ -29,7 +29,7 @@ namespace Nexus.Stealth
         SPOTTER_OUTSIDE_DETECTION
     }
 
-    class SpotterCore
+    public class SpotterCore
     {
         readonly GameObject Source;
         readonly Dictionary<GameObject, int> SpotterRanges = new();
@@ -52,7 +52,7 @@ namespace Nexus.Stealth
         /// technically, your stealth state was valid, but some attacks pass the turn the moment they are completed, which gives the aforementioned
         /// APPEARANCE of stealth being broken instantly, as the ai travels one tile into your detection radius.
         /// so the ai isnt really in your detection radius as the enum says, they were actually outside of it, theyre moreso in your "extended" radius
-        bool Spotted(int distance, GameObject Spotter) => distance == Nexus.Rules.Stealth.AI_RADIUS + 1 && Spotter.HasLOSTo(Source, false);
+        bool Spotted(int distance, GameObject Spotter) => distance == VampirismSys.Rules.Stealth.AI_RADIUS + 1 && Spotter.HasLOSTo(Source, false);
         static string DefaultMessage(GameObject Spotter) => $"You try to sneak attack, but {Spotter.t()} spots you from a distance!";
         public static List<GameObject> GiveDefaultList(GameObject Source)
         {
@@ -95,10 +95,10 @@ namespace Nexus.Stealth
                 message = message == default ? DefaultMessage(Spotter) : message;
                 XRL.UI.Popup.Show(message);
                 Spotter.AddOpinion<T>(Source);
-                Spotter.ApplyEffect(new Spotter(Source, Nexus.Rules.Feed.DURATION));
+                Spotter.ApplyEffect(new Spotter(Source, VampirismSys.Rules.Feed.DURATION));
             }
             else
-                Spotter.ApplyEffect(new Spotter(Source, Nexus.Rules.Feed.DURATION));
+                Spotter.ApplyEffect(new Spotter(Source, VampirismSys.Rules.Feed.DURATION));
             return spot;
         }
 

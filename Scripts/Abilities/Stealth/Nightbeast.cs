@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Nexus.Core;
-using Nexus.Properties;
-using Nexus.Stealth;
+using VampirismSys.Core;
+using VampirismSys.Properties;
+using VampirismSys.Stealth;
 using XRL.World.Capabilities;
 
 
@@ -32,7 +32,7 @@ namespace XRL.World.Parts
 		public static Dictionary<GameObject, bool> Witnesses => _witnesses;
 
 		[GameBasedStaticCache]
-		public static bool NeedsReactivate = false; //for gamestart
+		internal static bool NeedsReactivate = false; //for gamestart
 
 		[GameBasedStaticCache(false)]
 		static Dictionary<GameObject, bool> _witnesses;

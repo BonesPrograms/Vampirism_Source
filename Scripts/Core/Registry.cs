@@ -1,11 +1,11 @@
-namespace Nexus.Registry
+namespace VampirismSys.Registry
 {
 
     /// <summary>
     /// Table of string constants for event strings to prevent typos.
     /// </summary>
 
-    static class Events
+    public static class Events
     {
 
         /// <summary>

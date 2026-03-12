@@ -1,11 +1,11 @@
 using XRL.World;
 using XRL.UI;
 using XRL.World.Parts;
-using Nexus.Properties;
-using Nexus.Core;
+using VampirismSys.Properties;
+using VampirismSys.Core;
 using XRL.World.Effects;
 
-namespace Nexus.Frenzy
+namespace VampirismSys.Frenzy
 {
     public class FrenzyCore
     {
@@ -13,11 +13,11 @@ namespace Nexus.Frenzy
         bool _midFrenzyChance => WikiRng.Next(1, 2000) == 2000;
         bool _highFrenzyChance => WikiRng.Next(1, 1000) == 1000;
         bool _critFrenzyChance => WikiRng.Next(1, 500) == 500;
-        public readonly Search Search;
-        public FrenzyCore(TheBeast Source, Search Search)
+        internal readonly Search Search;
+        public FrenzyCore(TheBeast Source)
         {
             this.Source = Source;
-            this.Search = Search;
+            this.Search = new(Source);
         }
 
         public void FrenzyChances()
@@ -37,19 +37,19 @@ namespace Nexus.Frenzy
             {
                 switch (Source.ParentObject.GetIntProperty(Flags.HUMANITY))
                 {
-                    case Nexus.Rules.Humanity.MID:
+                    case VampirismSys.Rules.Humanity.MID:
                         {
                             if (_midFrenzyChance)
                                 Frenzy();
                             break;
                         }
-                    case Nexus.Rules.Humanity.LOW:
+                    case VampirismSys.Rules.Humanity.LOW:
                         {
                             if (_highFrenzyChance)
                                 Frenzy();
                             break;
                         }
-                    case Nexus.Rules.Humanity.CRIT:
+                    case VampirismSys.Rules.Humanity.CRIT:
                         {
                             if (_critFrenzyChance)
                                 Frenzy();
@@ -84,12 +84,13 @@ namespace Nexus.Frenzy
                     }
             }
         }
-
-        public void Frenzy()
+        public void Frenzy(GameObject forcedTarget = null)
         {
-            if (!Source.Frenzied)
+            if (!Source.CantFrenzy()) //frenzythirstychance and frenzyhumanitychance run right after another, so there is a slim but rare chance that rng can attempt to apply frenzyAI twice, which we do not want
             {
-                if (Search.TryScan(out GameObject Target))
+                if (forcedTarget != null)
+                    Apply(forcedTarget);
+                else if (Search.TryScan(out GameObject Target))
                     Apply(Target);
                 else if (!Source.GameOver && Source.ParentObject.IsPlayer())
                     IComponent<GameObject>.AddPlayerMessage("You feel a surge of adrenaline as {{R sequence|the Beast}} momentarily tries to take control.");
@@ -114,7 +115,7 @@ namespace Nexus.Frenzy
 
         void AssembleAI(GameObject Target)
         {
-            Source.ParentObject.ApplyEffect(new FrenzyAI(9999, Source, Target, Source.GameOver));
+            Source.ParentObject.ApplyEffect(new FrenzyAI(Source, Target, Source.GameOver));
             Source.Frenzied = true;
             Source.ParentObject.ApplyEffect(new Running(WikiRng.Next(10, 20)));
         }

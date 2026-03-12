@@ -1,34 +1,34 @@
 using XRL.UI;
 using XRL.World.Effects;
 using XRL.World.AI;
-using Nexus.Properties;
+using VampirismSys.Properties;
 using XRL.World.Parts.Mutation;
 using XRL.World.Parts;
 using XRL.World;
-using Nexus.Bite;
+using VampirismSys.Biting;
 using XRL.Rules;
 using System;
-using Nexus.Core;
-using Nexus.Rules;
+using VampirismSys.Core;
+using VampirismSys.Rules;
 
 
-namespace Nexus.Attack
+namespace VampirismSys.Attack
 {
     /// <summary>
     /// Brings together the Vampire's property values and parts' methods for various evaluations before a Feed can begin.
     /// </summary>
 
-    public class FeedCommand
+    public class FeedAbility //this is open to allow access to the persistent Bite instance through vampirism
     {
         bool friends;
         readonly Vampirism Source;
-        public readonly Bite.Bite Bite;
+        public readonly Bite Bite;
         bool badtarget;
-        public static bool AutoWin;
-        public FeedCommand(Vampirism Source)
+        internal static bool AutoWin;
+        internal FeedAbility(Vampirism Source)
         {
             this.Source = Source;
-            Bite = new Bite.Bite(Source.ParentObject, Source);
+            Bite = new Bite(Source.ParentObject, Source);
         }
 
         bool Stealth => Source.ParentObject.CheckFlag(Flags.STEALTH);
@@ -49,7 +49,7 @@ namespace Nexus.Attack
         /// <summary>
         /// Begins HandleCommand method chain.
         /// </summary>
-        public void Initialize(GameObject Target)
+        internal void Initialize(GameObject Target)
         {
             if (BeforeAttackCheckIfValid(Target))
             {
@@ -91,7 +91,7 @@ namespace Nexus.Attack
             }
             if (Source.ParentObject.GetIntProperty(Flags.BLOOD_VALUE) >= Rules.Vitae.FEED_PUKE_WARN && Source.ParentObject.IsPlayer())
             {
-                if (Source.ParentObject.GetPart<XRL.World.Parts.Vitae>().IDontWantToPuke(true))
+                if (Source.ParentObject.GetPart<XRL.World.Parts.VampireBloodMetabolism>().PukeWarning(true))
                     return false;
             }
             return true;

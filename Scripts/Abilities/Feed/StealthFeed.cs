@@ -1,11 +1,11 @@
 using System;
 using XRL.UI;
 using XRL.World.AI;
-using Nexus.Core;
+using VampirismSys.Core;
 using XRL.World.Parts;
 using System.Collections.Generic;
 using System.Linq;
-using Nexus.Stealth;
+using VampirismSys.Stealth;
 using XRL.World.Parts.Mutation;
 using SerializeField = UnityEngine.SerializeField;
 
@@ -26,7 +26,7 @@ namespace XRL.World.Effects
 		public StealthFeed(GameObject other, bool isAttacker, string Damage, int Duration, bool vampire) : base()
 		{
 			base.other = other.Reference();
-			base._isAttacker = isAttacker;
+			base.isAttacker = isAttacker;
 			base.Damage = Damage;
 			base.Duration = Duration;
 			StealthVersion = true;

@@ -2,19 +2,19 @@ using XRL.World;
 using XRL.World.Parts;
 using XRL.World.Parts.Mutation;
 using XRL.World.Effects;
-using Nexus.Core;
-using Nexus.Rules;
-using Nexus.Properties;
-using Nexus.Stealth;
+using VampirismSys.Core;
+using VampirismSys.Rules;
+using VampirismSys.Properties;
+using VampirismSys.Stealth;
 using System.Collections.Generic;
 using XRL.World.AI;
 
-namespace Nexus.Attack
+namespace VampirismSys.Attack
 {
     /// <summary>
     /// Handles the logic for finalizing an attack and actually beginning the feed.
     /// </summary>
-    class VampireAttack
+    public class VampireAttack
     {
         readonly GameObject Target;
         readonly Vampirism Source;
@@ -43,7 +43,7 @@ namespace Nexus.Attack
         {
             if (new SpotterCore(Source.ParentObject).Check<OpinionDominate>(out GameObject spotter) == Spot.SPOTTER_IN_DETECTION)
             {
-                Alert alert = new (Source.ParentObject, spotter);
+                Alert alert = new(Source.ParentObject, spotter);
                 alert.Add(Target);
                 alert.RemoveSleepFromWitnesses();
                 alert.AddOpinionToWitnessesAndExposer<OpinionDominate>();
@@ -67,8 +67,7 @@ namespace Nexus.Attack
         }
         void StealthATK()
         {
-            if (Source.ParentObject.IsPlayer())
-                IComponent<GameObject>.AddPlayerMessage("{{G sequence|You ambush " + Target.t() + " and}} {{B|silently}} {{G sequence|sink your fangs into " + Target.its + " neck.}}");
+            IComponent<GameObject>.AddPlayerMessage("{{G sequence|You ambush " + Target.t() + " and}} {{B|silently}} {{G sequence|sink your fangs into " + Target.its + " neck.}}");
             Source.ParentObject.ApplyEffect(new StealthFeed(Target, true, dice, Feed.DURATION, vampire));
             Target.ApplyEffect(new StealthFeed(Source.ParentObject, false, dice, Feed.DURATION, vampire));
         }

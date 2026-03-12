@@ -1,7 +1,7 @@
 using XRL.World.Effects;
 using System;
-using Nexus.Rules;
-using Nexus.Core;
+using VampirismSys.Rules;
+using VampirismSys.Core;
 using XRL.World.Parts.Mutation;
 using System.Linq;
 using XRL.World.Anatomy;

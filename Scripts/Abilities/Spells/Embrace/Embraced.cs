@@ -1,7 +1,7 @@
 using System;
 using XRL.World.Parts;
-using Nexus.Rules;
-using Nexus.Core;
+using VampirismSys.Rules;
+using VampirismSys.Core;
 
 using XRL.World.Parts.Mutation;
 using SerializeField = UnityEngine.SerializeField;
@@ -106,7 +106,7 @@ namespace XRL.World.Effects
                 int paleHP = Object.baseHitpoints / 4; //pale comes at 50% hp so we make it a little lower so it lasts a bit, but not too low! either way they wont be a challenge to kill with such low HP
                 Object.hitpoints = paleHP;
                 Object.RequireMutation<Vampirism>(Level);
-                Object.SetStringProperty(Nexus.Properties.Flags.FLEDGLING, null);
+                Object.SetStringProperty(VampirismSys.Properties.Flags.FLEDGLING, null);
                 Object.ApplyEffect(new AfterEmbracedFX());
                 Object.ApplyEffect(new Pale(999));
                 Message($"{Object.t()} rises from the dead!");
@@ -162,15 +162,15 @@ namespace XRL.World.Effects
         {
             if (!Obj.IsPlayer())
             {
-                Parts.Vitae v = Obj.GetPart<Parts.Vitae>();
-                v.Blood = Nexus.Rules.Vitae.BLOOD_QUENCHED;
+                Parts.VampireBloodMetabolism v = Obj.GetPart<Parts.VampireBloodMetabolism>();
+                v.Blood = VampirismSys.Rules.Vitae.BLOOD_QUENCHED;
             }
         }
 
         public override bool Apply(GameObject Obj)
         {
-            Parts.Vitae v = Obj.GetPart<Parts.Vitae>();
-            v.Blood = Nexus.Rules.Vitae.BLOOD_MIN;
+            Parts.VampireBloodMetabolism v = Obj.GetPart<Parts.VampireBloodMetabolism>();
+            v.Blood = VampirismSys.Rules.Vitae.BLOOD_MIN;
             return true;
         }
 

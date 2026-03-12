@@ -3,8 +3,8 @@ using XRL.World.Effects;
 using System.Collections.Generic;
 using XRL.UI;
 using XRL.World.Parts.Skill;
-using Nexus.Core;
-using Nexus.Properties;
+using VampirismSys.Core;
+using VampirismSys.Properties;
 using System;
 using XRL.World.Parts.Mutation;
 using XRL.World;
@@ -31,7 +31,7 @@ public class AddCMDPart : IPlayerMutator
     }
 }
 
-namespace Nexus.Core
+namespace VampirismSys.Core
 {
     static class cmd_extensions
     {
@@ -486,7 +486,7 @@ namespace XRL.World.Parts
         {
             if (The.Player.CmdTarget("badliquid", out var pick))
             {
-                var BadLiquids = Nexus.Bite.Bite.GiveBadLiquids();
+                var BadLiquids = VampirismSys.Biting.Bite.GiveBadLiquids();
                 int range = WikiRng.Next(0, BadLiquids.Length - 1);
                 string liquid = BadLiquids[range];
                 pick.ApplyEffect(new LiquidCovered(liquid, 2, 50));
@@ -498,7 +498,7 @@ namespace XRL.World.Parts
 
         public static void autowin() //for diablerie
         {
-            Switch<Nexus.Attack.FeedCommand>(nameof(Nexus.Attack.FeedCommand.AutoWin), null);
+            Switch<VampirismSys.Attack.FeedAbility>(nameof(VampirismSys.Attack.FeedAbility.AutoWin), null);
         }
 
 
@@ -506,7 +506,7 @@ namespace XRL.World.Parts
 
         public static void lust()
         {
-            Switch<Vitae>(nameof(Vitae.AntiPuke), null);
+            Switch<VampireBloodMetabolism>(nameof(VampireBloodMetabolism.AntiPuke), null);
 
         }
 

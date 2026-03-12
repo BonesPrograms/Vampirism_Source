@@ -1,21 +1,25 @@
 using XRL.World;
 using XRL;
-using Nexus.Properties;
+using VampirismSys.Properties;
 
-namespace Nexus.Death
+namespace VampirismSys.Death
 {
     /// <summary>
     /// Static helper for victim death cases to keep things clean.
     /// </summary>
-    class Victim
+    internal class Victim
     {
 
 
         readonly GameObject Dying;
-        public Victim(GameObject Dying) => this.Dying = Dying;
+
+        internal Victim(GameObject Dying) => this.Dying = Dying;
+
         const int _VICTIM_TIMER = 5000;
+
         const int RECENT = 100;
-        public bool Friendlybool(string flag)
+
+        internal bool Friendlybool(string flag)
         {
             GiveTurns(flag, out long turns, out long moment);
             if (!MaxTime(turns, moment))
@@ -27,7 +31,7 @@ namespace Nexus.Death
             return false;
         }
 
-        public bool Victimbool()
+        internal bool Victimbool()
         {
             GiveTurns(Flags.VICTIM, out long turns, out long moment);
             if (!MaxTime(turns, moment))

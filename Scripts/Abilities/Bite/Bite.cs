@@ -6,40 +6,46 @@ using XRL.World.AI;
 using XRL.World;
 using XRL.World.Parts.Mutation;
 using XRL;
-using Nexus.Core;
+using VampirismSys.Core;
 using System.Linq;
+using XRL.World.Parts;
 
-namespace Nexus.Bite
+namespace VampirismSys.Biting
 {
 
     /// <summary>
     /// Frontend for the bite simulator mechanics behind Biting - evaluates targets and creates BiteSimulator instance if bad target = true.
     /// </summary>
-    public class Bite : VampireBite
+    public class Bite : BaseBite
     {
         public bool IsOnFire { get; private set; }
         public bool HasPlasma { get; private set; }
         public bool HasBadLiquid => BadLiquids.Any(x => x.Item2);
         public bool HasDisease => Diseases.Any(x => x.Item2);
         public bool IsPoisoned => Poisons.Any(x => x.Item2);
-        readonly Vampirism _vampirism;
-        readonly BiteSimulator _sim;
+        private readonly Vampirism _vampirism;
+        private readonly BiteSimulator _sim;
         public static string[] GiveBadLiquids() //for debugging
         {
             return new Bite(null, null).BadLiquids.Select(x => x.Item1).ToArray();
         }
-        public Bite(GameObject Biter, Vampirism Vampirism) : base(Biter)
+
+        public Bite(GameObject Biter) : base(Biter)
+        {
+            _sim = new(Biter, this);
+        }
+        public Bite(GameObject Biter, Vampirism Vampirism) : this(Biter)
         {
             this._vampirism = Vampirism;
-            _sim = new(Biter, this);
+
         }
         public (string, bool)[] Flags => new (string, bool)[]
         {
             (nameof(IsOnFire),IsOnFire), (nameof(HasPlasma), HasPlasma), (nameof(HasBadLiquid), HasBadLiquid), (nameof(HasDisease), HasDisease), (nameof(IsPoisoned), IsPoisoned)
         };
-        readonly public (string, bool)[] BadLiquids =
-        {
-          ("sludge", false),
+        readonly public (string, bool)[] BadLiquids = //on request i would make these non readonly dictionaries and open all inheritors of BaseBite up for virtual overrides and inheritance 
+        {                                               //and maybe find a way to have your class be assigned polymorphically to Bite in FeedCommand on init so you can run
+          ("sludge", false),                            //custom liquid/bite code
           ("ooze", false),
           ("goo", false),
           ("oil", false),
@@ -67,13 +73,13 @@ namespace Nexus.Bite
         bool VomitEnding(GameObject Target)
         {
             Fail(Target);
-            Nexus.Blood.IBloodMetabolism.Vomit(Biter);
+            Biter.GetPart<VampireBloodMetabolism>().Vomit();
             return true;
         }
 
         bool Fail(GameObject Target)
         {
-            _vampirism.BiteActivate(Target);
+            _vampirism?.BiteActivate(Target);
             if (Target != null)
             {
                 if (Biter.IsPlayer())
@@ -105,7 +111,7 @@ namespace Nexus.Bite
             return false;
         }
 
-        bool OutOfRange()
+        static bool OutOfRange()
         {
             Popup.Show("Vampirism Mod ERROR @ Bite.CannotFeed(GameObject) :: returned value is out of range!");
             MetricsManager.LogModError(ModManager.GetMod("vampirism"), "BiteSimulator.BadEnding() returned out of range value in Biting.CannotFeed(). Possible empty enumerable in BadEnding().");

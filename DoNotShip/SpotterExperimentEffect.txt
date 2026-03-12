@@ -1,6 +1,6 @@
 using XRL.World.AI.Pathfinding;
-using Nexus.Core;
-using Nexus.Properties;
+using VampirismNexus.Core;
+using VampirismNexus.Properties;
 using XRL.World.Capabilities;
 using System;
 

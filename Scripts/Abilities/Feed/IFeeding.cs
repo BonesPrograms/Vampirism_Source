@@ -1,8 +1,8 @@
 using System;
 using XRL.Core;
 using XRL.World.Parts;
-using Nexus.Properties;
-using Nexus.Core;
+using VampirismSys.Properties;
+using VampirismSys.Core;
 using XRL.World.Parts.Mutation;
 using SerializeField = UnityEngine.SerializeField;
 
@@ -19,27 +19,19 @@ namespace XRL.World.Effects
 
 		public static bool AutoLevel;
 		public GameObjectReference other; // a long time ago, this was life drain
-		Vitae _Vitae;
-		Vitae Vitae => _Vitae ??= Object.GetPart<Vitae>();
-		public bool isAttacker => _isAttacker;
+		VampireBloodMetabolism _Vitae;
+		VampireBloodMetabolism Vitae => _Vitae ??= Object.GetPart<VampireBloodMetabolism>();
+		public bool isAttacker;
 		int VictimHP => isAttacker ? other.Object.GetHPPercent() : base.Object.GetHPPercent();
-		protected int Amount;
-
+		public int Amount;
 
 		public string Damage;
 
-
-		public bool _isAttacker;
-
-
 		public bool StealthVersion;
-
 
 		public bool Ghoul;
 
-
 		public bool friendly;
-
 
 		public bool vampire;
 
@@ -49,13 +41,13 @@ namespace XRL.World.Effects
 			this.Damage = DamagePerRound;
 			this.Duration = Duration;
 			this.other = other.Reference();
-			this._isAttacker = isAttacker;
+			this.isAttacker = isAttacker;
 			this.Ghoul = Ghoul;
 			this.friendly = friendly;
 			this.vampire = vampire;
 		}
-		public sealed override string GetDescription() => isAttacker ? "{{R sequence|feeding}}" : "";
-		public sealed override string GetDetails() => Damage + " damage per turn.";
+		public override string GetDescription() => isAttacker ? "{{R sequence|feeding}}" : "";
+		public override string GetDetails() => Damage + " damage per turn.";
 		bool InvalidActor() => other?.Object?.IsInvalid() ?? true || base.Object == null || other.Object.InSameZone(Object);
 		public override bool WantEvent(int ID, int cascade)
 		{
@@ -75,12 +67,12 @@ namespace XRL.World.Effects
 				return true;
 			return base.WantEvent(ID, cascade);
 		}
-		public sealed override bool HandleEvent(KilledEvent E) //cannot be KilledEvent because StealthFeed does not count as an actual kill for the feeder
+		public override bool HandleEvent(KilledEvent E) //cannot be KilledEvent because StealthFeed does not count as an actual kill for the feeder
 		{
-			if (UI.Options.GetOptionBool(Nexus.Rules.ModOptions.HUMANITY) && E.Killer == Object && E.Dying != null && E.Dying == other?.Object)
+			if (UI.Options.GetOptionBool(VampirismSys.Rules.ModOptions.HUMANITY) && E.Killer == Object && E.Dying != null && E.Dying == other?.Object)
 			{
 				if (!vampire && !Object.CheckFlag(Flags.GO) && (friendly || other.Object.CheckFlag(Flags.INNOCENT)))
-					if (UI.Options.GetOptionBool(Nexus.Rules.ModOptions.DOUG) && friendly && !other.Object.IsGhoulOf(Object) && !other.Object.IsBeguiledBy(Object))
+					if (UI.Options.GetOptionBool(VampirismSys.Rules.ModOptions.DOUG) && friendly && !other.Object.IsGhoulOf(Object) && !other.Object.IsBeguiledBy(Object))
 						return base.HandleEvent(E);
 					else
 						VampireKilled();
@@ -90,7 +82,7 @@ namespace XRL.World.Effects
 			Duration = 0;
 			return base.HandleEvent(E);
 		}
-		public sealed override bool HandleEvent(TookDamageEvent E) // this handler is for the AI - they will not act while feeding, but if attacked, they will react. 
+		public override bool HandleEvent(TookDamageEvent E) // this handler is for the AI - they will not act while feeding, but if attacked, they will react. 
 		{
 			if (base.Object == E.Object)
 			{
@@ -108,7 +100,7 @@ namespace XRL.World.Effects
 			return base.HandleEvent(E);
 		}
 
-		public sealed override bool HandleEvent(UseEnergyEvent E) // this is the thing from sunder mind that ends the effect if you move
+		public override bool HandleEvent(UseEnergyEvent E) // this is the thing from sunder mind that ends the effect if you move
 		{
 			if (!E.Passive || (!E.Type?.Contains("Pass") ?? false))
 				Duration = 0;
@@ -125,7 +117,7 @@ namespace XRL.World.Effects
 					if (Object.IsPlayer())
 					{
 						string msg = WikiRng.Next(1, 2) == 2 ? "Diablerie!" : "Amaranth!";
-                        UI.Popup.Show($"{msg} You consume {other.Object.t()}'s soul!");
+						UI.Popup.Show($"{msg} You consume {other.Object.t()}'s soul!");
 					}
 					var e = Object.GetPart<Vampirism>();
 					e.BaseLevel++;
@@ -181,7 +173,7 @@ namespace XRL.World.Effects
 			}
 		}
 
-		protected void CheckIfRecognized()
+		protected void CheckIfRecognized(GameObject Object)
 		{
 			if (!Ghoul && Object.TryGetLongProperty(Flags.VICTIM, Flags.VICTIM_HOSTILE, out var value) && value > 1000)
 				AddPlayerMessage("You recognize the flavor of this one.");
@@ -192,12 +184,12 @@ namespace XRL.World.Effects
 			Amount = Ghoul ? damage / 2 : damage;
 			if (base.Object.IsPlayer())
 			{
-				if (Vitae.IDontWantToPuke(true))
+				if (Vitae.PukeWarning(true))
 				{
 					Duration = 0;
 					return false;
 				}
-				Vitae.Drink(true);
+				Vitae.Drink(VampirismSys.Rules.Vitae.BLOOD_PER_FEED);
 			}
 			base.Object.Heal(Amount, Message: true, FloatText: true, RandomMinimum: true);
 			return ThrallCheck();
@@ -260,8 +252,8 @@ namespace XRL.World.Effects
 		{
 			if (isAttacker)
 			{
-				base.Object.SetStringProperty(Flags.FEED, Flags.TRUE);
-				CheckIfRecognized();
+				Object.SetStringProperty(Flags.FEED, Flags.TRUE);
+				CheckIfRecognized(Object);
 			}
 			return true;
 		}
@@ -327,17 +319,17 @@ namespace XRL.World.Effects
 			  //however, the death penalty system does not check for the Innocence flag, because Hostile Victims are not considered innocent
 		}       //so if dominated targets were able to apply victim, then you would come back and kill them as the original  player and lose humanity
 				//I COULD compare feeders by ID as a string property, but humanity is mostly only relative to the player, and i dont care if the Victims part of the Deaths system is inactive when dominating
-		public sealed override bool UseStandardDurationCountdown()
+		public override bool UseStandardDurationCountdown()
 		{
 			return true;
 		}
 
-		public sealed override bool SameAs(Effect e)
+		public override bool SameAs(Effect e)
 		{
 			return false;
 		}
 
-		public sealed override bool Render(RenderEvent E)
+		public override bool Render(RenderEvent E)
 		{
 			if (!isAttacker)
 			{

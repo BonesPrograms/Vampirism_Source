@@ -1,7 +1,7 @@
 using System;
 using XRL.Core;
-using Nexus.Properties;
-using Nexus.Core;
+using VampirismSys.Properties;
+using VampirismSys.Core;
 using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Effects
@@ -13,7 +13,7 @@ namespace XRL.World.Effects
 	[Serializable]
 	public class CombatFeed : IFeeding
 	{
-		
+
 		public bool Frenzy;
 		public CombatFeed() : base()
 		{
@@ -41,20 +41,21 @@ namespace XRL.World.Effects
 		{
 			if (isAttacker)
 			{
-				ScaryMonster();
 				if (Frenzy) //bug when feed is activated that causes frenzy passturn to halt
 				{
 					XRLCore.Core.RenderDelay(100);
-					base.Object.PassTurn();
+					Object.PassTurn();
 				}
 			}
+			else
+				ScaryMonster(Object);
 			return base.Apply(Object);
 		}
 
-		void ScaryMonster()
+		void ScaryMonster(GameObject Object)
 		{
-			if (!base.friendly && !other.Object.MakeSave("Toughness", 13, null, null, "Scary Vampire Attack"))
-				other.Object.ApplyEffect(new Terrified(WikiRng.Next(16, 20), base.Object, false, false));
+			if (!base.friendly && !Object.MakeSave("Toughness", 13, null, null, "Scary Vampire Attack"))
+				Object.ApplyEffect(new Terrified(WikiRng.Next(16, 20), other.Object, false, false));
 		}
 
 

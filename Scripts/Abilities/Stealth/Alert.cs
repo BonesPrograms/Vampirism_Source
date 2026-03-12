@@ -5,15 +5,15 @@ using System.Collections.Generic;
 using XRL.World.Parts;
 using XRL.World;
 using XRL;
-using Nexus.Core;
+using VampirismSys.Core;
 using XRL.World.Effects;
 
 
-namespace Nexus.Stealth
+namespace VampirismSys.Stealth
 {
 
 
-    class Alert
+    public class Alert
     {
         readonly GameObject Source;
 

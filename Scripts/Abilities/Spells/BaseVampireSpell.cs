@@ -1,9 +1,9 @@
 
 using System;
-using Nexus.Rules;
+using VampirismSys.Rules;
 using XRL.World.Effects;
-using Nexus.Core;
-using Nexus.Properties;
+using VampirismSys.Core;
+using VampirismSys.Properties;
 using XRL.World.Parts.Mutation;
 using XRL.World.Parts;
 using XRL.World;
@@ -23,7 +23,7 @@ namespace XRL.World.Parts
         public string CommandName; //should be assigned in public parameterless constructor
         public string AbilityMenuName;
         public int Level => ParentObject.GetPart<Vampirism>().Level;
-        public virtual int Cost => Nexus.Rules.Vitae.BLOOD_PER_SIP; //default 10k  
+        public virtual int Cost => VampirismSys.Rules.Vitae.BLOOD_PER_SIP; //default 10k  
         public abstract int Cooldown { get; } //these are getter-only so that they can be easily changed in the future if i want
         public virtual bool Toggled => false; //this is only for AddMyActivatedAbility. you need to track the actual toggled on/off state yourself
         public abstract void CollectStats(Templates.StatCollector stats);
@@ -55,9 +55,9 @@ namespace XRL.World.Parts
             RemoveMyActivatedAbility(ref SpellID);
             ParentObject.RemovePart(this);
         }
-        public bool EnoughBlood(string text, int cost)
+        public bool EnoughBlood(string text)
         {
-            if (ParentObject.GetIntProperty(Flags.BLOOD_VALUE) > cost)
+            if (ParentObject.GetIntProperty(Flags.BLOOD_VALUE) > Cost)
                 return true;
             else
                 return ParentObject.ShowFailure("You don't have enough {{R|blood}} " + text + "!");
@@ -68,7 +68,7 @@ namespace XRL.World.Parts
             {
                 Popup.Show("You are powerless before the gross incandescence of the Sun!");
             }
-            else if (EnoughBlood(toDo, Cost))
+            else if (EnoughBlood(toDo))
             {
                 IComponent<GameObject>.AddPlayerMessage("You invoke {{R|blood magic}}.");
                 ParentObject.SmallTeleportSwirl(null, "&R");
@@ -80,7 +80,7 @@ namespace XRL.World.Parts
         }
         public bool RealityCheck(Cell cell) => RealityCheck(cell, CATEGORY, this); //i already made this and im lazy and dont feel like rewriting all my reality checks for the static method
 
-        public void ExpendBlood(bool noPopup, string text)
+        public void ExpendBlood(bool noPopup , string text)
         {
             if (noPopup)
                 IComponent<GameObject>.AddPlayerMessage(text);
@@ -91,7 +91,7 @@ namespace XRL.World.Parts
         //ExpendBlood should be invoked after Cast() returns true
         public void ExpendBlood()
         {
-            ParentObject.GetPart<XRL.World.Parts.Vitae>().Blood -= Cost;
+            ParentObject.GetPart<XRL.World.Parts.VampireBloodMetabolism>().Blood -= Cost;
         }
 
         public static bool RealityCheck<T>(Cell cell, string category, T invoker) where T : IPart

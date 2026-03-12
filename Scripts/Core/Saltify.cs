@@ -2,9 +2,9 @@ using XRL.World;
 using XRL.World.Parts;
 using static XRL.World.Cell;
 using System.Linq;
-namespace Nexus.Core
+namespace VampirismSys.Core
 {
-    static class Saltify
+    internal static class Saltify
     {
         static void FindAndSalt(Cell cell)
         {
@@ -12,7 +12,7 @@ namespace Nexus.Core
                 cell.AddObject("SaltDrop");
         }
 
-        public static void Salt(Cell Cell)
+        internal static void Salt(Cell Cell)
         {
             Cell.GetLocalAdjacentCells().Where(x => x.HasObjectWithPart(nameof(LiquidVolume))).ForEach(FindAndSalt);
         }

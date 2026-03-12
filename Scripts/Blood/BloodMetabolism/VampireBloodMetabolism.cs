@@ -1,70 +1,211 @@
-using XRL.World;
-using Nexus.Core;
-using Nexus.Properties;
+using System;
+using System.Collections.Generic;
 using XRL.UI;
+using VampirismSys.Properties;
+using VampirismSys.Core;
+using VampirismSys.Registry;
+using VampirismSys.Blood;
+using VampirismSys.Rules;
+using XRL.World.Capabilities;
 using XRL.World.Effects;
-using Nexus.Rules;
 
-namespace Nexus.Blood
+
+namespace XRL.World.Parts
 {
 
-    public class VampireMetabolism : BaseBloodMetabolism<XRL.World.Parts.Vitae>
+    [Serializable]
+
+    public class VampireBloodMetabolism : BaseBloodMetabolism
     {
-        public VampireMetabolism(XRL.World.Parts.Vitae Source) : base(Source)
+        public bool GameOver;
+        public bool Bloodlusted;
+        public override bool WantsMetabolism => ParentObject.IsPlayer();
+        public override bool WantsVomit => !ParentObject.CheckFlag(Flags.FRENZY);
+        public static bool AntiPuke;
+
+        [NonSerialized]
+        public static List<GameObject> containers = new();
+        public int BloodDrams => ParentObject.GetFreeDrams("blood"); //for harmony
+        public override string UIBloodDisplay => ParentObject.CheckFlag(Flags.GO) ? "{{r|Bottomless}}" : base.UIBloodDisplay;
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
+            Registrar.Register(Events.GAMEOVER);
+            Registrar.Register(Events.WISH_HUMANITY);
+            base.Register(Object, Registrar);
         }
-        public override void Cycle()
+        public override bool FireEvent(Event E)
         {
-            if (NotAtMinimum())
+            if (ParentObject.IsPlayer())
             {
-                Bleeding();
-                Overfed();
-                SetBloodValue();
-                CheckForBloodlust();
+                if (E.ID == Events.WISH_HUMANITY)
+                    GameOver = false;
+                if (E.ID == Events.GAMEOVER)
+                    GameOver = true;
             }
+            return base.FireEvent(E);
+        }
+
+        public override bool WantEvent(int ID, int cascade)
+        {
+            if (ID == AfterPlayerBodyChangeEvent.ID)
+                return true;
+            if (ID == SingletonEvent<BeforeTakeActionEvent>.ID)
+                return WantsAutoget();
+            return base.WantEvent(ID, cascade);
+        }
+        public override bool HandleEvent(BeginTakeActionEvent E)
+        {
+            if (AntiPuke && Blood >= VampirismSys.Rules.Vitae.SIP_PUKE_WARN)
+                Blood = 1;
+            return base.HandleEvent(E);
+        }
+
+        public override bool HandleEvent(AfterPlayerBodyChangeEvent E)
+        {
+            Autoget.Clear();
+            return base.HandleEvent(E);
+        }
+        public override bool HandleEvent(BeforeTakeActionEvent E)
+        {
+            Autoget.Autogetter();
+            return base.HandleEvent(E);
+        }
+
+        protected override void Cycle()
+        {
+            Bleeding();
+            CheckForBloodlust();
             SetStomach();
+            if (WantsAutosip())
+                BloodAutoSip();
+            SetBloodProperties();
+            base.Cycle();
+        }
+
+        public bool PukeWarning(bool feeding)
+        {
+            if (!ParentObject.CheckFlag(Flags.FRENZY) && !ParentObject.Incap(false) && ParentObject.IsPlayer())
+            {
+                if (Blood >= VampirismSys.Rules.Vitae.FEED_PUKE_WARN && feeding)
+                {
+                    if (Popup.ShowYesNo("Feeding that much will probably make you sick. Do you still want to feed?") == DialogResult.No)
+                        return true;
+                }
+                else if (Blood >= VampirismSys.Rules.Vitae.SIP_PUKE_WARN && !feeding)
+                {
+                    if (Popup.ShowYesNo("Drinking that much will probably make you sick. Do you still want a drink?") == DialogResult.No)
+                        return true;
+                }
+            }
+            return false;
         }
 
         void SetStomach()
         {
-            SetWater();
             if (Options.GetOptionBool(ModOptions.TRUE_UNDEAD) && Stomach.HungerLevel != 0)   //most True Undead code is in Vampirism, this is the only one outside of it
                 Stomach.ClearHunger();
         }
 
-        void SetBloodValue()
+        void SetBloodProperties()
         {
-            Blood -= Rules.Vitae.BLOOD_METAB;
-            Metaboliser.SetStringProperty(Flags.BLOOD_STATUS, StatusToString(out _));
-            Metaboliser.SetIntProperty(Flags.BLOOD_VALUE, Blood);
-        }
-
-        void Overfed()
-        {
-            if (Blood >= Rules.Vitae.BLOOD_PUKE && !Metaboliser.CheckFlag(Flags.FRENZY))
-            {
-                Popup.Show("You overfed!");
-                Vomit();
-            }
+            ParentObject.SetStringProperty(Flags.BLOOD_STATUS, StringStatus);
+            ParentObject.SetIntProperty(Flags.BLOOD_VALUE, Blood);
         }
 
         void Bleeding()
         {
-            if (Metaboliser.HasEffect<Bleeding>() && Options.GetOptionBool(ModOptions.BLEED_THIRST))
+            if (ParentObject.HasEffect<Bleeding>() && Options.GetOptionBool(ModOptions.BLEED_THIRST))
             {
-                Blood -= Metaboliser.CheckFlag(Flags.FEED) ? Rules.Vitae.BLOOD_PERBloodLOSS_FEED : Rules.Vitae.BLOOD_PERBloodLOSS;
+                Blood -= ParentObject.CheckFlag(Flags.FEED) ? VampirismSys.Rules.Vitae.BLOOD_PERBloodLOSS_FEED : VampirismSys.Rules.Vitae.BLOOD_PERBloodLOSS;
                 IComponent<GameObject>.AddPlayerMessage("Bloodloss makes you {{R|thistier}}!");
             }
         }
 
         void CheckForBloodlust()
         {
-            if (!Source.Bloodlusted && Blood < Rules.Vitae.BLOOD_QUENCHED)
+            if (!Bloodlusted && Status < BloodLevel.QUENCHED)
             {
-                Source.Bloodlusted = true;
-                Metaboliser.ApplyEffect(new Bloodlust(9999, Source.GameOver));
+                Bloodlusted = true;
+                ParentObject.ApplyEffect(new Bloodlust(9999, GameOver));
             }
         }
 
+        void BloodAutoSip()
+        {
+            if (WantsAutosip(Options.GetOption(ModOptions.AUTOSIP_LEVEL)))
+            {
+                containers.Clear();
+                if (ParentObject.UseDrams(1, "blood", null, null, null, containers, true))
+                {
+                    Drink();
+                    Sip();
+                }
+                containers.Clear();
+            }
+        }
+
+        void Sip()
+        {
+            GameObject gameObject = (containers.Count != 0) ? containers[0] : null;
+            if (gameObject is null)
+                DidX("take", "a sip of {{R sequence|blood}}", null, null, null, ParentObject);
+            else
+            {
+                ParentObject.FireEvent(Event.New("DrinkingFrom", "Container", gameObject));
+                DidXToY("take", "a sip of {{R sequence|blood}} from", gameObject, null, null, null, null, ParentObject, null, UseFullNames: false, IndefiniteSubject: false, IndefiniteObject: false, IndefiniteObjectForOthers: false, PossessiveObject: false, null, ParentObject);
+            }
+        }
+
+        bool WantsAutosip()
+         =>
+            Options.GetOptionBool(ModOptions.AUTOSIP)
+            && !Options.GetOptionBool(ModOptions.HUNTER)
+            && !ParentObject.CheckFlag(Flags.FRENZY, Flags.FEED)
+            && !ParentObject.Incap(false)
+            && !ParentObject.IsPolymorphed();
+
+        bool WantsAutosip(string option)
+         => option switch
+         {
+             ModOptions.Autosip_Settings.QUENCH => Status < BloodLevel.GLUT, //in our code, being marked as "thirsty" actually means your blood is > thirsty and < quenched
+             ModOptions.Autosip_Settings.THIRSTY => Status < BloodLevel.QUENCHED,//kind of confusing but i dont care to change it now
+             ModOptions.Autosip_Settings.PARCHED => Status < BloodLevel.THIRSTY,
+             ModOptions.Autosip_Settings.MIN => Status < BloodLevel.PARCHED,
+             _ => false,
+         };
+
+        bool WantsAutoget()
+         =>
+            ParentObject.IsPlayer()
+            && Options.GetOptionBool(ModOptions.AUTOGET)
+            && !Options.GetOptionBool(ModOptions.HUNTER)
+            && !AutoAct.IsResting()
+            && !ParentObject.IsInCombat()
+            && !ParentObject.CheckFlag(Flags.FRENZY, Flags.FEED)
+            && !ParentObject.IsPolymorphed();
     }
+
+
+    [Serializable]
+
+    [Obsolete("Use VampireBloodMetabolism")]
+    public class Vitae : IPart
+    {
+        public int Blood;
+        public bool GameOver;
+        public bool Bloodlusted;
+        public override bool WantEvent(int ID, int Cascade)
+        {
+            return ID == SingletonEvent<BeforeBeginTakeActionEvent>.ID;
+        }
+
+        public override bool HandleEvent(BeforeBeginTakeActionEvent E)
+        {
+            ParentObject.AddPart(new VampireBloodMetabolism() { Blood = Blood, GameOver = GameOver, Bloodlusted = Bloodlusted });
+            ParentObject.RemovePart(this);
+            return base.HandleEvent(E);
+        }
+    }
+
+
 }

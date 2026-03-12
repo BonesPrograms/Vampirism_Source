@@ -6,7 +6,7 @@ using XRL.World.Effects;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Nexus.Wish
+namespace VampirismSys.Wish
 {
 
     [HasWishCommand]

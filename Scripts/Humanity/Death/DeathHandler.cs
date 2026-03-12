@@ -1,10 +1,10 @@
 using System;
 using XRL.World.Parts.Mutation;
 using XRL.World.Effects;
-using Nexus.Properties;
-using Nexus.Death;
-using Nexus.Core;
-using Nexus.Rules;
+using VampirismSys.Properties;
+using VampirismSys.Death;
+using VampirismSys.Core;
+using VampirismSys.Rules;
 using XRL.UI;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,10 +69,10 @@ namespace XRL.World.Parts
         }
         static void CreateDeathsInstance(GameObject Killer, GameObject Dying)
         {
-            if (Options.GetOptionBool(Nexus.Rules.ModOptions.HUMANITY) && Security() && !Player.CheckFlag(Flags.GO) && !Dying.HasStringProperty(Flags.DEAD))
+            if (Options.GetOptionBool(VampirismSys.Rules.ModOptions.HUMANITY) && Security() && !Player.CheckFlag(Flags.GO) && !Dying.HasStringProperty(Flags.DEAD))
             {
                 bool friendly = Dying.IsFriendly(The.Player);
-                if (Options.GetOptionBool(Nexus.Rules.ModOptions.DOUG) && friendly && !Dying.IsGhoulOf(The.Player) && !Dying.IsBeguiledBy(The.Player))
+                if (Options.GetOptionBool(VampirismSys.Rules.ModOptions.DOUG) && friendly && !Dying.IsGhoulOf(The.Player) && !Dying.IsBeguiledBy(The.Player))
                     return;                             //The.Player != this.Player if the player is dominating. Targets beguiled by a gameobject will not be loyal to gameobjects that they dominate, only the source object
                 else                                    //so for us this means morality and friendship is relative to how AI feel about the player's current body rather than original body
                     new Deaths(Player, Dying, Killer, friendly, Dying.IsHostileTowards(The.Player)).Possibilities();
@@ -137,8 +137,7 @@ namespace XRL.World.Parts
             {
                 obj.SetIntProperty(Flags.Embrace.LEVEL_ON_DEATH, Dying.Level);
                 obj.SetStringProperty(Flags.Embrace.EMBRACEABLE, Flags.TRUE);
-                EmbraceableObject copy = new(Dying);
-                obj.AddPart(copy);
+                obj.AddPart(new EmbraceableObject(Dying));
             }
         }
 

@@ -1,15 +1,15 @@
 using XRL.World;
-using Nexus.Properties;
-using Nexus.Core;
+using VampirismSys.Properties;
+using VampirismSys.Core;
 
-namespace Nexus.Death
+namespace VampirismSys.Death
 {
     /// <summary>
     /// Static evaluator for removing parts from invalid targets and applying Innocence values.
     /// </summary>
-    static class Init
+    internal static class Init
     {
-        public static bool Evaluate(GameObject GO, GameObject Player)
+        internal static bool Evaluate(GameObject GO, GameObject Player)
         {
             if (!GO.IsPlayer())
             {

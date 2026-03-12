@@ -1,21 +1,21 @@
 using System.Collections.Generic;
 using XRL.UI;
 using XRL.World.Effects;
-using Nexus.Core;
+using VampirismSys.Core;
 using XRL.World;
 using System.Linq;
 using HarmonyLib;
 
-namespace Nexus.Bite
+namespace VampirismSys.Biting
 {
     /// <summary>
     /// Handles the simulation features for what happens when biting targets with various toxic or otherwise inedible conditions.
     /// </summary>
 
-    public class BiteSimulator : VampireBite
+    public class BiteSimulator : BaseBite
     {
-        readonly Bite _source;
-        readonly LiquidBehaviors _liquidBehaviors;
+         readonly Bite _source;
+         readonly LiquidBehaviors _liquidBehaviors;
         public BiteSimulator(GameObject Biter, Bite Source) : base(Biter)
         {
             this._source = Source;
@@ -30,7 +30,7 @@ namespace Nexus.Bite
                 Popup.ShowFail("{{R sequence|IT BURNS!}}");
             return MakeSave("Bit Flaming Target");
         }
-        Ending PlasmaEnding()
+       Ending PlasmaEnding()
         {
             if (Biter.IsPlayer())
                 Popup.ShowFail("It's {{plasma|plasma}}! Ouch!");
@@ -87,34 +87,5 @@ namespace Nexus.Bite
             _ => default
         };
 
-        // public Ending BadEnding(GameObject Target)
-        // {
-        //     Ending[] endings = new Ending[Source.Flags.CapacityByValue(true)];
-        //     int index = 0;
-        //     if (Source.IsOnFire)
-        //     {
-        //         endings[index] = FlameEnding(Target);
-        //         index++;
-        //     }
-        //     if (Source.HasBadLiquid)
-        //     {
-        //         endings[index] = LiquidBehaviors.LiquidEnding(Source.BadLiquids);
-        //         index++;
-        //     }
-        //     if (Source.HasPlasma)
-        //     {
-        //         endings[index] = PlasmaEnding();
-        //         index++;
-        //     }
-        //     if (Source.IsPoisoned)
-        //     {
-        //         endings[index] = PoisonEnding();
-        //         index++;
-        //     }
-        //     if (Source.HasDisease)
-        //         endings[index] = DiseaseEnding();
-
-        //     return Result(endings);
-        // }
     }
 }

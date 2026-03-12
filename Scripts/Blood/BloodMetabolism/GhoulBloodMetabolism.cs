@@ -1,56 +1,84 @@
-using XRL.World;
-using Nexus.Core;
-using XRL.UI;
+using System;
 using XRL.World.Effects;
-using Nexus.Rules;
+using VampirismSys.Blood;
 
-namespace Nexus.Blood
+namespace XRL.World.Parts
 {
-    public class GhoulMetabolism : BaseBloodMetabolism<EnthralledGhoul>
+    [Serializable]
+    public class GhoulBloodMetabolism : BaseBloodMetabolism
     {
-        const int RATE = Vitae.Metab_Settings.DEFAULT;
-        public GhoulMetabolism(EnthralledGhoul ghoul) : base(ghoul)
+        public static readonly string[] Stats = { "Strength", "Agility", "Toughness", "Willpower", "Ego", "Hitpoints" };
+
+        public override int MetabolismRate => VampirismSys.Rules.Vitae.Metab_Settings.DEFAULT / 2;
+
+        public bool Buffed;
+
+        public bool Bloodstarved;
+
+        int DebuffRate => Status switch //rough draft, in the future the scaling will be based on the individual value of each statistic
+        {                               //though this will probably be handled at the site of debuff, and DebuffRate will be used as a "base debuff value"
+            BloodLevel.THIRSTY => 4,
+            BloodLevel.PARCHED => 8,
+            BloodLevel.MIN => 12,
+            _ => default
+        };
+        protected override void Cycle()
         {
-        }
-        public override void Cycle()
-        {
-            SetWater();
-            if (NotAtMinimum())
+            if (StatusChange(out var LostBlood, out _))
             {
-                Blood -= RATE;
-                if (StatusChange(out var status))
-                    CheckStatus(status);
+                CheckStatus();
+                if (Bloodstarved && LostBlood)
+                    Debuff();
             }
-            else
-                Metaboliser.Die(); //just like that
+            base.Cycle();
         }
 
-        void CheckStatus(BloodLevel status)
+        public void Buff(int Roll)
         {
-            if (status < BloodLevel.QUENCHED)
+            if (!Buffed && Status > BloodLevel.THIRSTY) //they need to be fed a bit before buff can kick in
             {
-                if (!Source.Bloodstarved)
-                {
-                    Source.DisplayName = "{{r|bloodstarved}}";
-                    Source.Bloodstarved = true;
-                }
-                if (Source.Master.HasLOSTo(Metaboliser))
-                    IComponent<GameObject>.AddPlayerMessage($"{Metaboliser.t()} feels " + "{{R|thirsty}}.");
+                ParentObject.ApplyEffect(new BuffedEnthralledGhoul(Roll));
+                Buffed = true;
             }
-            else if (Source.Bloodstarved)
+            Drink();
+        }
+
+        void Debuff()
+        {
+            AddPlayerMessage($"{ParentObject.t()} is starving for " + "{{r|blood}}!");
+            int debuff = DebuffRate;
+            foreach (var obj in GhoulBloodMetabolism.Stats)
             {
-                Source.DisplayName = "{{r|ghoul}}";
-                Source.Bloodstarved = false;
+                StatShifter.SetStatShift(obj, debuff);
             }
         }
 
-        bool StatusChange(out BloodLevel value)
+        void CheckStatus()
         {
-            string status = StatusToString(out value);
-            if (Source.LastStatus == status)
-                return false;
-            Source.LastStatus = status;
-            return true;
+            EnthralledGhoul e = ParentObject.GetEffect<EnthralledGhoul>();
+            if (Status < BloodLevel.QUENCHED)
+                SetBloodStarved(e);
+            else if (Bloodstarved)
+                RemoveBloodStarved(e);
         }
+
+        void SetBloodStarved(EnthralledGhoul e)
+        {
+            if (!Bloodstarved)
+            {
+                e.DisplayName = "{{r|bloodstarved}}";
+                Bloodstarved = true;
+            }
+            IComponent<GameObject>.AddPlayerMessage($"{ParentObject.t()} feels " + "{{R|thirsty}}.");
+        }
+
+        void RemoveBloodStarved(EnthralledGhoul e)
+        {
+            e.DisplayName = "{{r|ghoul}}";
+            Bloodstarved = false;
+            foreach (var obj in Stats)
+                StatShifter.RemoveStatShift(ParentObject, obj);
+        }
+
     }
 }

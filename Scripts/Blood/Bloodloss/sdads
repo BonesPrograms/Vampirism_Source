@@ -1,0 +1,254 @@
+using XRL.World.Effects;
+using System.Text;
+using System.Linq;
+using XRL.UI;
+using VampirismNexus.Core;
+using VampirismNexus.Blood;
+
+namespace VampirismNexus.Blood
+{
+    public enum BloodLevel : int
+    {
+        OUT_OF_RANGE,
+        MIN,
+        PARCHED,
+        THIRSTY,
+        QUENCHED,
+        GLUT
+    }
+}
+
+namespace XRL.World.Parts
+{
+
+    public abstract class BaseBloodMetabolism : IScribedPart
+    {
+        public int Blood
+        {
+            get => _blood;
+            set
+            {
+                _blood = value > 0 ? value : 0;
+            }
+        }
+        public BloodLevel Status
+        {
+            get => _status;
+            private set
+            {
+                _status = value;
+            }
+        }
+
+        public virtual string BloodDisplay => _bloodDisplay;
+        protected abstract bool ValidForMetabolism { get; }
+
+        protected abstract bool ShouldVomit { get; }
+
+        BloodLevel _status;
+
+        BloodLevel _lastStatus;
+
+        string _stringStatus;
+
+        int _blood = VampirismNexus.Rules.Vitae.BLOOD_GLUTTONOUS;
+
+        static readonly string[] _vomitStrings = { "You vomit!", "You vomit {{R sequence|blood!}}" };
+
+        protected Stomach Stomach => _stomach ??= ParentObject.GetPart<Stomach>();
+
+        Stomach _stomach;
+
+        public bool Glut => Blood >= VampirismNexus.Rules.Vitae.BLOOD_GLUTTONOUS;
+
+        public bool Quenched => Blood >= VampirismNexus.Rules.Vitae.BLOOD_QUENCHED && Blood < VampirismNexus.Rules.Vitae.BLOOD_GLUTTONOUS;
+
+        public bool Thirsty => Blood >= VampirismNexus.Rules.Vitae.BLOOD_THIRSTY && Blood < VampirismNexus.Rules.Vitae.BLOOD_QUENCHED;
+
+        public bool Parched => Blood >= VampirismNexus.Rules.Vitae.BLOOD_PARCHED && Blood < VampirismNexus.Rules.Vitae.BLOOD_THIRSTY;
+
+        public bool Min => Blood < VampirismNexus.Rules.Vitae.BLOOD_PARCHED;
+
+        public bool Zero => Blood <= 0;
+
+        string _bloodDisplay
+           => Status switch
+           {
+               >= BloodLevel.GLUT => "{{G|Glutted}}",
+               >= BloodLevel.QUENCHED => "{{g|Gorged}}",
+               >= BloodLevel.THIRSTY => "{{R|Thirsty}}",
+               >= BloodLevel.PARCHED => "{{r|Fiending}}",
+               _ => "{{r|Ravenous}}"
+           };
+
+        const int WATER = 35000;
+
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
+        {
+            Registrar.Register("AddWater");
+            Registrar.Register("AfterDrank");
+        }
+
+        public override bool FireEvent(Event E)
+        {
+            if (E.ID == "AfterDrank")
+                SetWater();
+            if (E.ID == "AddWater")
+            {
+                int water = E.GetIntParameter("Amount");
+                if (water < 0)
+                    Blood += water;
+            }
+            return base.FireEvent(E);
+        }
+
+        public override bool WantEvent(int ID, int cascade)
+        {
+            if (ID == PooledEvent<InduceVomitingEvent>.ID)
+                return true;
+            if (ID == SingletonEvent<BeginTakeActionEvent>.ID)
+                return true;
+            return base.WantEvent(ID, cascade);
+        }
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+            Writer.Write(_blood);
+            Writer.Write((int)_status);
+            Writer.Write((int)_lastStatus);
+            Writer.Write(_stringStatus);
+            base.Write(Basis, Writer);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+            _blood = Reader.ReadInt32();
+            _status = (BloodLevel)Reader.ReadInt32();
+            _lastStatus = (BloodLevel)Reader.ReadInt32();
+            _stringStatus = Reader.ReadString();
+            base.Read(Basis, Reader);
+        }
+        public override bool HandleEvent(InduceVomitingEvent E)
+        {
+            if (E.Object == ParentObject)
+            {
+                SetWater();
+                VomitEventHelper(E.MessageHolder);
+                if (ValidForMetabolism)
+                    Blood -= WikiRng.Next(15000, 25000);
+                E.InterfaceExit = true;
+            }
+            return base.HandleEvent(E);
+        }
+
+        public override bool HandleEvent(BeginTakeActionEvent E)
+        {
+            SetWater();
+            if (ValidForMetabolism)
+            {
+                Cycle();
+                Overfed();
+                SetStatus();
+            }
+            return base.HandleEvent(E);
+        }
+
+        protected virtual void Cycle()
+        {
+            if (!base.ParentObject.IsPlayer())
+                Blood -= VampirismNexus.Rules.Vitae.Metab_Settings.DEFAULT;
+            else
+                Blood -= VampirismNexus.Rules.Vitae.BLOOD_METAB;
+        }
+
+        public void Drink(int value = VampirismNexus.Rules.Vitae.BLOOD_PER_SIP)
+        {
+            Blood += value;
+            Event E = Event.New("AddFood");
+            E.SetParameter("Satiation", "Snack");
+            E.SetFlag("Meat", true);
+            base.ParentObject.FireEvent(E);
+            base.ParentObject.FireEvent(Event.New("AfterDrank")); //for glotrot. all you need is this event and glotrot seems to work intrinsically with putrefying blood
+        }
+
+        void Overfed()
+        {
+            if (Blood >= VampirismNexus.Rules.Vitae.BLOOD_PUKE)
+            {
+                if (base.ParentObject.IsPlayer())
+                    Popup.Show("You overfed!");
+                Vomit();
+            }
+        }
+        protected void SetWater() => Stomach.Water = WATER;
+        void VomitEventHelper(StringBuilder MessageHolder)
+        {
+            ShowVomitStrings(MessageHolder);
+            if (ParentObject.CurrentCell != null && !ParentObject.OnWorldMap())
+            {
+                FindVomitPool(ParentObject.CurrentCell);
+                CreateVomitObjects();
+            }
+        }
+        public bool StatusChange()
+        {
+            if (_lastStatus == Status)
+                return false;
+            _lastStatus = Status;
+            return true;
+        }
+
+        void SetStatus()
+        {
+            if (Glut)
+                Status = BloodLevel.GLUT;
+            if (Quenched)
+                Status = BloodLevel.QUENCHED;
+            if (Thirsty)
+                Status = BloodLevel.THIRSTY;
+            if (Parched)
+                Status = BloodLevel.PARCHED;
+            if (Min)
+                Status = BloodLevel.MIN;
+        }
+
+        public void Vomit() //this is a force-vomit invoker for blooddrinkers, if you want them to vomit at a certain threshold, invoke this
+        {                                                      //all inheritors of BaseBloodMetabolism<T> have access to an instance version of Vomit(GameObject)
+            if (ParentObject.IsPlayer())
+                Popup.Show(_vomitStrings[1]);
+            else
+                IComponent<GameObject>.AddPlayerMessage($"{ParentObject.t()} vomits " + "{{R|blood}}!");
+            bool ExitInterface = false;
+            InduceVomitingEvent.Send(ParentObject, ref ExitInterface, new StringBuilder());
+        }
+
+        void ShowVomitStrings(StringBuilder MessageHolder)
+        {
+            if (ParentObject.IsPlayer())
+                MessageHolder.Replace(_vomitStrings[0], _vomitStrings[1]);
+            else
+                IComponent<GameObject>.AddPlayerMessage($"{ParentObject.t()} vomits" + " {{r|blood!}}");
+        }
+
+        void CreateVomitObjects()
+        {
+            ParentObject.CurrentCell.AddObject("BloodVomitPool");
+            if (ParentObject.TryGetEffect<LiquidCovered>(out var e))
+            {
+                e.Liquid.ComponentLiquids.Remove("putrid");
+                e.Liquid.ComponentLiquids["blood"] = 2; //was getting a terrible error if the key already existed, dont use .Add!
+            }
+            else
+            {
+                LiquidCovered E = new("blood", 2);
+                ParentObject.ApplyEffect(E);
+                E.Liquid.ComponentLiquids.Remove("putrid");
+            }
+        }
+        static void FindVomitPool(Cell cell)
+        {
+            var pool = cell.Objects.FirstOrDefault(x => x.Blueprint == "VomitPool");
+            if (pool != null)
+                cell.RemoveObject(pool);
+        }
+    }
+}

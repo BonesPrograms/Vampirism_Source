@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using XRL.UI;
 using XRL.World.Effects;
-using Nexus.Core;
+using VampirismSys.Core;
 using XRL.World;
 using System.Linq;
 using AiUnity.Common.Extensions;
 
-namespace Nexus.Bite
+namespace VampirismSys.Biting
 {
 
-    public class LiquidBehaviors : VampireBite
+    public class LiquidBehaviors : BaseBite
     {
         public LiquidBehaviors(GameObject Biter) : base(Biter)
         {
@@ -90,7 +90,7 @@ namespace Nexus.Bite
             return Result(BadLiquids.Where(x => x.Item2).Select(x => Cycle(x.Item1)));
         }
 
-        Ending Cycle(string liquid) =>
+         Ending Cycle(string liquid) =>
         liquid switch
         {
             "sludge" => SludgeLiquid(),

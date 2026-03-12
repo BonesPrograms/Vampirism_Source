@@ -1,12 +1,12 @@
 using System;
 using XRL.World.Effects;
-using Nexus.Core;
-using Nexus.Rules;
+using VampirismSys.Core;
+using VampirismSys.Rules;
 using XRL.World.AI;
 using System.Collections.Generic;
 using System.Linq;
 using XRL.World.Parts.Mutation;
-using Nexus.Blood;
+using VampirismSys.Blood;
 
 namespace XRL.World.Parts
 {
@@ -14,12 +14,13 @@ namespace XRL.World.Parts
     [Serializable]
     public class GhoulSpell : BaseVampireSpell
     {
-        public override int Cooldown => Nexus.Rules.Ghoul.COOLDOWN;
+        public override int Cooldown => VampirismSys.Rules.Ghoul.COOLDOWN;
         const string TEXT = "to enthrall";
+        public override int Roll() => WikiRng.Next(1, 8) + Math.Max(ParentObject.StatMod("Ego"), Level);
         public GhoulSpell()
         {
-            CommandName = Nexus.Rules.Ghoul.COMMAND_NAME;
-            AbilityMenuName = Nexus.Rules.Ghoul.ABILITY_NAME;
+            CommandName = VampirismSys.Rules.Ghoul.COMMAND_NAME;
+            AbilityMenuName = VampirismSys.Rules.Ghoul.ABILITY_NAME;
         }
 
         public override bool WantEvent(int ID, int Cascade)
@@ -30,9 +31,9 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(CommandEvent E)
         {
-            if (E.Command == Nexus.Rules.Ghoul.COMMAND_NAME && Checks.Prerequisites(base.ParentObject, Nexus.Rules.Ghoul.ABILITY_NAME, TEXT))
+            if (E.Command == VampirismSys.Rules.Ghoul.COMMAND_NAME && Checks.Prerequisites(base.ParentObject, VampirismSys.Rules.Ghoul.ABILITY_NAME, TEXT))
             {
-                if (base.ParentObject.TryGetTarget(AbilityMenuName, TEXT, out GameObject pick) && Checks.Attackable(pick, TEXT) && NotAlreadyFollower(pick))
+                if (base.ParentObject.TryGetTarget(AbilityMenuName, TEXT, out GameObject pick) && Checks.Attackable(pick, TEXT))
                     MakeAttack(pick);
 
             }
@@ -41,17 +42,8 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(AfterDieEvent E)
         {
-            RemoveLastGhoul();
+            RemoveLastGhoul(E.Dying);
             return base.HandleEvent(E);
-        }
-        public bool NotAlreadyFollower(GameObject pick) //for now - i have problems with you trying to mix and match these effects
-        {
-            if (pick.InSamePartyAs(ParentObject))
-            {
-                XRL.UI.Popup.Show($"{pick.t()} is already your follower.");
-                return false;
-            }
-            return true;
         }
 
         public void MakeAttack(GameObject Target)
@@ -61,73 +53,26 @@ namespace XRL.World.Parts
             else if (!IsVampire(Target))
                 Cast(Target);
         }
-
-        bool IsVampire(GameObject Target)
-        {
-            if (Target.IsVampire())
-            {
-                UI.Popup.Show("You cannot enthrall other vampires.");
-                return true;
-            }
-            return false;
-        }
-
-        bool AlreadyEnthralled(GameObject Target, out EnthralledGhoul e)
-        {
-            e = Target.GetEffect<EnthralledGhoul>();
-            return e != null;
-        }
-
-        void CheckEnthrallment(EnthralledGhoul e)
-        {
-            if (e.Master == ParentObject)
-            {
-                var level = e.Metab.Status;
-                if (level == BloodLevel.GLUT)
-                    AddPlayerMessage($"{e.Object.t()} is already gorged on " + "{{r|blood}}.");
-                else
-                    ExpendBlood(e, false);
-            }
-            else
-                UI.Popup.Show($"{e.Object.t()} already has a master.");
-
-        }
-
-        void ExpendBlood(EnthralledGhoul e, bool showPopup)
-        {
-            e.Buff(Roll());
-            string basemessage = $"You feed {e.Object.t()} your blood";
-            string output = showPopup == true ? $"{basemessage} and enthrall their mind." : $"{basemessage}.";
-            base.ExpendBlood(showPopup, output);
-        }
-
-
         void Cast(GameObject Target)
         {
-            if (AlreadyEnthralled(Target, out var e))
-                CheckEnthrallment(e);
-            else if (base.Cast(TEXT) && RealityCheck(Target.CurrentCell) && Attack(Target))
+            if (base.Cast(TEXT)) //used to do a reality check here but... i dont think feeding a ghoul needs a reality distortion check
             {
-                RemoveLastGhoul();
-                var ghoul = new EnthralledGhoul(ParentObject);
-                Target.ApplyEffect(ghoul);
-                ExpendBlood(ghoul, true);
+                if (AlreadyEnthralled(Target, out var ghoul))
+                    CheckEnthrallment(ghoul);
+                else if (NotAlreadyFollower(Target) && Attack(Target))
+                    Enthrall(Target);
+
             }
         }
         bool Attack(GameObject Target) =>
-        Capabilities.Mental.PerformAttack(Enthrall, base.ParentObject, Target, null, Nexus.Rules.Ghoul.COMMAND_NAME, "1d8", 1, int.MinValue, int.MinValue, base.Roll(), Target.Stat("Level"));
-
-        void RemoveLastGhoul()
+        Capabilities.Mental.PerformAttack
+        (Enthrall, base.ParentObject, Target, null, VampirismSys.Rules.Ghoul.COMMAND_NAME, "1d8", 1, int.MinValue, int.MinValue, base.Roll(), Target.Stat("Level"));
+        void Enthrall(GameObject Target)
         {
-            foreach (var obj in ParentObject.Brain.PartyMembers.ToArray())
-            {
-                var ghoul = obj.Value.Reference?.Object;
-                if (ghoul?.RemoveEffect<EnthralledGhoul>() ?? false)
-                {
-                    ParentObject.Brain.PartyMembers.Remove(obj.Key);
-                    return;
-                }
-            }
+            RemoveLastGhoul(ParentObject);
+            var ghoul = new EnthralledGhoul(ParentObject);
+            ExpendBlood(ghoul, true);
+            Target.ApplyEffect(ghoul);
         }
 
         bool Enthrall(MentalAttackEvent E)
@@ -141,6 +86,64 @@ namespace XRL.World.Parts
             }
 
             return true;
+        }
+        bool NotAlreadyFollower(GameObject pick) //for now - i have problems with you trying to mix and match these effects
+        {
+            if (pick.InSamePartyAs(ParentObject))
+            {
+                XRL.UI.Popup.Show($"{pick.t()} is already your follower.");
+                return false;
+            }
+            return true;
+        }
+
+        bool IsVampire(GameObject Target)
+        {
+            if (Target.IsVampire())
+            {
+                UI.Popup.Show("You cannot enthrall other vampires.");
+                return true;
+            }
+            return false;
+        }
+
+        bool AlreadyEnthralled(GameObject Target, out EnthralledGhoul ghoul)
+        {
+            ghoul = Target.GetEffect<EnthralledGhoul>();
+            return ghoul != null;
+        }
+
+        void CheckEnthrallment(EnthralledGhoul ghoul)
+        {
+            if (ghoul.IsGhoulOf(ParentObject))
+                ExpendBlood(ghoul, false);
+            else
+                UI.Popup.Show($"{ghoul.Object.t()} already has a master.");
+
+        }
+        void ExpendBlood(EnthralledGhoul ghoul, bool showPopup)
+        {
+            if (RealityCheck(ParentObject.CurrentCell))
+            {
+                ghoul.Object.GetPart<GhoulBloodMetabolism>().Buff(Roll());
+                string basemessage = $"You feed {ghoul.Object.t()} your blood.";
+                string output = showPopup == true ? $"{basemessage} and enthrall their mind." : $"{basemessage}.";
+                base.ExpendBlood(showPopup, output);
+            }
+            else
+                base.ExpendBlood(false, $"You feed ${ghoul.Object.t()} your blood, but nothing happens.");
+        }
+        static void RemoveLastGhoul(GameObject Object)
+        {
+            foreach (var obj in Object.Brain.PartyMembers.ToArray())
+            {
+                var ghoul = obj.Value.Reference?.Object;
+                if (ghoul?.RemoveEffect<GhoulBloodMetabolism>() ?? false)
+                {
+                    Object.Brain.PartyMembers.Remove(obj.Key);
+                    return;
+                }
+            }
         }
         public override void CollectStats(Templates.StatCollector stats)
         {
@@ -157,12 +160,11 @@ namespace XRL.World.Parts
                     stats.Set("Attack", "1d8" + num, !stats.mode.Contains("ability"));
                     break;
             }
-            stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Nexus.Rules.Ghoul.COOLDOWN);
+            stats.CollectCooldownTurns(MyActivatedAbility(SpellID), VampirismSys.Rules.Ghoul.COOLDOWN);
         }
-
         public override void RemoveSpell()
         {
-            RemoveLastGhoul();
+            RemoveLastGhoul(ParentObject);
             base.RemoveSpell();
         }
     }

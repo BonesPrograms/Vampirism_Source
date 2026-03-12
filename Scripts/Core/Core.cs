@@ -10,7 +10,7 @@ using System.Collections;
 using static XRL.World.Cell;
 using XRL.World.Anatomy;
 
-namespace Nexus.Core
+namespace VampirismSys.Core
 {
 
 
@@ -40,6 +40,7 @@ namespace Nexus.Core
 		/// Returns true/false values from object string properties. Default true.
 		/// </summary>
 		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.Flags.TRUE, Properties.Flags.TRUE_LEGACY);
+		
 		public static bool PropertyEquals(this GameObject Object, string key, string value, string value2 = null)
 		{
 			if (Object.TryGetStringProperty(key, out string result))
@@ -162,7 +163,7 @@ namespace Nexus.Core
 		public static bool IsGhoulOf(this GameObject Object, GameObject Target)
 		{
 			var e = Object.GetEffect<EnthralledGhoul>();
-			return e?.IsGhoulOf(Target) ?? false;
+			return Target != null && (e?.IsGhoulOf(Target) ?? false);
 		}
 		public static bool IsBeguiledBy(this GameObject Object, GameObject Target)
 		{
@@ -351,7 +352,7 @@ namespace Nexus.Core
 		#endregion
 
 	}
-	static class Checks
+	public static class Checks
 	{
 		/// <summary>
 		/// Evaluates if a target is in a defenseless condition and plays unique messages for specific conditions.

@@ -2,32 +2,31 @@ using XRL.Core;
 using XRL.UI;
 using XRL.World.Parts;
 using XRL.World.Capabilities;
-using Nexus.Properties;
-using Nexus.Core;
-using Nexus.Rules;
-using Nexus.Frenzy;
+using VampirismSys.Properties;
+using VampirismSys.Core;
+using VampirismSys.Rules;
+using VampirismSys.Frenzy;
 
 namespace XRL.World.Effects
 {
     /// <summary>
     /// The pseudo-AI that paths to and attacks the target assigned to it by Frenzy().
     /// </summary>
-    public class FrenzyAI : Effect
+    public class FrenzyAI : Effect //this effect should NOT be applied directly and instead should be applied via FrenzyCore.Frenzy()
     {
         public GameObject Target;
         public readonly TheBeast Source;
         readonly Action Action;
         public bool InRange => base.Object.DistanceTo(Target) <= 1;
         public readonly bool gameover;
-        public FrenzyAI() => DisplayName = "frenzyAI";
-        public FrenzyAI(int Duration, TheBeast Source, GameObject Target, bool gameover)
-            : this()
+        internal FrenzyAI() => DisplayName = "";
+        internal FrenzyAI(TheBeast Source, GameObject Target, bool gameover) : this()
         {
-            base.Duration = Duration;
+            base.Duration = 9999;
             this.Target = Target;
             this.gameover = gameover;
             this.Source = Source;
-            Action = new(this, Source.Base.FeedCommand.Bite, Source.Core.Search);
+            Action = new(this, Source.Base.FeedAbility.Bite, Source.Core.Search);
         }
 
         public override bool WantEvent(int ID, int Cascade)
@@ -110,10 +109,10 @@ namespace XRL.World.Effects
 
         void CheckBloodAndCooldown()
         {
-            Parts.Vitae vitae = base.Object.GetPart<Parts.Vitae>();
+            Parts.VampireBloodMetabolism vitae = base.Object.GetPart<Parts.VampireBloodMetabolism>();
             Source.Base.CooldownMyActivatedAbility(Source.Base.FangsActivatedAbilityID, Feed.COOLDOWN);
-            if (vitae.Blood >= Nexus.Rules.Vitae.BLOOD_PUKE) //prevents vomit softlock from having 184,000 blood after a crazy wassail sesh
-                vitae.Blood = Nexus.Rules.Vitae.BLOOD_PUKE;
+            if (vitae.Blood >= VampirismSys.Rules.Vitae.BLOOD_PUKE) //prevents vomit softlock from having 184,000 blood after a crazy wassail sesh
+                vitae.Blood = VampirismSys.Rules.Vitae.BLOOD_PUKE;
         }
 
         public override bool Apply(GameObject Object)

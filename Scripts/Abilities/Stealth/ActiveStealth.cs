@@ -1,18 +1,18 @@
-using Nexus.Properties;
+using VampirismSys.Properties;
 using XRL.World;
 using XRL.World.Parts;
 using System.Linq;
-using Nexus.Core;
+using VampirismSys.Core;
 using XRL;
 
-namespace Nexus.Stealth
+namespace VampirismSys.Stealth
 {
 
     /// <summary>
     /// Handles UI and sets global stealth flags.
     /// </summary>
     [HasGameBasedStaticCache]
-    public static class ActiveStealth //i plan to one day, maybe, turn this into an "Actual" UI, so i made it a separate class to avoid serialization issues down the line post-release
+    internal static class ActiveStealth //i plan to one day, maybe, turn this into an "Actual" UI, so i made it a separate class to avoid serialization issues down the line post-release
     {
         static GameObject Player => The.Player;
         const int SINGLE = 1;
@@ -33,16 +33,16 @@ namespace Nexus.Stealth
         [GameBasedStaticCache]
         static bool _stealthStage2 = default;
 
-        public static bool StealthStage1 => _stealthStage1;
+        internal static bool StealthStage1 => _stealthStage1;
 
-        public static bool StealthStage2 => _stealthStage2;
+        internal static bool StealthStage2 => _stealthStage2;
 
-        public static void Halt()
+        internal static void Halt()
         {
             _stealthStage1 = false;
             _stealthStage2 = false;
         }
-        public static void SetStealth()
+        internal static void SetStealth()
         {
             switch (ActiveWitnessCount)
             {

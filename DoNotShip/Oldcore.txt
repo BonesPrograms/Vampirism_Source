@@ -8,7 +8,7 @@ using XRL.World.Parts.Mutation;
 using System.Linq;
 using System.Collections;
 
-namespace Nexus.Core
+namespace VampirismNexus.Core
 {
 
 

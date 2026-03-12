@@ -3,11 +3,11 @@ using ConsoleLib.Console;
 using XRL.UI;
 using XRL.World.Anatomy;
 using XRL.World.Effects;
-using Nexus.Properties;
-using Nexus.Registry;
-using Nexus.Core;
-using Nexus.Attack;
-using Nexus.Rules;
+using VampirismSys.Properties;
+using VampirismSys.Registry;
+using VampirismSys.Core;
+using VampirismSys.Attack;
+using VampirismSys.Rules;
 using System.Collections.Generic;
 using Qud.API;
 using System.Linq;
@@ -24,19 +24,24 @@ namespace XRL.World.Parts.Mutation
 		public const string BODYPART_TYPE = "Face";
 		public Guid FangsActivatedAbilityID = Guid.Empty;
 		public GameObject FangsObject; //your actual fangs
-		public FeedCommand FeedCommand => _feedCommand ??= new(this);
-		FeedCommand _feedCommand;
+		public FeedAbility FeedAbility => _feedCommand ??= new(this);
+		FeedAbility _feedCommand;
 		public string ManagerID => ParentObject.ID + "::Vampiric Fangs"; //i never really researched managerid yet. i assume that the fangs object counts as a bodypart and this is its manager
 		public override bool CanSelectVariant => false;
 		public override bool UseVariantName => false;
-		public bool Rotschrek => _rotschrek;
 		public bool GameOver = default;
 		public int BloodyFangsCounter = default;
-		bool _immune = default;
-		bool _rotschrek = default;
-		int _timeOnWorldMap = 0; //problem with this not serializing is if you quit/save while on world map then it will not advance time. to solve this problem i would probably
-								 //map this value to Stomach.WasOnWorldMap but for now its local
-		bool _wasOnWorldMap => _timeOnWorldMap > 0;
+
+		[NonSerialized]
+		public bool Rotschrek = default;
+
+		[NonSerialized]
+		public bool Immune = default;
+
+		[NonSerialized]
+		public int TimeOnWorldMap = 0; //problem with this not serializing is if you quit/save while on world map then it will not advance time. to solve this problem i would probably
+								 //map this value to Stomach.WasOnWorldMap but for now its local				 
+		public bool WasOnWorldMap => TimeOnWorldMap > 0;
 		//bool AlreadyBurnedWithSilver = default;
 
 
@@ -88,9 +93,9 @@ namespace XRL.World.Parts.Mutation
 			if (ID == BeforeRenderEvent.ID)
 				return CheckNightbeast();
 			if (ID == TookDamageEvent.ID)
-				return Options.GetOptionBool(ModOptions.FIRE) && !_immune;
+				return Options.GetOptionBool(ModOptions.FIRE) && !Immune;
 			if (ID == EffectRemovedEvent.ID)
-				return Rotschrek || _immune;
+				return Rotschrek || Immune;
 			if (ID == EnteringZoneEvent.ID)
 				return ParentObject.HasStringProperty(Flags.MOD_VERSION) && ParentObject.IsPlayer();
 			if (ID == EquipperEquippedEvent.ID || ID == TookEvent.ID)
@@ -158,12 +163,12 @@ namespace XRL.World.Parts.Mutation
 		{                                                   //we can use the Long property "OnWorldMapSince" perhaps
 			if (!ParentObject.OnWorldMap())
 			{
-				if (_wasOnWorldMap)
+				if (WasOnWorldMap)
 					AdvanceTimeToNight();
-				_timeOnWorldMap = 0;
+				TimeOnWorldMap = 0;
 			}
 			else
-				_timeOnWorldMap++;
+				TimeOnWorldMap++;
 			return base.HandleEvent(E);
 		}
 		public override bool HandleEvent(BeforeRenderEvent E)
@@ -294,7 +299,7 @@ namespace XRL.World.Parts.Mutation
 				AddPlayerMessage("{{W|IT BURNS!!!}}");
 				ParentObject.TakeDamage(WikiRng.Next(5, 10), null, null);
 			}
-			if (!_immune && Options.GetOptionBool(ModOptions.FIRE) && ParentObject.LocalCells(out var cells))
+			if (!Immune && Options.GetOptionBool(ModOptions.FIRE) && ParentObject.LocalCells(out var cells))
 			{
 				if (ParentObject.IsPlayer() || !Rotschrek)
 					SearchForFire(cells);
@@ -317,9 +322,9 @@ namespace XRL.World.Parts.Mutation
 		public override bool HandleEvent(EffectRemovedEvent E)
 		{
 			if (E.Effect.GetType() == typeof(Terrified)) //tried to match by effect.Object, but it always shows up null
-				_rotschrek = false;
+				Rotschrek = false;
 			else if (E.Effect.GetType() == typeof(Blaze_Tonic))
-				_immune = false;
+				Immune = false;
 			return base.HandleEvent(E);
 		}
 
@@ -327,7 +332,7 @@ namespace XRL.World.Parts.Mutation
 		{
 			if (E.Effect.GetType() == typeof(Blaze_Tonic))
 			{
-				_immune = true;
+				Immune = true;
 				if (Rotschrek)
 					ParentObject.RemoveEffect<Terrified>();
 			}
@@ -393,7 +398,7 @@ namespace XRL.World.Parts.Mutation
 
 		void Panic(GameObject FireSource, bool showmessage)
 		{
-			_rotschrek = true;
+			Rotschrek = true;
 			Capabilities.AutoAct.Interrupt();
 			if (showmessage)
 			{
@@ -502,7 +507,7 @@ namespace XRL.World.Parts.Mutation
 			if (E.NewBody.IsVampire())
 			{
 
-				Nexus.Update.Update.Spells(E.NewBody);
+				VampirismSys.Update.Update.Spells(E.NewBody);
 				if (E.OldBody?.HasStringProperty(Flags.MOD_VERSION) ?? false) //from my experience oldbody is usually null, but what can you do
 					E.NewBody.SetStringProperty(Flags.MOD_VERSION, null);
 			}
@@ -525,7 +530,7 @@ namespace XRL.World.Parts.Mutation
 		}
 		static void Update(Zone zone)
 		{
-			zone.CombatObjects(x => x.IsVampire() && !x.IsPlayer()).SafeForEach(x => Nexus.Update.Update.TryUpdateNPCFriendly(x));
+			zone.CombatObjects(x => x.IsVampire() && !x.IsPlayer()).SafeForEach(x => VampirismSys.Update.Update.TryUpdateNPCFriendly(x));
 			zone.SetZoneProperty(Flags.Mod.VERSION_TAG, Mod.VERSION);
 		}
 		#endregion
@@ -548,7 +553,7 @@ namespace XRL.World.Parts.Mutation
 			if (E.Command == COMMAND_NAME && Prerequisites())
 			{
 				if (ParentObject.TryGetTarget(ABILITY_NAME, "feed from", out GameObject Target))
-					FeedCommand.Initialize(Target);
+					FeedAbility.Initialize(Target);
 			}
 			return base.HandleEvent(E);
 		}

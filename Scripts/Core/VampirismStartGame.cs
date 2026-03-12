@@ -1,15 +1,15 @@
 using XRL;
 using XRL.World;
 using XRL.UI;
-using Nexus.Rules;
-using Nexus.Core;
+using VampirismSys.Rules;
+using VampirismSys.Core;
 using XRL.World.Parts;
 using System.Collections.Generic;
 using System.Linq;
-using Nexus.Properties;
+using VampirismSys.Properties;
 
 [PlayerMutator]
-public class VampirismStartGame : IPlayerMutator
+internal class VampirismStartGame : IPlayerMutator
 {
 
     static void RemoveTorch(GameObject GO)

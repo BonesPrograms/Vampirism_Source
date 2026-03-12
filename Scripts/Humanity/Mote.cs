@@ -1,5 +1,5 @@
-using Nexus.Core;
-using Nexus.Rules;
+using VampirismSys.Core;
+using VampirismSys.Rules;
 using XRL.Rules;
 using Qud.API;
 using XRL.Language;
@@ -74,7 +74,7 @@ namespace XRL.World.Parts
                 ParentObject.Obliterate();
                 return false;
             }
-            if (h.Score >= Nexus.Rules.Humanity.MAX)
+            if (h.Score >= VampirismSys.Rules.Humanity.MAX)
             {
                 UI.Popup.Show("You are flush with false life, and cannot absorb any more humanity.");
                 return false;

@@ -1,18 +1,18 @@
 using XRL;
 using XRL.World;
-using Nexus.Update;
-using Nexus.Core;
-using Nexus.Rules;
+using VampirismSys.Update;
+using VampirismSys.Core;
+using VampirismSys.Rules;
 using XRL.UI;
 using XRL.World.Parts;
-using Nexus.Properties;
+using VampirismSys.Properties;
 using System.Linq;
 
 [HasCallAfterGameLoaded]
-public static class VampirismUpdater
+internal static class VampirismUpdater
 {
     [CallAfterGameLoaded]
-    public static void MyLoadGameCallback()
+    internal static void MyLoadGameCallback()
     {
         if (The.Player.IsVampire())
         {
@@ -21,11 +21,11 @@ public static class VampirismUpdater
         }
     }
 }
-namespace Nexus.Update
+namespace VampirismSys.Update
 {
-    static class Update
+    internal static class Update
     {
-        public static void TryUpdatePlayerOnly(GameObject GO)
+        internal static void TryUpdatePlayerOnly(GameObject GO)
         {
             if (TryUpdateNPCFriendly(GO) || GO.GetStringProperty(Flags.MOD_VERSION) != Mod.VERSION)
             {
@@ -38,7 +38,7 @@ namespace Nexus.Update
         //MOD_VERSION check was added for updating from vers 2 to 3
         //during that time its only purpose was to show a popup saying True Undead has been released
         //however this is also when the "Old Save" property changed to the "Mod Version" flag which is checked every gameload
-        public static bool TryUpdateNPCFriendly(GameObject GO)
+        internal static bool TryUpdateNPCFriendly(GameObject GO)
         {
             if (CheckCorpse(GO))
             {
@@ -47,7 +47,7 @@ namespace Nexus.Update
             }
             return false;
         }
-        public static void UpdateModVersion(GameObject GO)
+        internal static void UpdateModVersion(GameObject GO)
         {
             GO.SetStringProperty(Flags.MOD_VERSION, Mod.VERSION); //this may serve as a mod version identifier in the future
         }                                                       //anyone who doesnt have it will get it, anyone who has it and doesnt sync with the version will be updated
@@ -66,7 +66,7 @@ namespace Nexus.Update
         {
             VampireBuilder.StringProperties.Select(x => x.Item1).Where(x => GO.Property[x] == Flags.TRUE_LEGACY).ForEach(x => GO.Property[x] = Flags.TRUE);
         }
-        public static void Spells(GameObject GO)
+        internal static void Spells(GameObject GO)
         {
             if (VampireBuilder.ENABLE_SPELLS)
             {

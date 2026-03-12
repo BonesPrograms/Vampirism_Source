@@ -5,21 +5,20 @@ using XRL.World.Parts;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using XRL;
-using XRL.World.Parts.Mutation;
-using Nexus.Rules;
+using VampirismSys.Rules;
 using XRL.Liquids;
 using Qud.UI;
 using System;
-using Nexus.Core;
+using VampirismSys.Core;
 
-namespace Nexus.Patches
+namespace VampirismSys.Patches
 {
 
     [HarmonyPatch(typeof(GameObject), nameof(GameObject.ShouldAutoget))]
-    public static class AutogetSilverAilment //i will probably redo blood autoget to be this one day but for now its just for silver ailment
+    internal static class AutogetSilverAilment //i will probably redo blood autoget to be this one day but for now its just for silver ailment
     {
         [HarmonyPostfix]
-        public static void Postfix(ref bool __result, GameObject __instance) //prevents you from autogetting silver nuggets and burning yourself to death
+        static void Postfix(ref bool __result, GameObject __instance) //prevents you from autogetting silver nuggets and burning yourself to death
         {
             if (__result == true && __instance.IsSilver() && Options.GetOptionBool(ModOptions.SILVER))
                 __result = false;
@@ -27,10 +26,10 @@ namespace Nexus.Patches
     }
 
     [HarmonyPatch(typeof(TorchProperties), nameof(TorchProperties.HandleEvent), new Type[] { typeof(InventoryActionEvent) })] //prevents you from lighting torches as a vampire and does some other fun stuff that wouldnt happen normally
-    public static class TorchLightRotschrek                                                                                     //when dropping a torch (such as it dropping lit)
+    internal static class TorchLightRotschrek                                                                                     //when dropping a torch (such as it dropping lit)
     {
         [HarmonyPostfix]
-        public static void Postfix(ref bool __result, TorchProperties __instance, InventoryActionEvent E)
+        static void Postfix(ref bool __result, TorchProperties __instance, InventoryActionEvent E)
         {
             if (__result == true && E.Command == "TorchLight" && Options.GetOptionBool(ModOptions.FIRE) && Options.GetOptionBool(ModOptions.TORCH) && Core.QudExtensions.IsVampire(E.Actor, out var v))
             {
@@ -41,15 +40,15 @@ namespace Nexus.Patches
     }
 
     [HarmonyPatch(typeof(LiquidBlood), nameof(LiquidBlood.Drank))]
-    public static class BloodDrinking
+    internal static class BloodDrinking
     {
         static bool PreventGhostConsumption; //prevents blood from being consumed if you refuse to drink while vomitting
 
         [HarmonyPrefix]
 
-        public static bool Prefix(LiquidVolume Liquid, GameObject Target)
+        static bool Prefix(LiquidVolume Liquid, GameObject Target)
         {
-            if (Target.TryGetPart(out XRL.World.Parts.Vitae vitae) && Target.IsPlayer())
+            if (Target.TryGetPartDescendedFrom(out VampireBloodMetabolism vitae) && Target.IsPlayer())
             {
                 if (Liquid.IsPureLiquid())
                 {
@@ -61,22 +60,22 @@ namespace Nexus.Patches
                     }
                     if (vitae.Blood >= Rules.Vitae.SIP_PUKE_WARN)
                     {
-                        PreventGhostConsumption = vitae.IDontWantToPuke(false);
+                        PreventGhostConsumption = vitae.PukeWarning(false);
                         if (PreventGhostConsumption)
                             return false;
                     }
-                    vitae.Drink(false);
+                    vitae.Drink();
                     Popup.Show(DrinkMessage(Liquid.ParentObject, vitae));
                     return false;
                 }
                 else
-                    Popup.Show("Disgusting! This blood is ruined! You feel " + vitae.BloodStatus() + ".");
+                    Popup.Show("Disgusting! This blood is ruined! You feel " + vitae.UIBloodDisplay + ".");
             }
             return true;
         }
 
         [HarmonyPostfix]
-        public static void Postfix(ref bool __result)
+        static void Postfix(ref bool __result)
         {
             if (!PreventGhostConsumption)
                 __result = true;
@@ -87,35 +86,35 @@ namespace Nexus.Patches
             }
         }
 
-        static string DrinkMessage(GameObject Object, XRL.World.Parts.Vitae vitae)
+        static string DrinkMessage(GameObject Object, VampireBloodMetabolism vitae)
         {
-            return Object?.HasTag("WaterContainer") ?? false ? "Ahh, {{R sequence|refreshing}}! You feel " + vitae.BloodStatus() + "." : "You fall to your knees and sup {{R|blood}} from the ground. You feel " + vitae.BloodStatus() + ".";
+            return Object?.HasTag("WaterContainer") ?? false ? "Ahh, {{R sequence|refreshing}}! You feel " + vitae.UIBloodDisplay + "." : "You fall to your knees and sup {{R|blood}} from the ground. You feel " + vitae.UIBloodDisplay + ".";
 
         }
     }
 
     [HarmonyPatch(typeof(Stomach), nameof(Stomach.WaterStatus))]
-    public static class BloodStatus
+    internal static class BloodStatus
     {
 
         [HarmonyPostfix]
-        public static void Postfix(ref string __result)
+        static void Postfix(ref string __result)
         {
-            if (The.Player.TryGetPart(out XRL.World.Parts.Vitae vitae))
+            if (The.Player.TryGetPartDescendedFrom(out BaseBloodMetabolism vitae))
             {
-                __result = vitae.BloodStatus();
+                __result = vitae.UIBloodDisplay;
             }
         }
     }
 
     [HarmonyPatch(typeof(LiquidWater), nameof(LiquidWater.Drank))]
-    public static class WaterDrinking
+    internal static class WaterDrinking
     {
         [HarmonyPrefix]
-        public static bool Prefix(LiquidVolume Liquid, GameObject Target)
+        static bool Prefix(LiquidVolume Liquid, GameObject Target)
         {
 
-            if (Target.HasPart<Vampirism>() && Target.IsPlayer())
+            if (Target.HasPartDescendedFrom<BaseBloodMetabolism>() && Target.IsPlayer())
             {
                 if (Liquid.IsPureLiquid())
                 {
@@ -127,19 +126,19 @@ namespace Nexus.Patches
             return true;
         }
         [HarmonyPostfix]
-        public static void Postfix(ref bool __result)
+        static void Postfix(ref bool __result)
         {
             __result = true;
         }
     }
 
     [HarmonyPatch(typeof(PlayerStatusBar), "BeginEndTurn")]
-    public static class UIFreeDramsColor
+    internal static class UIFreeDramsColor
     {
 
         static int GetFreeDramsReplacement(GameObject player)
         {
-            var drams = player?.GetPart<XRL.World.Parts.Vitae>();
+            var drams = player?.GetPart<VampireBloodMetabolism>();
             return drams is not null ? (int)drams.BloodDrams : player.GetFreeDrams("water", null, null, null, false);
         }
         //this is the one piece of code i didnt write

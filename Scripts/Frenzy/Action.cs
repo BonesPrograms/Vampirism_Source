@@ -1,26 +1,26 @@
 using XRL.World;
 using XRL.World.Parts;
 using XRL.World.Capabilities;
-using Nexus.Bite;
-using Nexus.Core;
-using Nexus.Properties;
-using Nexus.Attack;
+using VampirismSys.Biting;
+using VampirismSys.Core;
+using VampirismSys.Properties;
+using VampirismSys.Attack;
 using XRL.World.Effects;
 using XRL.World.AI.Pathfinding;
 
 using XRL.World.Parts.Mutation;
 
-namespace Nexus.Frenzy
+namespace VampirismSys.Frenzy
 {
     /// <summary>
     /// Controls the turn-to-turn decision making for Frenzy.
     /// </summary>
-    public class Action
+    internal class Action
     {
         readonly FrenzyAI AI;
         readonly Search Search;
-        readonly Bite.Bite Bite;
-        public Action(FrenzyAI AI, Bite.Bite Bite, Search Search)
+        readonly Biting.Bite Bite;
+        internal Action(FrenzyAI AI, Biting.Bite Bite, Search Search)
         {
             this.AI = AI;
             this.Bite = Bite;
@@ -28,11 +28,11 @@ namespace Nexus.Frenzy
         }
         bool BadBite(GameObject Target) => Bite.BadTarget(Target) && Bite.CannotFeed(Target);
 
-		bool AICantFrenzy()
+		bool AICantFrenzy() //feed and frenzy checks removed compared to TheBeast.CantFrenzy()
 		{
 			return AI.Source.Base.Rotschrek || !AI.Source.HasFangs() || AI.Source.Incap() || Vampirism.SunlightInterference(AI.Object);
 		}
-        public void Act()
+        internal void Act()
         {
             if (AICantFrenzy())
                 AI.Duration = 0;
