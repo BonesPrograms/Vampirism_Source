@@ -59,7 +59,7 @@ namespace XRL.World.Parts
             {
                 if (AlreadyEnthralled(Target, out var ghoul))
                     CheckEnthrallment(ghoul);
-                else if (NotAlreadyFollower(Target) && Attack(Target))
+                else if (NotAlreadyFollower(Target) && RealityCheck(Target, true) && Attack(Target))
                     Enthrall(Target);
 
             }
@@ -116,22 +116,30 @@ namespace XRL.World.Parts
         void CheckEnthrallment(EnthralledGhoul ghoul)
         {
             if (ghoul.IsGhoulOf(ParentObject))
-                ExpendBlood(ghoul, false);
+            {
+                if (RealityCheck(ghoul.Object, false))
+                    ExpendBlood(ghoul, false);
+            }
             else
                 UI.Popup.Show($"{ghoul.Object.t()} already has a master.");
 
         }
-        void ExpendBlood(EnthralledGhoul ghoul, bool showPopup)
+
+        bool RealityCheck(GameObject ghoul, bool showPopup)
         {
             if (RealityCheck(ParentObject.CurrentCell))
-            {
-                ghoul.Object.GetPart<GhoulBloodMetabolism>().Buff(Roll());
-                string basemessage = $"You feed {ghoul.Object.t()} your blood.";
-                string output = showPopup == true ? $"{basemessage} and enthrall their mind." : $"{basemessage}.";
-                base.ExpendBlood(showPopup, output);
-            }
-            else
-                base.ExpendBlood(false, $"You feed ${ghoul.Object.t()} your blood, but nothing happens.");
+                return true;
+            base.ExpendBlood(showPopup, $"You feed ${ghoul.t()} your blood, but nothing happens.");
+            return false;
+        }
+        void ExpendBlood(EnthralledGhoul ghoul, bool showPopup)
+        {
+
+            ghoul.Object.GetPart<GhoulBloodMetabolism>().Buff(Roll());
+            string basemessage = $"You feed {ghoul.Object.t()} your blood.";
+            string output = showPopup == true ? $"{basemessage} and enthrall their mind." : $"{basemessage}.";
+            base.ExpendBlood(showPopup, output);
+
         }
         static void RemoveLastGhoul(GameObject Object)
         {

@@ -1,6 +1,7 @@
 using System;
 using XRL.World.Effects;
 using VampirismSys.Blood;
+using VampirismSys.Core;
 
 namespace XRL.World.Parts
 {
@@ -30,7 +31,10 @@ namespace XRL.World.Parts
                 if (Bloodstarved && LostBlood)
                     Debuff();
             }
-            base.Cycle();
+            if (Blood <= 0)
+                ParentObject.Die(); //just like that
+            else
+                base.Cycle();
         }
 
         public void Buff(int Roll)
@@ -45,12 +49,10 @@ namespace XRL.World.Parts
 
         void Debuff()
         {
-            AddPlayerMessage($"{ParentObject.t()} is starving for " + "{{r|blood}}!");
+            string msg = Status > BloodLevel.MIN ? $"{ParentObject.t()} is thirsty for " + "{{r|blood}}!" : $"{ParentObject.t()} will die without " + "{{r|blood}}!";
+            AddPlayerMessage(msg);
             int debuff = DebuffRate;
-            foreach (var obj in GhoulBloodMetabolism.Stats)
-            {
-                StatShifter.SetStatShift(obj, debuff);
-            }
+            Stats.ForEach(x => StatShifter.SetStatShift(x, debuff));
         }
 
         void CheckStatus()
@@ -76,8 +78,7 @@ namespace XRL.World.Parts
         {
             e.DisplayName = "{{r|ghoul}}";
             Bloodstarved = false;
-            foreach (var obj in Stats)
-                StatShifter.RemoveStatShift(ParentObject, obj);
+            Stats.ForEach(x => StatShifter.RemoveStatShift(ParentObject, x));
         }
 
     }

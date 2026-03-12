@@ -54,8 +54,7 @@ namespace XRL.World.Parts.Mutation
 		{ "LungedTarget", Events.GAMEOVER, Events.WISH_HUMANITY, "CanApplySpores", "ApplySpores", "ApplyDiseaseOnset", "ApplyDisease", "CanApplyAshPoison" };
 		public override void Register(GameObject Object, IEventRegistrar Registrar)
 		{
-			foreach (var stringEvent in RegisteredEvents)
-				Registrar.Register(stringEvent);
+			RegisteredEvents.ForEach(x=>Registrar.Register(x));
 		}
 		public override bool FireEvent(Event E)
 		{

@@ -85,9 +85,9 @@ namespace XRL.World.Parts
         }
         public bool RealityCheck(Cell cell) => RealityCheck(cell, CATEGORY, this); //i already made this and im lazy and dont feel like rewriting all my reality checks for the static method
 
-        public void ExpendBlood(bool noPopup, string text)
+        public void ExpendBlood(bool showPopup, string text)
         {
-            if (noPopup)
+            if (!showPopup)
                 IComponent<GameObject>.AddPlayerMessage(text);
             else
                 Popup.Show(text);

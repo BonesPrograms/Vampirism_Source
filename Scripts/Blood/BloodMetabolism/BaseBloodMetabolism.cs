@@ -99,7 +99,7 @@ namespace XRL.World.Parts
         {
             if (E.ID == "AfterDrank")
                 SetWater();
-            if (E.ID == "AddWater")
+            if (E.ID == "AddWater" && WantsMetabolism)
             {
                 int water = E.GetIntParameter("Amount");
                 if (water < 0)
@@ -139,7 +139,7 @@ namespace XRL.World.Parts
             }
             return base.HandleEvent(E);
         }
-        protected virtual void Cycle()
+        protected virtual void Cycle() //always run last
         {
             Blood -= MetabolismRate;
             SetStatus();

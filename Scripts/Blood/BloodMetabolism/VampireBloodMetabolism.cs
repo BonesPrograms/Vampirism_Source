@@ -22,11 +22,11 @@ namespace XRL.World.Parts
         public override bool WantsMetabolism => ParentObject.IsPlayer();
         public override bool WantsVomit => !ParentObject.CheckFlag(Flags.FRENZY);
         public static bool AntiPuke;
+        public int BloodDrams => ParentObject.GetFreeDrams("blood"); //for harmony
+        public override string UIBloodDisplay => ParentObject.CheckFlag(Flags.GO) ? "{{r|Bottomless}}" : base.UIBloodDisplay;
 
         [NonSerialized]
         public static List<GameObject> containers = new();
-        public int BloodDrams => ParentObject.GetFreeDrams("blood"); //for harmony
-        public override string UIBloodDisplay => ParentObject.CheckFlag(Flags.GO) ? "{{r|Bottomless}}" : base.UIBloodDisplay;
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
             Registrar.Register(Events.GAMEOVER);

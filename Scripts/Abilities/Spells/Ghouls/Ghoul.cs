@@ -113,8 +113,7 @@ namespace XRL.World.Effects
 
         public override bool Apply(GameObject Object)
         {
-            foreach (var obj in GhoulBloodMetabolism.Stats)
-                StatShifter.SetStatShift(obj, Bonus);
+            GhoulBloodMetabolism.Stats.ForEach(x=>StatShifter.SetStatShift(x, Bonus));
             Object.Heal(Bonus);
             AddPlayerMessage($"{Object.t()} goes drunk on " + "{{r|blood}}!");
             return base.Apply(Object);
@@ -122,8 +121,7 @@ namespace XRL.World.Effects
         public override void Remove(GameObject Object)
         {
             Object.GetPart<GhoulBloodMetabolism>().Buffed = false;
-            foreach (var obj in GhoulBloodMetabolism.Stats)
-                StatShifter.RemoveStatShift(Object, obj);
+            GhoulBloodMetabolism.Stats.ForEach(x=>StatShifter.RemoveStatShift(Object,x));
         }
 
     }
