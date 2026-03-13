@@ -47,6 +47,8 @@ namespace VampirismSys.Core
             SetVampireProperties(GO);
             RequireParts(GO);
             ChangeCorpse(GO);
+            if (GO.IsPlayer())
+                GO.SetStringProperty(Flags.GAMEOBJECT_VERSION_TAG, Mod.VERSION);
         }
 
         internal static void Unmake(GameObject GO)
