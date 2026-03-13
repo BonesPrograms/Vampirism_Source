@@ -15,32 +15,32 @@ namespace VampirismSys.Core
     /// </summary>
     /// 
 
-    public static class VampireBuilder
+    internal static class VampireBuilder
     {
         internal static bool ENABLE_SPELLS = false;
-        public const string CORPSE = "Ashes";
-        public static readonly (string, int)[] IntProperties =
+        internal const string CORPSE = "Ashes";
+        static readonly (string, int)[] IntProperties =
         {
             (Flags.BLOOD_VALUE, Rules.Vitae.BLOOD_GLUTTONOUS), (Flags.HUMANITY, Rules.Humanity.MAX), (Flags.REGEN, default)
         };
 
-        public static readonly (string, string)[] StringProperties =
+        static readonly (string, string)[] StringProperties =
         {
             (Flags.GO, Flags.FALSE), (Flags.FEED, Flags.FALSE), (Flags.FRENZY, Flags.FALSE),
             (Flags.BLOOD_STATUS, Flags.Blood.GLUT), (Flags.STEALTH, Flags.FALSE)
         };
-        public static readonly Type[] IParts =
+        static readonly Type[] IParts =
         {
             typeof(XRL.World.Parts.Humanity), typeof(VampireBloodMetabolism), typeof(Nightbeast), typeof(TheBeast)
         };
 
-        //on request i would make these lists so other types can be added at runtime
-        public static readonly Type[] VampiricSpells =
+
+        static readonly Type[] VampiricSpells =
         {
             typeof(GhoulSpell), typeof(CoffinSpell), typeof(EmbraceSpell), typeof(BatformSpell)
         };
 
-        //you should not run these, you should make people into vampires with the mutation
+
         internal static void Make(GameObject GO)
         {
             SetGameProperties(GO);
@@ -207,7 +207,7 @@ namespace XRL.World.Parts
         /// <summary>
         /// For backing up corpses.
         /// </summary>
-        public VampireAshes(Corpse corpse) : this()
+        internal VampireAshes(Corpse corpse) : this()
         {
             OldBurntCorpseBlueprint = corpse.BurntCorpseBlueprint.IsNullOrEmpty() ? default : corpse.BurntCorpseBlueprint;
             OldVaporizedCorpseBlueprint = corpse.VaporizedCorpseBlueprint.IsNullOrEmpty() ? default : corpse.VaporizedCorpseBlueprint;
@@ -224,7 +224,7 @@ namespace XRL.World.Parts
         //or doing the IsNullOrEmpty ? default thing
         //havent cared to go back make it proper yet since i am currently working on a big update
 
-        public Corpse Revert()
+        internal Corpse Revert()
         {
             Corpse corpse = new()
             {

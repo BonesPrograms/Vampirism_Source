@@ -14,7 +14,7 @@ namespace VampirismSys.Attack
     /// <summary>
     /// Handles the logic for finalizing an attack and actually beginning the feed.
     /// </summary>
-    public class VampireAttack
+    internal class VampireAttack
     {
         readonly GameObject Target;
         readonly Vampirism Source;
@@ -22,7 +22,7 @@ namespace VampirismSys.Attack
         readonly bool friendly;
         readonly bool vampire;
 
-        public VampireAttack(GameObject Target, Vampirism Source)
+        internal VampireAttack(GameObject Target, Vampirism Source)
         {
             this.Target = Target;
             this.Source = Source;
@@ -30,7 +30,7 @@ namespace VampirismSys.Attack
             this.friendly = Target.IsFriendly(Source.ParentObject);
             vampire = Target.IsVampire();
         }
-        public void Attack(bool frenzy)
+        internal void Attack(bool frenzy)
         {
             Target.ApplyEffect(new Vampires_Kiss(Feed.DURATION));
             if (Source.ParentObject.IsPlayer() && Nightbeast.Stealthed && !frenzy && !friendly && SpotterCheck())

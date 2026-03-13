@@ -13,23 +13,23 @@ namespace VampirismSys.Stealth
 {
 
 
-    public class Alert
+    internal class Alert
     {
         readonly GameObject Source;
 
         /// <summary>
         /// For popups.
         /// </summary>
-        public GameObject Exposer;
-        public List<GameObject> Witnesses;
+        internal GameObject Exposer;
+        internal List<GameObject> Witnesses;
 
         /// <summary>
         /// Gives back a dictionary of all objects from the input list, with a string detailing what modifications were made.
         /// </summary>
         /// 
 
-        public const string defaultAlertText = "You are caught sneaking around by";
-        public const string altAlertText = "You are caught sneaking around!";
+        internal const string defaultAlertText = "You are caught sneaking around by";
+        internal const string altAlertText = "You are caught sneaking around!";
 
         /// <param name="source"></param>
         /// <param name="witnesses">It is recommended to use ValidSentients as the base for your list, because it is "validated" (see conditionals in StealthCore)
@@ -37,14 +37,14 @@ namespace VampirismSys.Stealth
         /// <param name="exposer">If using spotters and the return value is SPOTTER_IN_DETECTION, it is recommended to assign the spotter to the exposer for consistency.
         /// </param>
         /// <param name="Target"></param>
-        public Alert(GameObject source, List<GameObject> witnesses, GameObject exposer = null)
+        internal Alert(GameObject source, List<GameObject> witnesses, GameObject exposer = null)
         {
             this.Source = source;
             this.Witnesses = witnesses;
             this.Exposer = exposer;
         }
 
-        public Alert(GameObject source, GameObject exposer = null)
+        internal Alert(GameObject source, GameObject exposer = null)
         {
             this.Source = source;
             this.Exposer = exposer;
@@ -60,7 +60,7 @@ namespace VampirismSys.Stealth
         /// <param name="showExposer">Set this to false if you want to send in completely custom strings.</param>
         /// <param name="popupText"></param>
         /// <param name="backup">If showExposer is true and exposer is null, will default to backup that does not try to access Exposer.</param>
-        public void Popup(bool showExposer, string popupText = defaultAlertText, string backup = altAlertText)
+        internal void Popup(bool showExposer, string popupText = defaultAlertText, string backup = altAlertText)
         {
             if (showExposer)
             {
@@ -83,7 +83,7 @@ namespace VampirismSys.Stealth
         /// <param name="source"></param>
         /// <returns></returns>
 
-        public static List<GameObject> GiveDefaultList(GameObject source)
+        internal static List<GameObject> GiveDefaultList(GameObject source)
         {
             return source.CurrentZone.CombatObjects(x => StealthCore.ValidSentient(x)).ToList(); //this does not check for unawareness because it will wake up anyone who is unaware
         }
@@ -92,19 +92,19 @@ namespace VampirismSys.Stealth
         /// Quick access method to wake up sleepers.
         /// </summary>
         /// <param name="AoE"></param>
-        public void RemoveSleepFromWitnesses(uint AoE = Rules.Stealth.AI_RADIUS) => RemoveEffectFromWitness<Asleep>(AoE);
+        internal void RemoveSleepFromWitnesses(uint AoE = Rules.Stealth.AI_RADIUS) => RemoveEffectFromWitness<Asleep>(AoE);
 
-        public GameObject Add(GameObjectReference tgt)
+        internal GameObject Add(GameObjectReference tgt)
         {
             return Add(tgt?.Object);
         }
 
-        public GameObject Add(GameObjectReference tgt, out bool isNull)
+        internal GameObject Add(GameObjectReference tgt, out bool isNull)
         {
             return Add(tgt?.Object, out isNull);
         }
 
-        public GameObject Add(GameObject tgt)
+        internal GameObject Add(GameObject tgt)
         {
             if (tgt != null)
             {
@@ -120,17 +120,17 @@ namespace VampirismSys.Stealth
         /// </summary>
         /// <param name="tgt"></param>
         /// <returns></returns>
-        public GameObject Add(GameObject tgt, out bool isNull)
+        internal GameObject Add(GameObject tgt, out bool isNull)
         {
             Add(tgt);
             isNull = tgt is null;
             return tgt;
         }
-        public void AddOpinionToWitnesses<T>(uint radius = Rules.Stealth.AI_RADIUS) where T : IOpinionSubject, new()
+        internal void AddOpinionToWitnesses<T>(uint radius = Rules.Stealth.AI_RADIUS) where T : IOpinionSubject, new()
         {
             Witnesses.Where(x => Validated(x, radius)).ForEach(x => x.AddOpinion<T>(Source));
         }
-        // public void AddEffectToWitnesses<T>(T obj, uint AoE = default) where T : Effect, new()
+        // internal void AddEffectToWitnesses<T>(T obj, uint AoE = default) where T : Effect, new()
         // {
         //     InternalAddEffect<T>(obj, AoE);
         // }
@@ -139,7 +139,7 @@ namespace VampirismSys.Stealth
         //you will have to assign default values to your fields/in your default constructor
         //because it can only use the default constructor for mod effects
 
-        // public void AddEffectToWitnessesAndExposer<T>(T obj, uint AoE = default) where T : Effect, new()
+        // internal void AddEffectToWitnessesAndExposer<T>(T obj, uint AoE = default) where T : Effect, new()
         // {
         //     if (CopyEffect.TryCopy(obj, out T effect))
         //     {
@@ -148,7 +148,7 @@ namespace VampirismSys.Stealth
         //     }
         // }
 
-        public void AddOpinionToWitnessesAndExposer<T>(uint radius = Rules.Stealth.AI_RADIUS) where T : IOpinionSubject, new()
+        internal void AddOpinionToWitnessesAndExposer<T>(uint radius = Rules.Stealth.AI_RADIUS) where T : IOpinionSubject, new()
         {
             Exposer?.AddOpinion<T>(Source);
             AddOpinionToWitnesses<T>(radius);
@@ -158,7 +158,7 @@ namespace VampirismSys.Stealth
         /// Finds the closest person and assigns them as the "exposer" for popups.
         /// </summary>
 
-        public void FindClosestExposerInList()
+        internal void FindClosestExposerInList()
         {
             ProcessList(null);
         }
@@ -167,11 +167,11 @@ namespace VampirismSys.Stealth
         /// If your target is showing up as the exposer and you want to prevent it, pass them by this method.
         /// </summary>
         /// <param name="tgt"></param>
-        public void FindClosestExposerInListExcept(GameObject tgt)
+        internal void FindClosestExposerInListExcept(GameObject tgt)
         {
             ProcessList(tgt);
         }
-        public void RemoveEffectFromWitness<T>(uint radius = Rules.Stealth.AI_RADIUS) where T : Effect, new()
+        internal void RemoveEffectFromWitness<T>(uint radius = Rules.Stealth.AI_RADIUS) where T : Effect, new()
         {
             Witnesses.Where(x => Validated(x, radius)).ForEach(x => x.RemoveEffect<T>());
         }

@@ -14,8 +14,8 @@ namespace VampirismSys.Biting
 
     internal class BiteSimulator : BaseBite
     {
-         readonly Bite _source;
-         readonly LiquidBehaviors _liquidBehaviors;
+        readonly Bite _source;
+        readonly LiquidBehaviors _liquidBehaviors;
         internal BiteSimulator(GameObject Biter, Bite Source) : base(Biter)
         {
             this._source = Source;
@@ -30,7 +30,7 @@ namespace VampirismSys.Biting
                 Popup.ShowFail("{{R sequence|IT BURNS!}}");
             return MakeSave("Bit Flaming Target");
         }
-       Ending PlasmaEnding()
+        Ending PlasmaEnding()
         {
             if (Biter.IsPlayer())
                 Popup.ShowFail("It's {{plasma|plasma}}! Ouch!");

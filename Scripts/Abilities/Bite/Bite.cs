@@ -16,36 +16,31 @@ namespace VampirismSys.Biting
     /// <summary>
     /// Frontend for the bite simulator mechanics behind Biting - evaluates targets and creates BiteSimulator instance if bad target = true.
     /// </summary>
-    public class Bite : BaseBite
+    internal class Bite : BaseBite
     {
-        public bool IsOnFire { get; private set; }
-        public bool HasPlasma { get; private set; }
-        public bool HasBadLiquid => BadLiquids.Any(x => x.Item2);
-        public bool HasDisease => Diseases.Any(x => x.Item2);
-        public bool IsPoisoned => Poisons.Any(x => x.Item2);
-        readonly Vampirism _vampirism; //nullable
+        internal bool IsOnFire { get; private set; }
+        internal bool HasPlasma { get; private set; }
+        internal bool HasBadLiquid => BadLiquids.Any(x => x.Item2);
+        internal bool HasDisease => Diseases.Any(x => x.Item2);
+        internal bool IsPoisoned => Poisons.Any(x => x.Item2);
+        readonly Vampirism _vampirism; 
         readonly BiteSimulator _sim;
-        public static string[] GiveBadLiquids() //for debugging
+        internal static string[] GiveBadLiquids() //for debugging
         {
             return new Bite(null, null).BadLiquids.Select(x => x.Item1).ToArray();
         }
-
-        internal Bite(GameObject Biter) : base(Biter)
-        {
-            _sim = new(Biter, this);
-        }
-        internal Bite(GameObject Biter, Vampirism Vampirism) : this(Biter)
+        internal Bite(GameObject Biter, Vampirism Vampirism) : base(Biter)
         {
             this._vampirism = Vampirism;
 
         }
-        public (string, bool)[] Flags => new (string, bool)[]
+        internal (string, bool)[] Flags => new (string, bool)[]
         {
             (nameof(IsOnFire),IsOnFire), (nameof(HasPlasma), HasPlasma), (nameof(HasBadLiquid), HasBadLiquid), (nameof(HasDisease), HasDisease), (nameof(IsPoisoned), IsPoisoned)
         };
-        readonly public (string, bool)[] BadLiquids = //on request i would make these non readonly dictionaries and open all inheritors of BaseBite up for virtual overrides and inheritance 
-        {                                               //and maybe find a way to have your class be assigned polymorphically to Bite in FeedCommand on init so you can run
-          ("sludge", false),                            //custom liquid/bite code
+        readonly internal (string, bool)[] BadLiquids =  
+        {                                              
+          ("sludge", false),                            
           ("ooze", false),
           ("goo", false),
           ("oil", false),
@@ -55,7 +50,7 @@ namespace VampirismSys.Biting
           ("asphalt", false)
         };
 
-        readonly public (Type, bool)[] Diseases =
+        readonly internal (Type, bool)[] Diseases =
         {
                 (typeof(Glotrot), false),
                 (typeof(GlotrotOnset), false),
@@ -63,7 +58,7 @@ namespace VampirismSys.Biting
                 (typeof(IronshankOnset), false)
         };
 
-        readonly public (Type, bool)[] Poisons =
+        readonly (Type, bool)[] Poisons =
         {
                 (typeof(Poisoned), false),
                 (typeof(StingerPoisoned), false),
@@ -79,7 +74,7 @@ namespace VampirismSys.Biting
 
         bool Fail(GameObject Target)
         {
-            _vampirism?.BiteActivate(Target);
+            _vampirism.BiteActivate(Target);
             if (Target != null)
             {
                 if (Biter.IsPlayer())
@@ -122,7 +117,7 @@ namespace VampirismSys.Biting
         /// Should not run if BadTarget returns false, otherwise you will get OutOfRange().
         /// </summary>
         /// <returns></returns>
-        public bool CannotFeed(GameObject Target) => _sim.BadEnding(Target) switch
+        internal bool CannotFeed(GameObject Target) => _sim.BadEnding(Target) switch
         {
             Ending.VOMIT => VomitEnding(Target),
             Ending.FAIL => Fail(Target),
@@ -134,7 +129,7 @@ namespace VampirismSys.Biting
         /// <summary>
         /// Method for evaluating object state and gathering data for later use in CannotFeed();
         /// </summary>
-        public bool BadTarget(GameObject Target)
+        internal bool BadTarget(GameObject Target)
         {
             CheckArrays(Target);
             IsOnFire = Target.IsAflame();

@@ -9,18 +9,18 @@ namespace VampirismSys.Frenzy
 {
     public class FrenzyCore
     {
-        public readonly TheBeast Source;
+        readonly TheBeast Source;
         bool _midFrenzyChance => WikiRng.Next(1, 2000) == 2000;
         bool _highFrenzyChance => WikiRng.Next(1, 1000) == 1000;
         bool _critFrenzyChance => WikiRng.Next(1, 500) == 500;
-        public readonly Search Search;
-        public FrenzyCore(TheBeast Source)
+        internal readonly Search Search;
+        internal FrenzyCore(TheBeast Source)
         {
             this.Source = Source;
             this.Search = new(Source);
         }
 
-        public void FrenzyChances()
+        internal void FrenzyChances()
         {
             if (!Source.GameOver)
             {

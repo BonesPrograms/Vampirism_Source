@@ -24,7 +24,7 @@ namespace XRL.World.Parts.Mutation
 		public const string BODYPART_TYPE = "Face";
 		public Guid FangsActivatedAbilityID = Guid.Empty;
 		public GameObject FangsObject; //your actual fangs
-		public FeedAbility FeedAbility => _feedCommand ??= new(this);
+		internal FeedAbility FeedAbility => _feedCommand ??= new(this);
 		FeedAbility _feedCommand;
 		public string ManagerID => ParentObject.ID + "::Vampiric Fangs"; //i never really researched managerid yet. i assume that the fangs object counts as a bodypart and this is its manager
 		public override bool CanSelectVariant => false;

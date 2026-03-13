@@ -15,7 +15,7 @@ namespace VampirismSys.Stealth
     /// Scans the environment and constantly updates the lists used in Nightbeast.
     /// </summary>
     [HasGameBasedStaticCache]
-    public static class StealthCore
+    internal static class StealthCore
     {
         static GameObject Player => The.Player;
 
@@ -48,12 +48,12 @@ namespace VampirismSys.Stealth
         /// <returns></returns>
         /// 
         /// 
-        public static bool ActiveWitness(GameObject obj)
+        internal static bool ActiveWitness(GameObject obj)
         {
             return !obj.Unaware(false) && !Shrouded(obj) && !IsFriendly(obj) && obj.HasHitpoints() && !InDominationChain(obj.Effects);
         }
 
-        public static bool IsFriendly(GameObject who)
+        internal static bool IsFriendly(GameObject who)
         {
             return who.IsInLoveWith(Player) || who.InSamePartyAs(Player) || who.IsPlayerControlled() || who.IsPlayerLed();
         }
@@ -79,7 +79,7 @@ namespace VampirismSys.Stealth
         /// </summary>
         /// <param name="witness"></param>
         /// <returns></returns>
-        public static bool NearbySentient(GameObject witness)
+        internal static bool NearbySentient(GameObject witness)
         {
             return witness.HasLOSTo(Player, false) && witness.DistanceTo(Player) <= VampirismSys.Rules.Stealth.AI_RADIUS && witness.InSameZone(Player);
         }
@@ -89,13 +89,13 @@ namespace VampirismSys.Stealth
         /// </summary>
         /// <param name="witness"></param>
         /// <returns></returns>
-        public static bool ValidSentient(GameObject witness)
+        internal static bool ValidSentient(GameObject witness)
           =>
             witness?.Brain != null
             && witness != Player
           //  && witness.IsCombatObject()
             && !Inanimate(witness); //insamezone check cannot go here because we use this to check nextzone in EZ event and i dont feel like adding a zone parameter
-        public static bool Inanimate(GameObject witness)
+        internal static bool Inanimate(GameObject witness)
           =>
             witness.Body?.Anatomy == "Echinoid"
             || CheckTags(witness.GetBlueprint())

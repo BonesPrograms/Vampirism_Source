@@ -13,18 +13,17 @@ namespace VampirismSys.Biting
     /// </summary>
     /// 
     /// 
-    public enum Ending
+    internal abstract class BaseBite
     {
-        VOMIT = 4,
-        FAIL = 3,
-        PAIN_TOLERANCE = 2,
-        SUCCESS = 1,
-        OUT_OF_RANGE = 0
-    }
-
-    public abstract class BaseBite
-    {
-        public static int Save = 13; //may add some logic to this later and make it instance-based, for now its globally 13
+        protected internal enum Ending
+        {
+            VOMIT = 4,
+            FAIL = 3,
+            PAIN_TOLERANCE = 2,
+            SUCCESS = 1,
+            OUT_OF_RANGE = 0
+        }
+        const int SAVE = 13;
         readonly protected GameObject Biter;
         protected BaseBite()
         {
@@ -34,7 +33,7 @@ namespace VampirismSys.Biting
             this.Biter = Biter;
         }
         protected bool PainTolerance() => Biter.HasEffect<HulkHoney_Tonic>() || Biter.HasPart<Analgesia>();
-        protected Ending MakeSave(string text) => Biter.MakeSave("Toughness", Save, null, null, text) ? Ending.SUCCESS : Ending.FAIL;
+        protected Ending MakeSave(string text) => Biter.MakeSave("Toughness", SAVE, null, null, text) ? Ending.SUCCESS : Ending.FAIL;
         protected Ending Result(IEnumerable<Ending> endresults) => endresults.Count() > 0 ? endresults.Max() : Ending.OUT_OF_RANGE;
         //default enum value is 0. ever since we switched to arrays we use Max() instead. higher numbers take priority and indicate failure.
         //thus if your Max() value is 0 you know something has gone wrong and it wasnt just a normal failure

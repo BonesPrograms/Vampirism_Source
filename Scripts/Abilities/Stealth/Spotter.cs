@@ -13,7 +13,7 @@ using XRL.World.Parts;
 
 namespace VampirismSys.Stealth
 {
-    public enum Spot
+    internal enum Spot
     {
         /// <summary>
         /// If this value is returned, then no one on the list was able to path to the player.
@@ -29,19 +29,19 @@ namespace VampirismSys.Stealth
         SPOTTER_OUTSIDE_DETECTION
     }
 
-    public class SpotterCore
+    internal class SpotterCore
     {
         readonly GameObject Source;
         readonly Dictionary<GameObject, int> SpotterRanges = new();
         KeyValuePair<GameObject, int> package;
         readonly List<GameObject> PotentialSpotters;
-        public SpotterCore(GameObject Source, List<GameObject> PotentialSpotters)
+        internal SpotterCore(GameObject Source, List<GameObject> PotentialSpotters)
         {
             this.Source = Source;
             this.PotentialSpotters = PotentialSpotters;
         }
 
-        public SpotterCore(GameObject Source)
+        internal SpotterCore(GameObject Source)
         {
             this.Source = Source;
             this.PotentialSpotters = SpotterCore.GiveDefaultList(Source);
@@ -54,11 +54,11 @@ namespace VampirismSys.Stealth
         /// so the ai isnt really in your detection radius as the enum says, they were actually outside of it, theyre moreso in your "extended" radius
         bool Spotted(int distance, GameObject Spotter) => distance == VampirismSys.Rules.Stealth.AI_RADIUS + 1 && Spotter.HasLOSTo(Source, false);
         static string DefaultMessage(GameObject Spotter) => $"You try to sneak attack, but {Spotter.t()} spots you from a distance!";
-        public static List<GameObject> GiveDefaultList(GameObject Source)
+        internal static List<GameObject> GiveDefaultList(GameObject Source)
         {
             return Source.CurrentZone.CombatObjects(x => StealthCore.ValidSentient(x) && !x.Unaware(false)).ToList();
         }
-        public Spot Check<T>(string message = default) where T : IOpinionSubject, new()
+        internal Spot Check<T>(string message = default) where T : IOpinionSubject, new()
         {
             GameObject Spotter = ReturnSpotter();
             return Spotter is null ? Spot.SPOTTER_IS_NULL : SpotterFound<T>(Spotter, message);
@@ -71,7 +71,7 @@ namespace VampirismSys.Stealth
         /// <param name="Spotter"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        public Spot Check<T>(out GameObject Spotter, string message = default) where T : IOpinionSubject, new()
+        internal Spot Check<T>(out GameObject Spotter, string message = default) where T : IOpinionSubject, new()
         {
             Spotter = ReturnSpotter();
             return Spotter == null ? Spot.SPOTTER_IS_NULL : SpotterFound<T>(Spotter, message);
@@ -104,6 +104,8 @@ namespace VampirismSys.Stealth
 
     }
 }
+
+
 
 namespace XRL.World.Effects
 {

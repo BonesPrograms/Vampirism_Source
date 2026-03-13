@@ -15,7 +15,7 @@ namespace XRL.World.Effects
     /// </summary>
     /// 
     [Serializable]
-    public class FrenzyAI : IScribedEffect //You can instance this effect on your own, but it should normally be done through FrenzyCore.Frenzy()
+    public class FrenzyAI : IScribedEffect 
     {
         public GameObject Target;
         public TheBeast Source => _source ??= Object.GetPart<TheBeast>();
@@ -29,7 +29,7 @@ namespace XRL.World.Effects
             DisplayName = "";
             Duration = 9999;
         }
-        public FrenzyAI(GameObject Target, bool gameover) : this()
+        internal FrenzyAI(GameObject Target, bool gameover) : this()
         {
             this.Target = Target;
             this.gameover = gameover;

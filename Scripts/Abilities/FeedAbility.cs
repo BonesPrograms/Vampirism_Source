@@ -18,11 +18,11 @@ namespace VampirismSys.Attack
     /// Brings together the Vampire's property values and parts' methods for various evaluations before a Feed can begin.
     /// </summary>
 
-    public class FeedAbility //this is open to allow access to the persistent Bite instance through vampirism
+    internal class FeedAbility 
     {
         bool friends;
         readonly Vampirism Source;
-        public readonly Bite Bite;
+        internal readonly Bite Bite;
         bool badtarget;
         internal static bool AutoWin;
         internal FeedAbility(Vampirism Source)

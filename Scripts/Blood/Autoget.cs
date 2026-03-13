@@ -18,7 +18,7 @@ namespace VampirismSys.Blood
         static GameObject Player => The.Player;
 
         [GameBasedStaticCache(false)]
-        static List<LiquidVolume> PureBlood = new();
+        static List<LiquidVolume> PureLiquid = new();
 
         [GameBasedStaticCache(false, true)]
         static GameObject[] ContainerCache = Array.Empty<GameObject>();
@@ -27,13 +27,13 @@ namespace VampirismSys.Blood
 
         const string Container = "WaterContainer";
 
-        const string Blood = "blood";
+        const string LiquidType = "blood";
 
-        static bool FoundBlood => PureBlood.Count > 0;
+        static bool FoundBlood => PureLiquid.Count > 0;
 
         internal static void Clear()
         {
-            PureBlood = new();
+            PureLiquid = new();
             ContainerCache = Array.Empty<GameObject>();
         }
         internal static void Autogetter()
@@ -45,7 +45,7 @@ namespace VampirismSys.Blood
                 if (FoundBlood)
                 {
                     AddBlood();
-                    PureBlood = new();
+                    PureLiquid = new();
                 }
             }
         }
@@ -124,9 +124,9 @@ namespace VampirismSys.Blood
 
         static void CheckForStoredLiquids(LiquidVolume part, GameObject waterskin)
         {
-            if ((part.ContainsLiquid(Blood) && part.IsPureLiquid()) || part.Volume == 0)
+            if ((part.ContainsLiquid(LiquidType) && part.IsPureLiquid()) || part.Volume == 0)
             {
-                LiquidVolume pool = PureBlood.GetRandomElement();
+                LiquidVolume pool = PureLiquid.GetRandomElement();
                 if (pool.Volume > 0)
                 {
                     bool math = Math(pool, part, out int deduction);
@@ -135,7 +135,7 @@ namespace VampirismSys.Blood
                     else if (!math)
                         Collect(pool, part, waterskin, pool.Volume);
                 }
-                PureBlood.Remove(pool);
+                PureLiquid.Remove(pool);
             }
         }
 
@@ -181,7 +181,7 @@ namespace VampirismSys.Blood
 
         static void Collect(LiquidVolume pool, LiquidVolume part, GameObject waterskin, int deduction)
         {
-            part.AddDrams(Blood, deduction);
+            part.AddDrams(LiquidType, deduction);
             pool.UseDrams(deduction);
             IComponent<GameObject>.AddPlayerMessage("You collect " + deduction + " drams of {{r|blood}} " + "in your " + waterskin.ShortDisplayName + ".");
             //if (Pool?.Volume is null || Pool.Volume <= 0 || Pool.IsEmpty())
@@ -197,8 +197,8 @@ namespace VampirismSys.Blood
         }
         static void DealWithLiquid(IEnumerable<GameObject> objects)
         {
-            var foundBlood = objects.Select(x => x.GetPart<LiquidVolume>()).Where(x => x != null && x.ContainsLiquid(Blood) && x.IsPureLiquid() && !x.ParentObject.HasTag(Container) && x.ParentObject.Blueprint != "FangBloodDrop");
-            PureBlood = new(foundBlood);
+            var foundBlood = objects.Select(x => x.GetPart<LiquidVolume>()).Where(x => x != null && x.ContainsLiquid(LiquidType) && x.IsPureLiquid() && !x.ParentObject.HasTag(Container) && x.ParentObject.Blueprint != "FangBloodDrop");
+            PureLiquid = new(foundBlood);
         }
 
     }
