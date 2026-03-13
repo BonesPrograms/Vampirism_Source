@@ -1,19 +1,57 @@
 using XRL.World.Parts;
-using XRL.World.AI;
 using System;
 using VampirismSys.Rules;
-using XRL.World.Effects;
-using VampirismSys.Blood;
 using VampirismSys.Core;
 
 namespace XRL.World.Effects
 {
 
-
+    public interface IGhoulEffect
+    {
+        public abstract string Name { get; set; }
+        public abstract Type Type { get; }
+    }
 
     [Serializable]
-    public class EnthralledGhoul : IScribedEffect
+    public class RelinquishedGhoul : IScribedEffect, IGhoulEffect
     {
+        public string Name
+        {
+            get => DisplayName;
+            set
+            {
+                DisplayName = value;
+            }
+        }
+
+        public Type Type => typeof(RelinquishedGhoul);
+        public RelinquishedGhoul()
+        {
+            DisplayName = "{{r|relinquished}}";
+            Duration = 9999;
+        }
+
+        public override string GetDescription()
+        {
+            return "{{r|relinquished}}";
+        }
+
+
+    }
+
+    [Serializable]
+    public class EnthralledGhoul : IScribedEffect, IGhoulEffect
+    {
+        public string Name
+        {
+            get => DisplayName;
+            set
+            {
+                DisplayName = value;
+            }
+        }
+
+        public Type Type => typeof(EnthralledGhoul);
         public GameObject Master;
         public EnthralledGhoul()
         {
@@ -75,11 +113,12 @@ namespace XRL.World.Effects
             Object.RequirePart<GhoulBloodMetabolism>();
             return true;
         }
-
         public override void Remove(GameObject Object)
         {
+            Object.Brain.Goals.Clear();
             Object.PartyLeader = null;
             Object.Target = null;
+            Object.ApplyEffect(new RelinquishedGhoul());
         }
 
         public bool IsGhoulOf(GameObject Target)
@@ -113,7 +152,7 @@ namespace XRL.World.Effects
 
         public override bool Apply(GameObject Object)
         {
-            GhoulBloodMetabolism.Stats.ForEach(x=>StatShifter.SetStatShift(x, Bonus));
+            GhoulBloodMetabolism.Stats.ForEach(x => StatShifter.SetStatShift(x, Bonus));
             Object.Heal(Bonus);
             AddPlayerMessage($"{Object.t()} goes drunk on " + "{{r|blood}}!");
             return base.Apply(Object);
@@ -121,7 +160,7 @@ namespace XRL.World.Effects
         public override void Remove(GameObject Object)
         {
             Object.GetPart<GhoulBloodMetabolism>().Buffed = false;
-            GhoulBloodMetabolism.Stats.ForEach(x=>StatShifter.RemoveStatShift(Object,x));
+            GhoulBloodMetabolism.Stats.ForEach(x => StatShifter.RemoveStatShift(Object, x));
         }
 
     }

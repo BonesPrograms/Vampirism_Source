@@ -96,7 +96,7 @@ namespace XRL.World.Parts.Mutation
 			if (ID == EffectRemovedEvent.ID)
 				return Rotschrek || Immune;
 			if (ID == EnteringZoneEvent.ID)
-				return ParentObject.HasStringProperty(Flags.MOD_VERSION) && ParentObject.IsPlayer();
+				return ParentObject.HasStringProperty(Flags.GAMEOBJECT_VERSION_TAG) && ParentObject.IsPlayer();
 			if (ID == EquipperEquippedEvent.ID || ID == TookEvent.ID)
 				return The.Game.Turns > 0;//will fire and go crazy if you spawn with silver items in your inventory or torches
 			return base.WantEvent(ID, cascade);
@@ -507,8 +507,8 @@ namespace XRL.World.Parts.Mutation
 			{
 
 				VampirismSys.Update.Update.Spells(E.NewBody);
-				if (E.OldBody?.HasStringProperty(Flags.MOD_VERSION) ?? false) //from my experience oldbody is usually null, but what can you do
-					E.NewBody.SetStringProperty(Flags.MOD_VERSION, null);
+				if (E.OldBody?.HasStringProperty(Flags.GAMEOBJECT_VERSION_TAG) ?? false) //from my experience oldbody is usually null, but what can you do
+					E.NewBody.SetStringProperty(Flags.GAMEOBJECT_VERSION_TAG, null);
 			}
 			return base.HandleEvent(E);
 		}
@@ -518,7 +518,7 @@ namespace XRL.World.Parts.Mutation
 		public override bool HandleEvent(EnteringZoneEvent E)
 		{
 			Zone zone = E.Cell.ParentZone;
-			if (zone.TryGetZoneProperty(Flags.Mod.VERSION_TAG, out string result)) //to prevent repeated sifting of zones already updated in old saves.
+			if (zone.TryGetZoneProperty(Flags.Mod.ZONE_VERSION_TAG, out string result)) //to prevent repeated sifting of zones already updated in old saves.
 			{
 				if (result != Mod.VERSION)
 					Update(zone);
@@ -530,7 +530,7 @@ namespace XRL.World.Parts.Mutation
 		static void Update(Zone zone)
 		{
 			zone.CombatObjects(x => x.IsVampire() && !x.IsPlayer()).SafeForEach(x => VampirismSys.Update.Update.TryUpdateNPC(x));
-			zone.SetZoneProperty(Flags.Mod.VERSION_TAG, Mod.VERSION);
+			zone.SetZoneProperty(Flags.Mod.ZONE_VERSION_TAG, Mod.VERSION);
 		}
 		#endregion
 

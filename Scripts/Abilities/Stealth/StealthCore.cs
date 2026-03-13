@@ -93,7 +93,7 @@ namespace VampirismSys.Stealth
           =>
             witness?.Brain != null
             && witness != Player
-            //   && witness.IsCombatObject()
+          //  && witness.IsCombatObject()
             && !Inanimate(witness); //insamezone check cannot go here because we use this to check nextzone in EZ event and i dont feel like adding a zone parameter
         public static bool Inanimate(GameObject witness)
           =>

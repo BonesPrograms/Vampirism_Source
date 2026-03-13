@@ -6,27 +6,33 @@ using VampirismSys.Properties;
 using VampirismSys.Core;
 using VampirismSys.Rules;
 using VampirismSys.Frenzy;
+using System;
 
 namespace XRL.World.Effects
 {
     /// <summary>
     /// The pseudo-AI that paths to and attacks the target assigned to it by Frenzy().
     /// </summary>
-    public class FrenzyAI : Effect //this effect should NOT be applied directly and instead should be applied via FrenzyCore.Frenzy()
+    /// 
+    [Serializable]
+    public class FrenzyAI : Effect
     {
         public GameObject Target;
-        public readonly TheBeast Source;
-        readonly Action Action;
+        public TheBeast Source => _source ??= Object.GetPart<TheBeast>();
+        TheBeast _source;
+        ActionAI Action => _action ??= new(this, Source.Base.FeedAbility.Bite, Source.Core.Search);
+        ActionAI _action;
         public bool InRange => base.Object.DistanceTo(Target) <= 1;
-        public readonly bool gameover;
-        internal FrenzyAI() => DisplayName = "";
-        internal FrenzyAI(TheBeast Source, GameObject Target, bool gameover) : this()
+        public bool gameover;
+        public FrenzyAI()
         {
-            base.Duration = 9999;
+            DisplayName = "";
+            Duration = 9999;
+        }
+        internal FrenzyAI(GameObject Target, bool gameover) : this()
+        {
             this.Target = Target;
             this.gameover = gameover;
-            this.Source = Source;
-            Action = new(this, Source.Base.FeedAbility.Bite, Source.Core.Search);
         }
 
         public override bool WantEvent(int ID, int Cascade)
@@ -118,6 +124,7 @@ namespace XRL.World.Effects
         public override bool Apply(GameObject Object)
         {
 
+            Source.Frenzied = true;
             Source.ParentObject.SetStringProperty(Flags.FRENZY, Flags.TRUE);
             AutoAct.Interrupt(); //prevents graphics bugs that occur if frenzy activates while waiting
             XRLCore.Core.RenderDelay(100);

@@ -39,12 +39,14 @@ namespace VampirismSys.Core
 		/// <summary>
 		/// Returns true/false values from object string properties. Default true.
 		/// </summary>
-		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, Properties.Flags.TRUE, Properties.Flags.TRUE_LEGACY);
-		
-		public static bool PropertyEquals(this GameObject Object, string key, string value, string value2 = null)
+		public static bool CheckFlag(this GameObject theObject, string flag) => theObject.PropertyEquals(flag, bool.TrueString, StringComparison.OrdinalIgnoreCase);
+																							//we use OrdinalIgnore cause I dont care if it says "trUe" or "true" or "TRUE"
+
+																							//ordinal is apparently the default for string.Equals
+		public static bool PropertyEquals(this GameObject Object, string key, string value, StringComparison comparison = StringComparison.Ordinal)
 		{
 			if (Object.TryGetStringProperty(key, out string result))
-				return value2 == null ? result == value : result == value || result == value2;
+				return result.Equals(value, comparison);
 			return false;
 		}
 		public static bool TryGetLongProperty(this GameObject Object, string key, string key2, out long value)

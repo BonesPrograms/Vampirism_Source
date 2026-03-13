@@ -17,7 +17,7 @@ namespace XRL.World.Effects
 	public abstract class IFeeding : Effect
 	{
 
-		public static bool AutoLevel;
+		internal static bool AutoLevel;
 		public GameObjectReference other; // a long time ago, this was life drain
 		VampireBloodMetabolism _Vitae;
 		VampireBloodMetabolism Vitae => _Vitae ??= Object.GetPart<VampireBloodMetabolism>();
@@ -35,7 +35,10 @@ namespace XRL.World.Effects
 
 		public bool vampire;
 
-		public IFeeding() => DisplayName = "";
+		public IFeeding()
+		{
+			DisplayName = "";
+		}
 		public IFeeding(GameObject other, bool isAttacker, string DamagePerRound, int Duration, bool Ghoul, bool friendly, bool vampire) : this()
 		{
 			this.Damage = DamagePerRound;

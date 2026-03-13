@@ -23,18 +23,18 @@ namespace VampirismSys.Biting
         public bool HasBadLiquid => BadLiquids.Any(x => x.Item2);
         public bool HasDisease => Diseases.Any(x => x.Item2);
         public bool IsPoisoned => Poisons.Any(x => x.Item2);
-        private readonly Vampirism _vampirism;
-        private readonly BiteSimulator _sim;
+        readonly Vampirism _vampirism; //nullable
+        readonly BiteSimulator _sim;
         public static string[] GiveBadLiquids() //for debugging
         {
             return new Bite(null, null).BadLiquids.Select(x => x.Item1).ToArray();
         }
 
-        public Bite(GameObject Biter) : base(Biter)
+        internal Bite(GameObject Biter) : base(Biter)
         {
             _sim = new(Biter, this);
         }
-        public Bite(GameObject Biter, Vampirism Vampirism) : this(Biter)
+        internal Bite(GameObject Biter, Vampirism Vampirism) : this(Biter)
         {
             this._vampirism = Vampirism;
 

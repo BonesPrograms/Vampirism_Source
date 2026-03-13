@@ -21,7 +21,7 @@ namespace XRL.World.Parts
         public bool Bloodlusted;
         public override bool WantsMetabolism => ParentObject.IsPlayer();
         public override bool WantsVomit => !ParentObject.CheckFlag(Flags.FRENZY);
-        public static bool AntiPuke;
+        internal static bool AntiPuke;
         public int BloodDrams => ParentObject.GetFreeDrams("blood"); //for harmony
         public override string UIBloodDisplay => ParentObject.CheckFlag(Flags.GO) ? "{{r|Bottomless}}" : base.UIBloodDisplay;
 
@@ -169,7 +169,7 @@ namespace XRL.World.Parts
          {
              ModOptions.Autosip_Settings.QUENCH => Status < BloodLevel.GLUT, //in our code, being marked as "thirsty" actually means your blood is > thirsty and < quenched
              ModOptions.Autosip_Settings.THIRSTY => Status < BloodLevel.QUENCHED,//kind of confusing but i dont care to change it now
-             ModOptions.Autosip_Settings.PARCHED => Status < BloodLevel.THIRSTY,
+             ModOptions.Autosip_Settings.PARCHED => Status < BloodLevel.THIRSTY, //though with the new enum setup it is less confusing now
              ModOptions.Autosip_Settings.MIN => Status < BloodLevel.PARCHED,
              _ => false,
          };

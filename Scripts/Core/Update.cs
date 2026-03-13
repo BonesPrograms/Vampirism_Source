@@ -25,7 +25,7 @@ namespace VampirismSys.Update
         }
         static void TryUpdatePlayer(GameObject GO)
         {
-            if (TryUpdateNPC(GO) || GO.GetStringProperty(Flags.MOD_VERSION) != Mod.VERSION)
+            if (TryUpdateNPC(GO) || GO.GetStringProperty(Flags.GAMEOBJECT_VERSION_TAG) != Mod.VERSION)
             {
                 Popup.Show("Vampirism mini update: True Undead released! See steam page for more info.");
                 UpdateModVersion(GO);
@@ -38,20 +38,6 @@ namespace VampirismSys.Update
         //however this is also when the "Old Save" property changed to the "Mod Version" flag which is checked every gameload
         internal static bool TryUpdateNPC(GameObject GO)
         {
-            if (CheckCorpse(GO))
-            {
-                UpdateProperties(GO); //checkcorpse and UpdateProperties are for updating from  vers 1 to 2
-                return true;
-            }
-            return false;
-        }
-        static void UpdateModVersion(GameObject GO)
-        {
-            GO.SetStringProperty(Flags.MOD_VERSION, Mod.VERSION); //this may serve as a mod version identifier in the future
-        }                                                       //anyone who doesnt have it will get it, anyone who has it and doesnt sync with the version will be updated
-                                                                //furthermore, our WantEvent that checks for OLD_SAVE will compare it against the version, rather than check for it in general
-        static bool CheckCorpse(GameObject GO)
-        {
             if (!GO.HasPart<VampireAshes>())
             {
                 VampireBuilder.ChangeCorpse(GO);
@@ -59,11 +45,17 @@ namespace VampirismSys.Update
             }
             return false;
         }
-
-        static void UpdateProperties(GameObject GO)
+        static void UpdateModVersion(GameObject GO)
         {
-            VampireBuilder.StringProperties.Select(x => x.Item1).Where(x => GO.Property[x] == Flags.TRUE_LEGACY).ForEach(x => GO.Property[x] = Flags.TRUE);
-        }
+            GO.SetStringProperty(Flags.GAMEOBJECT_VERSION_TAG, Mod.VERSION); //this may serve as a mod version identifier in the future
+        }                                                       //anyone who doesnt have it will get it, anyone who has it and doesnt sync with the version will be updated
+                                                                //furthermore, our WantEvent that checks for OLD_SAVE will compare it against the version, rather than check for it in general
+
+        // static void UpdateProperties(GameObject GO)
+        // {
+        //     VampireBuilder.StringProperties.Select(x => x.Item1).Where(x => GO.Property[x] == Flags.TRUE_LEGACY).ForEach(x => GO.Property[x] = Flags.TRUE);
+        // } 
+
         internal static void Spells(GameObject GO)
         {
             if (VampireBuilder.ENABLE_SPELLS)

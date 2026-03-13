@@ -57,26 +57,26 @@ namespace XRL.World.Parts
 
         void CheckStatus()
         {
-            EnthralledGhoul e = ParentObject.GetEffect<EnthralledGhoul>();
+            IGhoulEffect e = ParentObject.GetEffectDescendedFrom<IGhoulEffect>();
             if (Status < BloodLevel.QUENCHED)
                 SetBloodStarved(e);
             else if (Bloodstarved)
                 RemoveBloodStarved(e);
         }
 
-        void SetBloodStarved(EnthralledGhoul e)
+        void SetBloodStarved(IGhoulEffect e)
         {
             if (!Bloodstarved)
             {
-                e.DisplayName = "{{r|bloodstarved}}";
+                e.Name = "{{r|bloodstarved}}";
                 Bloodstarved = true;
             }
             IComponent<GameObject>.AddPlayerMessage($"{ParentObject.t()} feels " + "{{R|thirsty}}.");
         }
 
-        void RemoveBloodStarved(EnthralledGhoul e)
+        void RemoveBloodStarved(IGhoulEffect e)
         {
-            e.DisplayName = "{{r|ghoul}}";
+            e.Name = e.Type == typeof(EnthralledGhoul) ? "{{r|ghoul}}" : "{{r|relinquished}}";
             Bloodstarved = false;
             Stats.ForEach(x => StatShifter.RemoveStatShift(ParentObject, x));
         }

@@ -12,11 +12,11 @@ namespace VampirismSys.Biting
     /// Handles the simulation features for what happens when biting targets with various toxic or otherwise inedible conditions.
     /// </summary>
 
-    public class BiteSimulator : BaseBite
+    internal class BiteSimulator : BaseBite
     {
          readonly Bite _source;
          readonly LiquidBehaviors _liquidBehaviors;
-        public BiteSimulator(GameObject Biter, Bite Source) : base(Biter)
+        internal BiteSimulator(GameObject Biter, Bite Source) : base(Biter)
         {
             this._source = Source;
             _liquidBehaviors = new(Biter);
@@ -71,7 +71,7 @@ namespace VampirismSys.Biting
             Biter.ApplyEffect(new GlotrotOnset());
         }
 
-        public Ending BadEnding(GameObject Target)
+        internal Ending BadEnding(GameObject Target)
         {
             return Result(_source.Flags.Where(x => x.Item2).Select(x => Cycle(x.Item1, Target)));
         }

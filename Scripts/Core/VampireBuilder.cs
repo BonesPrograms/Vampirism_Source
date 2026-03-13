@@ -31,13 +31,16 @@ namespace VampirismSys.Core
         };
         public static readonly Type[] IParts =
         {
-            typeof(XRL.World.Parts.Humanity), typeof(XRL.World.Parts.VampireBloodMetabolism), typeof(Nightbeast), typeof(TheBeast)
-        }; //on request i would make these lists so other types can be added at runtime
+            typeof(XRL.World.Parts.Humanity), typeof(VampireBloodMetabolism), typeof(Nightbeast), typeof(TheBeast)
+        };
+
+        //on request i would make these lists so other types can be added at runtime
         public static readonly Type[] VampiricSpells =
         {
             typeof(GhoulSpell), typeof(CoffinSpell), typeof(EmbraceSpell), typeof(BatformSpell)
         };
 
+        //you should not run these, you should make people into vampires with the mutation
         internal static void Make(GameObject GO)
         {
             SetGameProperties(GO);
@@ -155,11 +158,9 @@ namespace VampirismSys.Core
         }
         internal static void ChangeCorpse(GameObject GO)
         {
-            if (GO.TryGetPart<Corpse>(out var Corpse))
+            if (GO.TryGetPart<Corpse>(out var corpse))
             {
-                VampireAshes ashes = new(Corpse.BurntCorpseBlueprint, Corpse.VaporizedCorpseBlueprint, Corpse.CorpseBlueprint, Corpse.BurntCorpseChance, Corpse.CorpseChance, Corpse.VaporizedCorpseChance);
-                GO.AddPart(ashes);
-                GO.RemovePart(Corpse);
+                GO.AddPart(new VampireAshes(corpse));
             }
             else
                 GO.RequirePart<VampireAshes>();
@@ -186,8 +187,9 @@ namespace XRL.World.Parts
         public int OldBurntCorpseChance = default;
         public int OldCorpseChance = default;
         public int OldVaporizedCorpseChance = default;
+
         /// <summary>
-        /// For objects that do not have a corpse part.
+        /// For objects that do not have a corpse part for some reason.
         /// </summary>
         public VampireAshes()
         {
@@ -203,17 +205,24 @@ namespace XRL.World.Parts
         /// <summary>
         /// For backing up corpses.
         /// </summary>
-        public VampireAshes(string BurntCorpseBlueprint, string VaporizedCorpseBlueprint, string CorpseBlueprint, int BurntCorpseChance, int CorpseChance, int VaporizedCorpseChance) : this()
+        public VampireAshes(Corpse corpse) : this()
         {
-            OldBurntCorpseBlueprint = BurntCorpseBlueprint.IsNullOrEmpty() ? default : BurntCorpseBlueprint;
-            OldVaporizedCorpseBlueprint = VaporizedCorpseBlueprint.IsNullOrEmpty() ? default : VaporizedCorpseBlueprint;
-            OldCorpseBlueprint = CorpseBlueprint.IsNullOrEmpty() ? default : CorpseBlueprint;
-            OldBurntCorpseChance = BurntCorpseChance;
-            OldCorpseChance = CorpseChance;
-            OldVaporizedCorpseChance = VaporizedCorpseChance;
+            OldBurntCorpseBlueprint = corpse.BurntCorpseBlueprint.IsNullOrEmpty() ? default : corpse.BurntCorpseBlueprint;
+            OldVaporizedCorpseBlueprint = corpse.VaporizedCorpseBlueprint.IsNullOrEmpty() ? default : corpse.VaporizedCorpseBlueprint;
+            OldCorpseBlueprint = corpse.CorpseBlueprint.IsNullOrEmpty() ? default : corpse.CorpseBlueprint;
+            OldBurntCorpseChance = corpse.BurntCorpseChance;
+            OldCorpseChance = corpse.CorpseChance;
+            OldVaporizedCorpseChance = corpse.VaporizedCorpseChance;
             HasCopyData = true;
         }
-        internal Corpse Revert()
+
+        //i loosely recall why this looks so funky
+        //after copying corpse data to vampireashes, vampireashes would not deserialize strings
+        //im not sure if the fix was assinging each string field to default
+        //or doing the IsNullOrEmpty ? default thing
+        //havent cared to go back make it proper yet since i am currently working on a big update
+
+        public Corpse Revert()
         {
             Corpse corpse = new()
             {

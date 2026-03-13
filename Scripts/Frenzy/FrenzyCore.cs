@@ -13,7 +13,7 @@ namespace VampirismSys.Frenzy
         bool _midFrenzyChance => WikiRng.Next(1, 2000) == 2000;
         bool _highFrenzyChance => WikiRng.Next(1, 1000) == 1000;
         bool _critFrenzyChance => WikiRng.Next(1, 500) == 500;
-        internal readonly Search Search;
+        public readonly Search Search;
         public FrenzyCore(TheBeast Source)
         {
             this.Source = Source;
@@ -115,8 +115,7 @@ namespace VampirismSys.Frenzy
 
         void AssembleAI(GameObject Target)
         {
-            Source.ParentObject.ApplyEffect(new FrenzyAI(Source, Target, Source.GameOver));
-            Source.Frenzied = true;
+            Source.ParentObject.ApplyEffect(new FrenzyAI(Target, Source.GameOver));
             Source.ParentObject.ApplyEffect(new Running(WikiRng.Next(10, 20)));
         }
 

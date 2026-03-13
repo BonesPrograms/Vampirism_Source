@@ -9,9 +9,9 @@ using AiUnity.Common.Extensions;
 namespace VampirismSys.Biting
 {
 
-    public class LiquidBehaviors : BaseBite
+    internal class LiquidBehaviors : BaseBite
     {
-        public LiquidBehaviors(GameObject Biter) : base(Biter)
+        internal LiquidBehaviors(GameObject Biter) : base(Biter)
         {
         }
         Ending OilLiquid() //yeah drinking oil doesnt really do anything but its gross so i added it. used to make you puke but it doesnt do that ingame so i got rid of that
@@ -85,7 +85,7 @@ namespace VampirismSys.Biting
             return Ending.VOMIT;
         }
 
-        public Ending LiquidEnding((string, bool)[] BadLiquids)
+        internal Ending LiquidEnding((string, bool)[] BadLiquids)
         {
             return Result(BadLiquids.Where(x => x.Item2).Select(x => Cycle(x.Item1)));
         }

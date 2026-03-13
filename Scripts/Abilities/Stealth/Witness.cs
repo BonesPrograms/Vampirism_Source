@@ -4,12 +4,10 @@ using System;
 
 namespace XRL.World.Parts
 {
-
-    [Serializable]
-    public class WitnessCreatedListener : IPart
+    internal class WitnessCreatedListener : IPart
     {
 
-        public int TurnCount = 0;
+        int TurnCount = 0;
 
         //whats nice about this: its compatible with old saves
         //the only function of this part is to notify the player's stealth part that an object has been created in the zone and needs to be added to the witness dictionary
@@ -17,7 +15,7 @@ namespace XRL.World.Parts
         public override bool WantEvent(int ID, int Cascade)
         {
             if (ID == SingletonEvent<EndTurnEvent>.ID)
-                return true;
+                return The.Game.Turns == 0;
             if (ID == AfterObjectCreatedEvent.ID)
                 return The.Game.Turns > 0;
             return base.WantEvent(ID, Cascade);
@@ -29,8 +27,8 @@ namespace XRL.World.Parts
             return base.HandleEvent(E);
         }
         public override bool HandleEvent(AfterObjectCreatedEvent E)
-        {   //this runs before the game even begins so you need a null check
-            if (TurnCount == 0 && The.Player.IsVampire() && ParentObject.InSameZone(The.Player) && StealthCore.ValidSentient(ParentObject))
+        {   //this runs before the game even begins so you need a null check // && ParentObject.IsCombatObject() prob not necessary cause its all creatures only
+            if (!ParentObject.IsPlayer() && TurnCount == 0 && The.Player.IsVampire() && ParentObject.InSameZone(The.Player) && StealthCore.ValidSentient(ParentObject))
             {
                 Check();
             }

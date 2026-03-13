@@ -10,11 +10,14 @@ namespace VampirismSys.Frenzy
     /// <summary>
     /// Controls assignment and modification of the keys in TargetRegistry.
     /// </summary>
-    internal class Search
+    public class Search
     {
-        readonly internal TheBeast Source;
-        internal Search(TheBeast Source) => this.Source = Source;
-        internal bool TryScan(out GameObject tgt)
+        readonly public TheBeast Source;
+        public Search(TheBeast Source)
+        {
+            this.Source = Source;
+        }
+        public bool TryScan(out GameObject tgt)
         {
             tgt = null;
             Sift();
@@ -54,7 +57,7 @@ namespace VampirismSys.Frenzy
             return true;
         }
 
-        internal void Register()
+        public void Register()
          => Source.ParentObject.CurrentZone.CombatObjects().SafeForEach(registerDelegate);
 
         void registerDelegate(GameObject obj)
@@ -71,12 +74,12 @@ namespace VampirismSys.Frenzy
             else
                 Source.TargetRegistry.Remove(obj);
         }
-        internal bool BadKey(GameObject Actor)
+        public bool BadKey(GameObject Actor)
         {
             Source.TargetRegistry.TryGetValue(Actor, out int value);
             return value == TheBeast.FLAG_AVOID;
         }
-        internal bool ValidForRegistration(GameObject target)
+        public bool ValidForRegistration(GameObject target)
          =>
             target != Source.ParentObject
             && target != null

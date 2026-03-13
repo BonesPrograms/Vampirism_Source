@@ -12,7 +12,7 @@ namespace VampirismSys.Properties
 
         public static class Mod
         {
-            public const string VERSION_TAG = "VampirismModVersion";
+            public const string ZONE_VERSION_TAG = "VampirismModVersion";
         }
         public static class Embrace
         {
@@ -39,12 +39,8 @@ namespace VampirismSys.Properties
 
         public static string FALSE = bool.FalseString;
 
-
         [Obsolete("Use Flags.TRUE")]
         public const string TRUE_LEGACY = "true";
-        ///compatibility for when the literal was "true" instead of bool.TrueString
-		//the innocent flag is immutable so anyone who played before the change
-		//will have objects that have the old litera
 
         public const string SPELLS = "HasVampirismSpells";
 
@@ -109,8 +105,9 @@ namespace VampirismSys.Properties
 
         public const string FLEDGLING = "VampireFledgingMod";
 
-        public const string MOD_VERSION = "OldVampirismSaveNeedsUpdate"; //note: this may become a mod version identifier for all vampires on gameload/
+        public const string GAMEOBJECT_VERSION_TAG = "OldVampirismSaveNeedsUpdate"; //note: this may become a mod version identifier for all vampires on gameload/
         //                                                              /anyone who doesnt have it will get it, anyone who has it and doesnt sync with the version will be updated
                                                                 //furthermore, our WantEvent that checks for OLD_SAVE will compare it against the version, rather than check for it in genera
     }
-}
+}                                                   //turns out this property did become a tag for mod version... too bad the name is complete trash. "OldVampirismSaveNeedsUpdate" ugh
+                                                                

@@ -19,8 +19,8 @@ namespace XRL.World.Parts
     [HasGameBasedStaticCache]
     public class DeathHandler : IPart
     {
-        public static bool FreeMote;
-        public static GameObject Player => _player?.Object; //this is used for two major purposes: accessing the players humanity and checking hostility
+        internal static bool FreeMote;
+        internal static GameObject Player => _player?.Object; //this is used for two major purposes: accessing the players humanity and checking hostility
                                                             //if you try to access by the.player (static) then you will get whatever
         [GameBasedStaticCache(false)]                       //gameobject they are currently dominating
         static GameObjectReference _player;
@@ -145,7 +145,7 @@ namespace XRL.World.Parts
         /// Ensures that the Player field is assigned to the player's source, original GameObject and that the player is a vampire before beginning.
         /// </summary>
         /// <returns></returns>
-        public static bool Security() => !Player?.HasHitpoints() ?? true ? FindAndCheckPlayer() : Player.HasPart<Vampirism>();
+        internal static bool Security() => !Player?.HasHitpoints() ?? true ? FindAndCheckPlayer() : Player.HasPart<Vampirism>();
         //because you can die but still not be null and the system will break if you are domination-hopping to a new body
         static bool FindAndCheckPlayer()
         {

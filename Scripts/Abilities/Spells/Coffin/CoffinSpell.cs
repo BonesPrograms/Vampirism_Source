@@ -23,7 +23,7 @@ namespace XRL.World.Parts
         public int CellY;
         bool _justJaunted;
         bool _tookFireDamage;
-        public static bool ShowDebug;
+        internal static bool ShowDebug;
 
         public CoffinSpell()
         {

@@ -50,7 +50,7 @@ namespace VampirismSys.Core
         {
             if (GO.IsVampire())
             {
-                GO.SetStringProperty(Flags.MOD_VERSION, Mod.VERSION);
+                GO.SetStringProperty(Flags.GAMEOBJECT_VERSION_TAG, Mod.VERSION);
                 CallStealthReactivation();
                 GiveCanteen(GO);
                 SetTime();

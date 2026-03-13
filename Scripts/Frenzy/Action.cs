@@ -15,12 +15,12 @@ namespace VampirismSys.Frenzy
     /// <summary>
     /// Controls the turn-to-turn decision making for Frenzy.
     /// </summary>
-    internal class Action
+    internal class ActionAI
     {
         readonly FrenzyAI AI;
         readonly Search Search;
-        readonly Biting.Bite Bite;
-        internal Action(FrenzyAI AI, Biting.Bite Bite, Search Search)
+        readonly Bite Bite;
+        internal ActionAI(FrenzyAI AI, Bite Bite, Search Search)
         {
             this.AI = AI;
             this.Bite = Bite;
