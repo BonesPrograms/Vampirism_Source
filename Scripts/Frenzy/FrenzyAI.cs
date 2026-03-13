@@ -15,7 +15,7 @@ namespace XRL.World.Effects
     /// </summary>
     /// 
     [Serializable]
-    public class FrenzyAI : Effect
+    public class FrenzyAI : IScribedEffect //This effect should NOT be instanced and should instead be applied by using FrenzyCore.Frenzy()
     {
         public GameObject Target;
         public TheBeast Source => _source ??= Object.GetPart<TheBeast>();
