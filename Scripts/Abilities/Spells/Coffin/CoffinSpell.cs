@@ -30,7 +30,7 @@ namespace XRL.World.Parts
             AbilityMenuName = VampirismSys.Rules.Coffin.ABILITY_NAME;
             CommandName = VampirismSys.Rules.Coffin.COMMAND_NAME;
         }
-        public override int Roll() => WikiRng.Next(1, 20) + Level;
+        protected override int Roll() => WikiRng.Next(1, 20) + Level;
         //uses vampirism level like all spells
         
         public bool UpdateXY(Cell cell)
@@ -241,7 +241,7 @@ namespace XRL.World.Parts
             fx.Duration = 0;
         }
 
-        public override void CollectStats(Templates.StatCollector stats)
+        protected override void CollectStats(Templates.StatCollector stats)
         {
             stats.Set("Save-From-Death Cooldown", JauntCooldown - Timer, true);
             stats.Set("SaveAndChance", Chance(), true);

@@ -22,7 +22,7 @@ namespace VampirismSys.Tests
 [Serializable]
     public class RobotPolymorph : BasePolymorphSpell
     {
-        public override BasePolymorphEffect Effect => new RobotPolymorphFX();
+        protected override BasePolymorphEffect Effect => new RobotPolymorphFX();
         public override int Cooldown => 0;
         public RobotPolymorph()
         {

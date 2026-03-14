@@ -55,7 +55,7 @@ namespace XRL.World.Parts
             CommandName = VampirismSys.Rules.Embrace.COMMAND_NAME;
             AbilityMenuName = VampirismSys.Rules.Embrace.ABILITY_NAME;
         }
-        public override void CollectStats(Templates.StatCollector stats)
+        protected override void CollectStats(Templates.StatCollector stats)
         {
             stats.Set("Attack", Level + ParentObject.Level);
             stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Cooldown);

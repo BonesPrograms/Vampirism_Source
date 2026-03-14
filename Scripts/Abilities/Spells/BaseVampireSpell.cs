@@ -58,8 +58,6 @@ namespace XRL.World.Parts
 
         public virtual bool Toggled => false; //this is only for AddMyActivatedAbility. you need to track the actual toggled on/off state yourself
 
-        public abstract void CollectStats(Templates.StatCollector stats);
-
         public override bool WantEvent(int ID, int Cascade)
         {
             if (ID == PooledEvent<CommandEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
@@ -71,36 +69,23 @@ namespace XRL.World.Parts
             DescribeMyActivatedAbility(SpellID, CollectStats);
             return base.HandleEvent(E);
         }
-        public virtual int Roll()
-        {
-            return WikiRng.Next(1, 8) + Math.Max(ParentObject.StatMod("Ego"), Level) + ParentObject.GetStat("Level").Value;
-        }
+
+        protected abstract void CollectStats(Templates.StatCollector stats);
+
+        protected virtual int Roll() => WikiRng.Next(1, 8) + Math.Max(ParentObject.StatMod("Ego"), Level) + ParentObject.GetStat("Level").Value;
+
         public virtual void AddSpell()
         {
             VerifyInitialization();
             SpellID = AddMyActivatedAbility(AbilityMenuName, CommandName, CATEGORY, null, "\u009f", Toggleable: Toggled);
-        }
-
-        void VerifyInitialization()
-        {
-            if (CommandName.IsNullOrEmpty())
-                throw new Exception($"CommandName not assigned to {GetType().Name}!");
-            if (AbilityMenuName.IsNullOrEmpty())
-                throw new Exception($"AbiltiyMenuName not assigned to {GetType().Name}!");
         }
         public virtual void RemoveSpell()
         {
             RemoveMyActivatedAbility(ref _spellID);
             ParentObject.RemovePart(this);
         }
-        public bool EnoughBlood(string text)
-        {
-            if (ParentObject.GetIntProperty(Flags.BLOOD_VALUE) > Cost)
-                return true;
-            else
-                return ParentObject.ShowFailure("You don't have enough {{R|blood}} " + text + "!");
-        }
-        public bool Cast(string toDo)
+
+        protected bool Cast(string toDo)
         {
             if (Vampirism.SunlightInterference(ParentObject))
             {
@@ -116,9 +101,9 @@ namespace XRL.World.Parts
             }
             return false;
         }
-        public bool RealityCheck(Cell cell) => RealityCheck(cell, CATEGORY, this); //i already made this and im lazy and dont feel like rewriting all my reality checks for the static method
+        protected bool RealityCheck(Cell cell) => RealityCheck(cell, CATEGORY, this); //i already made this and im lazy and dont feel like rewriting all my reality checks for the static method
 
-        public void ExpendBlood(bool showPopup, string text)
+        protected void ExpendBlood(bool showPopup, string text)
         {
             if (!showPopup)
                 IComponent<GameObject>.AddPlayerMessage(text);
@@ -127,11 +112,26 @@ namespace XRL.World.Parts
             ExpendBlood();
         }
         //ExpendBlood should be invoked after Cast() returns true
-        public void ExpendBlood()
+        protected void ExpendBlood()
         {
             ParentObject.GetPart<XRL.World.Parts.VampireBloodMetabolism>().Blood -= Cost;
         }
 
+
+        void VerifyInitialization()
+        {
+            if (CommandName.IsNullOrEmpty())
+                throw new Exception($"CommandName not assigned to {GetType().Name}!");
+            if (AbilityMenuName.IsNullOrEmpty())
+                throw new Exception($"AbiltiyMenuName not assigned to {GetType().Name}!");
+        }
+        bool EnoughBlood(string text)
+        {
+            if (ParentObject.GetIntProperty(Flags.BLOOD_VALUE) > Cost)
+                return true;
+            else
+                return ParentObject.ShowFailure("You don't have enough {{R|blood}} " + text + "!");
+        }
         public static bool RealityCheck<T>(Cell cell, string category, T invoker) where T : IPart
         {
             GameObject parentObject = invoker.ParentObject;

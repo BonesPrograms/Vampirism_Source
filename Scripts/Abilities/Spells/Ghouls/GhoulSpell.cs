@@ -16,7 +16,7 @@ namespace XRL.World.Parts
     {
         public override int Cooldown => VampirismSys.Rules.Ghoul.COOLDOWN;
         const string TEXT = "to enthrall";
-        public override int Roll() => WikiRng.Next(1, 8) + Math.Max(ParentObject.StatMod("Ego"), Level);
+        protected override int Roll() => WikiRng.Next(1, 8) + Math.Max(ParentObject.StatMod("Ego"), Level);
         public GhoulSpell()
         {
             CommandName = VampirismSys.Rules.Ghoul.COMMAND_NAME;

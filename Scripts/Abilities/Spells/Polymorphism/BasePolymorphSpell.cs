@@ -43,7 +43,7 @@ namespace XRL.World.Parts
 
         bool _transformed;
         protected abstract BasePolymorphEffect Effect { get; }
-        public override void CollectStats(Templates.StatCollector stats)
+        protected override void CollectStats(Templates.StatCollector stats)
         {
             stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Cooldown);
         }
