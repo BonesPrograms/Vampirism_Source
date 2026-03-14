@@ -19,8 +19,8 @@ namespace XRL.World.Parts
     {
         public bool GameOver;
         public bool Bloodlusted;
-        public override bool WantsMetabolism => ParentObject.IsPlayer();
-        public override bool WantsVomit => !ParentObject.CheckFlag(Flags.FRENZY);
+        protected override bool WantsMetabolism => ParentObject.IsPlayer(); //in the future, vampire AI may metabolize if theyre in the same party as player
+        protected override bool WantsVomit => !ParentObject.CheckFlag(Flags.FRENZY);    //however, their metabrate will be at least 1/2 (similar to ghouls)
         internal static bool AntiPuke;
         public int BloodDrams => ParentObject.GetFreeDrams("blood"); //for harmony
         public override string UIBloodDisplay => ParentObject.CheckFlag(Flags.GO) ? "{{r|Bottomless}}" : base.UIBloodDisplay;
@@ -201,11 +201,12 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(BeforeBeginTakeActionEvent E)
         {
+            ParentObject.RemoveStringProperty("OldVampirismSaveNeedsUpdate");
             ParentObject.AddPart(new VampireBloodMetabolism() { Blood = Blood, GameOver = GameOver, Bloodlusted = Bloodlusted });
-            ParentObject.RemovePart(this);
-            return base.HandleEvent(E);
-        }
-    }
+            ParentObject.RemovePart(this);              
+            return base.HandleEvent(E);               
+        }                                              
+    }                                                   
 
 
 }

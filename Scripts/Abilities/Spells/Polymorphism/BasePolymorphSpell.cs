@@ -8,11 +8,41 @@ namespace XRL.World.Parts
     [Serializable]
     public abstract class BasePolymorphSpell : BaseVampireSpell //the original version used metamorphosis to turn you into a literal bat, but your party would not sync and i didnt feel like trying to fix that
     {                                           //because the alternative is easier: fake transformation as you see in this type. there are also tons of other issues like mutations and stats and precognition not easily being synced so this is optimal
-        public bool Transformed;
+   
         public override bool Toggled => true;
-        public string FormName;
-        public string HUDName;
-        public abstract BasePolymorphFX PolymorphFX { get; }
+
+        public bool Transformed
+        {
+            get => _transformed;
+            private set
+            {
+                _transformed = value;
+            }
+        }
+        public string FormName
+        {
+            get=>_formName;
+            protected init
+            {
+                _formName = value;
+            }
+        }
+
+        public string HUDName
+        {
+            get=>_hudName;
+            protected init
+            {
+                _hudName = value;
+            }
+        }
+
+        string _formName;
+
+        string _hudName;
+
+        bool _transformed;
+        protected abstract BasePolymorphEffect Effect { get; }
         public override void CollectStats(Templates.StatCollector stats)
         {
             stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Cooldown);
@@ -47,17 +77,33 @@ namespace XRL.World.Parts
                     if (!Transformed)
                     {
                         Transformed = true;
-                        ToggleMyActivatedAbility(SpellID, ParentObject, true);
-                        ParentObject.ApplyEffect(PolymorphFX);
+                        ToggleMyActivatedAbility(SpellID, ParentObject, true, Transformed);
+                        ParentObject.ApplyEffect(Effect);
                     }
                     else
                     {
                         Transformed = false;
-                        ToggleMyActivatedAbility(SpellID, ParentObject, true);
-                        ParentObject.RemoveEffect(GetType());
+                        ToggleMyActivatedAbility(SpellID, ParentObject, true, Transformed);
+                        ParentObject.RemoveEffectDescendedFrom<BasePolymorphEffect>();
                     }
                 }
             }
+        }
+
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+            Writer.Write(_formName);
+            Writer.Write(_hudName);
+            Writer.Write(_transformed);
+            base.Write(Basis, Writer);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+            _formName = Reader.ReadString();
+            _hudName = Reader.ReadString();
+            _transformed = Reader.ReadBoolean();
+            base.Read(Basis, Reader);
         }
 
     }

@@ -11,7 +11,7 @@ namespace XRL.World.Parts
     public class BatformSpell : BasePolymorphSpell
     {
         public override int Cooldown => Batform.COOLDOWN;
-        public override BasePolymorphFX PolymorphFX => new BatformFX();
+        protected override BasePolymorphEffect Effect => new BatformEffect();
         public BatformSpell()
         {
             CommandName = Batform.COMMAND_NAME;

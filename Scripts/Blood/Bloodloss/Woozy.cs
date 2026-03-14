@@ -3,11 +3,15 @@ using System;
 namespace XRL.World.Effects
 {
     [Serializable]
-    class Woozy : Disoriented
+    internal class Woozy : Disoriented
     {
-        public int victimHP => base.Object.GetHPPercent();
-        public bool victim => base.Object.HasEffectDescendedFrom<IFeeding>();
-        public Woozy() => DisplayName = "{{g sequence|woozy}}";
+        int victimHP => base.Object.GetHPPercent();
+        bool victim => base.Object.HasEffectDescendedFrom<BaseFeedEffect>();
+       public Woozy()
+        {
+            DisplayName = "{{g|woozy}}";
+            Duration = 9999;
+        }
         public override bool Apply(GameObject Object)
         {
             if (base.Object.IsPlayer())
@@ -28,10 +32,8 @@ namespace XRL.World.Effects
             }
             base.Remove(Object);
         }
-        public Woozy(int Duration, int Level)
-            : this()
+        internal Woozy(int Level) : this()
         {
-            base.Duration = Duration;
             this.Level = Level;
         }
 

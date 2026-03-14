@@ -10,11 +10,14 @@ namespace XRL.World.Effects
     /// Simple interface to allow the player to view Humanity score and regen time.
     /// </summary>
     [Serializable]
-    public class HumanityUI : Effect
+    internal class HumanityUI : Effect
     {
         public bool gameover = false; //doesnt need to exist anymore but i left it in because well shit... its already serialized and the effect is permament. whoops. might find a use for it later!
-        public HumanityUI() => DisplayName = "";
-        public HumanityUI(int Duration) : this() => base.Duration = Duration;
+        public HumanityUI()
+        {
+            DisplayName = "";
+            Duration = 9999;
+        }
         public override string GetDescription() => "";
         string Regen(int humanity) => humanity != VampirismSys.Rules.Humanity.MAX ? "\nRegeneration: {{B sequence|" + base.Object.GetIntProperty(Flags.REGEN) + "}}/5000" : "\nRegeneration: {{G|Max}}";
         public override string GetDetails()
@@ -36,7 +39,7 @@ namespace XRL.World.Effects
         {
             if (Object.HasPart<Parts.Humanity>())
             {
-                Object.ApplyEffect(new HumanityUI(9999));
+                Object.ApplyEffect(new HumanityUI());
                 MetricsManager.LogModError(ModManager.GetMod("vampirism"), "game attempted to remove humanity UI effect");
             }
         }

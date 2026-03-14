@@ -50,14 +50,13 @@ namespace VampirismSys.Core
         {
             if (GO.IsVampire())
             {
-
                 CallStealthReactivation();
                 GiveCanteen(GO);
                 SetTime();
                 RemoveTorch(GO);
-
             }
-        }
+            GO.SetStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG, Mod.VERSION); //i track this whether or not youre a vampire for various reasons
+        } //main of which is being able to know at compile time: on gameload, whether or not your mod is actually out of date, or you just acquired vampirism for the first time
 
     }
 }

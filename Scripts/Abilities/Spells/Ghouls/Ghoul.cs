@@ -5,17 +5,16 @@ using VampirismSys.Core;
 
 namespace XRL.World.Effects
 {
-
-    public interface IGhoulEffect
+    internal interface IGhoulEffect
     {
-        public abstract string Name { get; set; }
-        public abstract Type Type { get; }
+        internal string Name { get; set; }
+        internal bool Thrall { get; }
     }
 
     [Serializable]
     public class RelinquishedGhoul : IScribedEffect, IGhoulEffect
     {
-        public string Name
+        string IGhoulEffect.Name
         {
             get => DisplayName;
             set
@@ -23,8 +22,7 @@ namespace XRL.World.Effects
                 DisplayName = value;
             }
         }
-
-        public Type Type => typeof(RelinquishedGhoul);
+        bool IGhoulEffect.Thrall => false;
         public RelinquishedGhoul()
         {
             DisplayName = "{{r|relinquished}}";
@@ -42,7 +40,7 @@ namespace XRL.World.Effects
     [Serializable]
     public class EnthralledGhoul : IScribedEffect, IGhoulEffect
     {
-        public string Name
+        string IGhoulEffect.Name
         {
             get => DisplayName;
             set
@@ -50,8 +48,7 @@ namespace XRL.World.Effects
                 DisplayName = value;
             }
         }
-
-        public Type Type => typeof(EnthralledGhoul);
+        bool IGhoulEffect.Thrall => true;
         public GameObject Master;
         public EnthralledGhoul()
         {

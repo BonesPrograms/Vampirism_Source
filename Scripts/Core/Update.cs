@@ -25,10 +25,10 @@ namespace VampirismSys.Update
         }
         static void TryUpdatePlayer(GameObject GO)
         {
-            if (TryUpdateNPC(GO) || GO.GetStringProperty(Flags.GAMEOBJECT_VERSION_TAG) != Mod.VERSION)
+            string property = GO.GetStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG);
+            if (TryUpdateNPC(GO) || property != Mod.VERSION)
             {
-                Popup.Show("Vampirism mini update: True Undead released! See steam page for more info.");
-                UpdateModVersion(GO);
+                UpdateModVersion(GO, property);
             }
         }
 
@@ -45,11 +45,13 @@ namespace VampirismSys.Update
             }
             return false;
         }
-        static void UpdateModVersion(GameObject GO)
+        static void UpdateModVersion(GameObject GO, string property)
         {
-            GO.SetStringProperty(Flags.GAMEOBJECT_VERSION_TAG, Mod.VERSION); //this may serve as a mod version identifier in the future
-        }                                                       //anyone who doesnt have it will get it, anyone who has it and doesnt sync with the version will be updated
-                                                                //furthermore, our WantEvent that checks for OLD_SAVE will compare it against the version, rather than check for it in general
+            string lastVersion = property ?? "Pre-Versioning";
+            GO.SetStringProperty(Flags.Mod.OLD_SAVE, lastVersion);
+            GO.SetStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG, Mod.VERSION);
+        }                                                     
+                                                              
 
         // static void UpdateProperties(GameObject GO)
         // {

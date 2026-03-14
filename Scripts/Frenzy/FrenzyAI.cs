@@ -57,7 +57,7 @@ namespace XRL.World.Effects
 
         public override bool HandleEvent(EffectRemovedEvent E)
         {
-            if (!gameover && E.Effect is IFeeding feed && feed.isAttacker)
+            if (!gameover && E.Effect is BaseFeedEffect feed && feed.isAttacker)
             {
                 Duration = 0;
             }

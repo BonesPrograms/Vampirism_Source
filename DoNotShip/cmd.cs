@@ -20,6 +20,7 @@ public static class EnableDeveloperSpells
     public static void EnableSpells()
     {
         VampireBuilder.ENABLE_SPELLS = true;
+        DeathHandler.ShowDebug = true;
     }
 }
 public class AddCMDPart : IPlayerMutator
@@ -507,6 +508,7 @@ namespace XRL.World.Parts
         public static void lust()
         {
             Switch<VampireBloodMetabolism>(nameof(VampireBloodMetabolism.AntiPuke), null);
+            The.Player.GetPart<VampireBloodMetabolism>().Blood = 0;
 
         }
 
@@ -515,7 +517,7 @@ namespace XRL.World.Parts
 
         public static void AutoLevel()
         {
-            Switch<IFeeding>(nameof(IFeeding.AutoLevel), null);
+            Switch<BaseFeedEffect>(nameof(BaseFeedEffect.AutoLevel), null);
         }
 
 
@@ -762,13 +764,13 @@ namespace XRL.World.Parts
             }
         }
 
-        [WishCommand("r")]
+        // [WishCommand("r")]
 
-        public static void r()
-        {
-            Refresh();
-            refreshme();
-        }
+        // public static void r()
+        // {
+        //     Refresh();
+        //     refreshme();
+        // }
 
         [WishCommand(Command = "blueprint")]
 
@@ -940,23 +942,24 @@ namespace XRL.World.Parts
         }
 
         /// <summary>
-        /// Send a null obj for static fields.
+        /// Send a null obj for internal static fields.
         /// </summary>
         static void Switch<T>(string nameOf, T obj)
         {
-            BindingFlags flag = obj == null ? BindingFlags.Static : BindingFlags.Instance;
-            var field = typeof(T).GetField(nameOf, flag | BindingFlags.Public);
+            BindingFlags flag1 = obj == null ? BindingFlags.Static : BindingFlags.Instance;
+            BindingFlags flag2 = obj == null ? BindingFlags.NonPublic : BindingFlags.Public;
+            var field = typeof(T).GetField(nameOf, flag1 | flag2);
             _Switch(field, nameOf, obj);
         }
 
         /// <summary>
-        /// For static classes only.
+        /// For static classes only with internal fields.
         /// </summary>
         /// <param name="nameOf"></param>
         /// <param name="obj"></param>
         static void StaticSwitch(string nameOf, Type obj)
         {
-            var field = obj.GetField(nameOf, BindingFlags.Static | BindingFlags.Public);
+            var field = obj.GetField(nameOf, BindingFlags.Static | BindingFlags.NonPublic);
             _StaticSwitch(field, nameOf, obj);
         }
 

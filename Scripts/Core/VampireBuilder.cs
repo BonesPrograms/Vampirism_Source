@@ -47,8 +47,6 @@ namespace VampirismSys.Core
             SetVampireProperties(GO);
             RequireParts(GO);
             ChangeCorpse(GO);
-            if (GO.IsPlayer())
-                GO.SetStringProperty(Flags.GAMEOBJECT_VERSION_TAG, Mod.VERSION);
         }
 
         internal static void Unmake(GameObject GO)
@@ -71,16 +69,9 @@ namespace VampirismSys.Core
 
         static void SetGameProperties(GameObject GO)
         {
-            bool value = GO.IsPlayer();
             GO.SetStringProperty("WaterRitualLiquid", "blood");
-            if (XRL.UI.Options.GetOptionBool(ModOptions.BLOOD_NERF) && value)
-            {
+            if (XRL.UI.Options.GetOptionBool(ModOptions.BLOOD_NERF))
                 SetBleedLiquid(GO);
-            }
-            else if (!value)
-            {
-                SetBleedLiquid(GO);
-            }
         }
 
         static void SetBleedLiquid(GameObject GO)
@@ -98,9 +89,9 @@ namespace VampirismSys.Core
         static void RequireParts(GameObject GO)
         {
             IParts.ForEach(x => GO.AddPart((IPart)Activator.CreateInstance(x)));
-            GO.ApplyEffect(new HumanityUI(9999));
-            if (XRL.UI.Options.GetOptionBool(ModOptions.SPELLS) && GO.IsPlayer())
-                RequireSpells(GO);
+            GO.ApplyEffect(new HumanityUI());
+            if (XRL.UI.Options.GetOptionBool(ModOptions.SPELLS))
+                RequireSpells(GO); 
         }
 
 

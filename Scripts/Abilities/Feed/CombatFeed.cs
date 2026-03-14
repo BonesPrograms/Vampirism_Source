@@ -11,44 +11,44 @@ namespace XRL.World.Effects
 	/// The "loud" feeding effect used in combat, on companions, or when stealth is invalid.
 	/// </summary>
 	[Serializable]
-	public class CombatFeed : IFeeding
+	public class CombatFeed : BaseFeedEffect
 	{
 
-		public bool Frenzy;
+		public bool Frenzy
+		{
+			get=>_frenzy;
+			private init
+			{
+				_frenzy = value;
+			}
+		}
+
+		bool _frenzy;
 		public CombatFeed() : base()
 		{
 		}
-		public CombatFeed(GameObject other, bool isAttacker, string Damage, int Duration, bool Frenzy, bool Friendly, bool Ghoul, bool vampire) : base(other, isAttacker, Damage, Duration, Ghoul, Friendly, vampire)
+		internal CombatFeed(GameObject other, bool isAttacker, string Damage, int Duration, bool Frenzy, bool Friendly, bool Ghoul, bool vampire) : base(other, isAttacker, Damage, Duration, Ghoul, Friendly, vampire)
 		{
 			this.Frenzy = Frenzy;
 		}
-		public override bool HandleEvent(EndTurnEvent E)
-		{
-			if (Security())
-			{
-				if (isAttacker)
-				{
-					FeedBroken();
-					Attack();
-					AIPassTurn();
-				}
-				Bloodloss();
-			}
-			return base.HandleEvent(E);
-		}
 
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+			Writer.Write(_frenzy);
+            base.Write(Basis, Writer);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+			_frenzy = Reader.ReadBoolean();
+            base.Read(Basis, Reader);
+        }
 		public override bool Apply(GameObject Object)
 		{
-			if (isAttacker)
-			{
-				if (Frenzy) //bug when feed is activated that causes frenzy passturn to halt
-				{
-					XRLCore.Core.RenderDelay(100);
-					Object.PassTurn();
-				}
-			}
-			else
+			if (!isAttacker)
 				ScaryMonster(Object);
+			else if (Frenzy)
+				XRLCore.Core.RenderDelay(100);
 			return base.Apply(Object);
 		}
 
@@ -64,20 +64,11 @@ namespace XRL.World.Effects
 			if (!base.Object?.IsPlayer() ?? false)
 				base.Object.PassTurn();
 		}
-		void Attack()
+		
+		protected override void Attack()
 		{
-			if (Duration > 0)
-			{
-				base.Object.PlayWorldSound("Sounds/StatusEffects/sfx_statusEffect_life_drain");
-				Strings();
-				CombatFeeding();
-			}
-		}
-
-		void CombatFeeding()
-		{
-			if (Feed())
 				other?.Object?.TakeDamage(ref Amount, "Bleeding", null, null, base.Object, null, null, null, null, "from bloodloss!");
+				AIPassTurn();
 		}
 	}
 }

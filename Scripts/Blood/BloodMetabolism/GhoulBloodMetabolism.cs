@@ -10,7 +10,7 @@ namespace XRL.World.Parts
     {
         public static readonly string[] Stats = { "Strength", "Agility", "Toughness", "Willpower", "Ego", "Hitpoints" };
 
-        public override int MetabolismRate => VampirismSys.Rules.Vitae.Metab_Settings.DEFAULT / 2;
+        protected override int MetabolismRate => VampirismSys.Rules.Vitae.Metab_Settings.DEFAULT / 2;
 
         public bool Buffed;
 
@@ -76,7 +76,7 @@ namespace XRL.World.Parts
 
         void RemoveBloodStarved(IGhoulEffect e)
         {
-            e.Name = e.Type == typeof(EnthralledGhoul) ? "{{r|ghoul}}" : "{{r|relinquished}}";
+            e.Name = e.Thrall ? "{{r|ghoul}}" : "{{r|relinquished}}";
             Bloodstarved = false;
             Stats.ForEach(x => StatShifter.RemoveStatShift(ParentObject, x));
         }

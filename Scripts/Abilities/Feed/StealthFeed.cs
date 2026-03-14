@@ -15,25 +15,34 @@ namespace XRL.World.Effects
 	/// The silent feeding effect that does not actually "attack" the enemy and listens for stealth broken events from Nightbeast.cs.
 	/// </summary>
 	[Serializable]
-	public class StealthFeed : IFeeding
+	public class StealthFeed : BaseFeedEffect
 	{
-
-		
-		public bool ActiveStealth;
+		bool ActiveStealth;
 		public StealthFeed() : base()
 		{
 		}
-		public StealthFeed(GameObject other, bool isAttacker, string Damage, int Duration, bool vampire) : base()
+		internal StealthFeed(GameObject other, bool isAttacker, string Damage, int Duration, bool vampire) : base()
 		{
 			base.other = other.Reference();
 			base.isAttacker = isAttacker;
 			base.Damage = Damage;
 			base.Duration = Duration;
-			StealthVersion = true;
 			Ghoul = false;
 			base.vampire = vampire;
 
 		}
+
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+			Writer.Write(ActiveStealth);
+            base.Write(Basis, Writer);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+			ActiveStealth = Reader.ReadBoolean();
+            base.Read(Basis, Reader);
+        }
 
 		public override void Remove(GameObject Object)
 		{
@@ -44,41 +53,25 @@ namespace XRL.World.Effects
 
 		public override bool WantEvent(int ID, int cascade)
 		{
-			if (isAttacker)
-			{
-				if (ID == SingletonEvent<BeforeTakeActionEvent>.ID)
-					return true;
-			}
-			else if (ID == AfterDieEvent.ID)
-				return true;
+			if (ID == SingletonEvent<BeforeTakeActionEvent>.ID)
+				return isAttacker;
+			if (ID == AfterDieEvent.ID)
+				return !isAttacker;
 			return base.WantEvent(ID, cascade);
 		}
 
 		public override bool HandleEvent(AfterDieEvent E)
 		{
-			if (E.Killer == null && E.Dying == Object) //stealthfeed doesnt perform a real attack so a death by stealth feed is always a null killer
-				KilledEvent.Send(Object, other?.Object); //could cause problems maybe well wait and see
+			if (E.Killer == null && E.Dying == Object && other?.Object != null) //stealthfeed doesnt perform a real attack so a death by stealth feed is always a null killer
+				KilledEvent.Send(Object, other.Object); //could cause problems maybe well wait and see
 			return base.HandleEvent(E);
 		}
 
 		public override bool HandleEvent(BeforeTakeActionEvent E) //synced with nightbeast
 		{
-				ActiveStealth = Nightbeast.StealthStage2;
-				if (!ActiveStealth)
-					CaughtInTheAct();
-			return base.HandleEvent(E);
-		}
-		public override bool HandleEvent(EndTurnEvent E)
-		{
-			if (Security()) //must be evaluated first
-			{
-				if (isAttacker)
-				{
-					FeedBroken();
-					StealthATK();
-				}
-				Bloodloss();
-			}
+			ActiveStealth = Nightbeast.StealthStage2;
+			if (!ActiveStealth)
+				CaughtInTheAct();
 			return base.HandleEvent(E);
 		}
 		void CaughtInTheAct()
@@ -96,23 +89,18 @@ namespace XRL.World.Effects
 			alert.AddOpinionToWitnessesAndExposer<OpinionDominate>();
 			alert.Popup(true, "You are caught in the act of predation by", "You are caught in the act of predation!");
 		}
-		void StealthATK()
+		protected override void Attack()
 		{
-			if (Duration > 0 && Feed())
-			{
-				AddPlayerMessage(other.Object.t() + " takes {{}}" + Amount + " damage from bloodloss!");
-				Strings();
-				other.Object.hitpoints -= Amount;
-				other?.Object?.ParticleText($"{Amount}", IComponent<GameObject>.ConsequentialColorChar(base.Object, other.Object));
-			}
+			AddPlayerMessage(other.Object.t() + " takes {{}}" + Amount + " damage from bloodloss!");
+			other.Object.hitpoints -= Amount;
+			other?.Object?.ParticleText($"{Amount}", IComponent<GameObject>.ConsequentialColorChar(base.Object, other.Object));
 		}
 		void Knockout()
 		{
-			if (ActiveStealth && (other?.Object?.HasHitpoints() is true) && !other.Object.HasEffect<Asleep>())
+			if (ActiveStealth && (other?.Object?.HasHitpoints() is true))
 			{
 				other.Object.ApplyEffect(new Asleep(WikiRng.Next(50, 100)));
-				if (other.Object.HasEffect<Woozy>())
-					other.Object.RemoveEffect<Woozy>();
+				other.Object.RemoveEffect<Woozy>();
 			}
 		}
 

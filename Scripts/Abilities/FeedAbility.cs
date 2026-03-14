@@ -66,7 +66,7 @@ namespace VampirismSys.Attack
         {
             if (!Checks.Attackable(Target, "feed from") || !Warnings(Target))
                 return false;
-            else if (Target.TryGetEffect(out IFeeding feed)) //this block of code determiens the outcome if you try to interfere with another vampires feed
+            else if (Target.TryGetEffect(out BaseFeedEffect feed)) //this block of code determiens the outcome if you try to interfere with another vampires feed
             {
                 GameObject Feeder = feed.other.Object;
                 friends = Feeder.IsFriendly(Source.ParentObject);
@@ -103,7 +103,7 @@ namespace VampirismSys.Attack
             if (!Target.Unaware(true) && !Target.IsFriendly(Source.ParentObject))
                 Target.AddOpinion<OpinionDominate>(Source.ParentObject);
             Feeder.AddOpinion<OpinionDominate>(Source.ParentObject);
-            Feeder.RemoveEffectDescendedFrom<IFeeding>();
+            Feeder.RemoveEffectDescendedFrom<BaseFeedEffect>();
             return false;
         }
 

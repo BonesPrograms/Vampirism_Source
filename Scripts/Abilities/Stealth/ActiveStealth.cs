@@ -33,14 +33,28 @@ namespace VampirismSys.Stealth
         [GameBasedStaticCache]
         static bool _stealthStage2 = default;
 
-        internal static bool StealthStage1 => _stealthStage1;
+        internal static bool StealthStage1
+        {
+            get => _stealthStage1;
+            private set
+            {
+                _stealthStage1 = value;
+            }
+        }
 
-        internal static bool StealthStage2 => _stealthStage2;
+        internal static bool StealthStage2
+        {
+            get => _stealthStage2;
+            private set
+            {
+                _stealthStage2 = value;
+            }
+        }
 
         internal static void Halt()
         {
-            _stealthStage1 = false;
-            _stealthStage2 = false;
+            StealthStage1 = false;
+            StealthStage2 = false;
         }
         internal static void SetStealth()
         {
@@ -63,8 +77,8 @@ namespace VampirismSys.Stealth
             if (!_stealthStage1)
             {
                 IComponent<GameObject>.AddPlayerMessage(Display(count));
-                _stealthStage1 = true;
-                _stealthStage2 = false;
+                StealthStage1 = true;
+                StealthStage2 = false;
                 Player.SetStringProperty(Flags.STEALTH, Flags.TRUE);
             }
         }
@@ -75,8 +89,8 @@ namespace VampirismSys.Stealth
             {
 
                 IComponent<GameObject>.AddPlayerMessage(Display(count));
-                _stealthStage2 = true;
-                _stealthStage1 = false;
+                StealthStage2 = true;
+                StealthStage1 = false;
                 Player.SetStringProperty(Flags.STEALTH, Flags.TRUE);
             }
         }
@@ -86,8 +100,8 @@ namespace VampirismSys.Stealth
             if (_stealthStage1 || _stealthStage2)
             {
                 IComponent<GameObject>.AddPlayerMessage(Display(count));
-                _stealthStage2 = false;
-                _stealthStage1 = false;
+                StealthStage2 = false;
+                StealthStage1 = false;
                 Player.SetStringProperty(Flags.STEALTH, Flags.FALSE);
             }
         }

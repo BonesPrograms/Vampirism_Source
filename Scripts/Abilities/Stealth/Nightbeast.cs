@@ -95,12 +95,11 @@ namespace XRL.World.Parts
 
 		static void HaltStealthSystem(string text)
 		{
-			if (The.Player.Target != null)
-				AddPlayerMessage(text);
+			AddPlayerMessage(text);
 			The.Player.SetStringProperty(Flags.STEALTH, Flags.FALSE);
 			ActiveStealth.Halt();
 		}
-		static void RunStealthSystem()
+		internal static void RunStealthSystem()
 		{
 			StealthCore.LightLevel = The.Player.CurrentCell?.GetLight();
 			StealthCore.Stealth();

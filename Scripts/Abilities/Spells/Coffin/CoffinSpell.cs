@@ -177,10 +177,8 @@ namespace XRL.World.Parts
 
         void MakeCoffin()
         {
-            GameObject newObject = GameObject.Create(VampirismSys.Rules.Coffin.BLUEPRINT);
-            VampireCoffin part = new(ParentObject);
-            newObject.AddPart(part);
-            Coffin = newObject;
+            Coffin = GameObject.Create(VampirismSys.Rules.Coffin.BLUEPRINT);
+            Coffin.AddPart(new VampireCoffin(ParentObject));
             Coffin.SetIntProperty("DroppedByPlayer", 1);
         }
 

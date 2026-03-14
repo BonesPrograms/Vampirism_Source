@@ -11,11 +11,11 @@ using XRL.World.Parts.Mutation;
 namespace VampirismSys.Wish
 {
     [HasWishCommand]
-    public static class Commands
+    internal static class Commands
     {
 
         [WishCommand(Command = "vamplvl")]
-        public static void PowerUp(string text)
+        internal static void PowerUp(string text)
         {
             if (int.TryParse(text, out int result))
             {
@@ -29,10 +29,10 @@ namespace VampirismSys.Wish
         }
 
         [WishCommand(Command = "bloodpack")]
-        public static void Bloodpack() => The.Player.Inventory.AddObject("BloodCanteen");
+        internal static void Bloodpack() => The.Player.Inventory.AddObject("BloodCanteen");
 
         [WishCommand(Command = "frenzy")]
-        public static void Frenzy()
+        internal static void Frenzy()
         {
             if (Security())
             {
@@ -42,7 +42,7 @@ namespace VampirismSys.Wish
         }
 
         [WishCommand(Command = "bloodlust")]
-        public static void Bloodlust()
+        internal static void Bloodlust()
         {
             if (Security())
             {
@@ -53,7 +53,7 @@ namespace VampirismSys.Wish
 
 
         [WishCommand(Command = "wassail")]
-        public static void GameOverWish()
+        internal static void GameOverWish()
         {
             if (Security())
             {
@@ -64,7 +64,7 @@ namespace VampirismSys.Wish
         }
 
         [WishCommand(Command = "humanity")]
-        public static void ReverseGameOver()
+        internal static void ReverseGameOver()
         {
             if (Security())
             {
@@ -76,7 +76,7 @@ namespace VampirismSys.Wish
         }
 
         [WishCommand(Command = "vitae")]
-        public static void Blood()
+        internal static void Blood()
         {
             if (Security())
             {

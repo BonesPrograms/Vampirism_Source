@@ -13,28 +13,12 @@ using XRL.World.Parts;
 
 namespace VampirismSys.Stealth
 {
-    internal enum Spot
-    {
-        /// <summary>
-        /// If this value is returned, then no one on the list was able to path to the player.
-        /// </summary>
-        SPOTTER_IS_NULL,
-        /// <summary>
-        /// Remedy for a bug that is explained in Spotted(int, GameObject). If this value is returned, should divert to a non-stealth attack.
-        /// </summary>
-        SPOTTER_IN_DETECTION,
-        /// <summary>
-        /// This value implies that the Spotter effect has been applied to someone and stealth can proceed.
-        /// </summary>
-        SPOTTER_OUTSIDE_DETECTION
-    }
-
     internal class SpotterCore
     {
         readonly GameObject Source;
         readonly Dictionary<GameObject, int> SpotterRanges = new();
-        KeyValuePair<GameObject, int> package;
         readonly List<GameObject> PotentialSpotters;
+        (GameObject Object, int Distance) Spotter = (Object: null, Distance: 0);
         internal SpotterCore(GameObject Source, List<GameObject> PotentialSpotters)
         {
             this.Source = Source;
@@ -58,11 +42,7 @@ namespace VampirismSys.Stealth
         {
             return Source.CurrentZone.CombatObjects(x => StealthCore.ValidSentient(x) && !x.Unaware(false)).ToList();
         }
-        internal Spot Check<T>(string message = default) where T : IOpinionSubject, new()
-        {
-            GameObject Spotter = ReturnSpotter();
-            return Spotter is null ? Spot.SPOTTER_IS_NULL : SpotterFound<T>(Spotter, message);
-        }
+
         /// <summary>
         /// If you plan to use an Alert in response to SPOTTER_IN_DETECTION, you usually will want to use this method, so that you can pass the spotter
         /// as the exposer.
@@ -71,10 +51,10 @@ namespace VampirismSys.Stealth
         /// <param name="Spotter"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        internal Spot Check<T>(out GameObject Spotter, string message = default) where T : IOpinionSubject, new()
+        internal bool Check<T>(out GameObject Spotter, string message = default) where T : IOpinionSubject, new()
         {
             Spotter = ReturnSpotter();
-            return Spotter == null ? Spot.SPOTTER_IS_NULL : SpotterFound<T>(Spotter, message);
+            return Spotter != null && SpotterFound<T>(Spotter, message);
         }
         GameObject ReturnSpotter()
         {
@@ -84,22 +64,21 @@ namespace VampirismSys.Stealth
         GameObject GetSpotter()
         {
             int minimumvalue = SpotterRanges.Values.Min();
-            package = SpotterRanges.First(x => x.Value == minimumvalue);
-            return package.Key;
+            SpotterRanges.First(x => x.Value == minimumvalue).Deconstruct(out GameObject key, out int distance);
+            Spotter = (key, distance);
+            return Spotter.Object;
         }
-        Spot SpotterFound<T>(GameObject Spotter, string message) where T : IOpinionSubject, new()
+        bool SpotterFound<T>(GameObject Spotter, string message) where T : IOpinionSubject, new()
         {
-            Spot spot = Spotted(package.Value, package.Key) ? Spot.SPOTTER_IN_DETECTION : Spot.SPOTTER_OUTSIDE_DETECTION;
-            if (spot == Spot.SPOTTER_IN_DETECTION)
+            Spotter.ApplyEffect(new Spotter(Source, VampirismSys.Rules.Feed.DURATION));
+            if (Spotted(this.Spotter.Distance, this.Spotter.Object))
             {
                 message = message == default ? DefaultMessage(Spotter) : message;
                 XRL.UI.Popup.Show(message);
                 Spotter.AddOpinion<T>(Source);
-                Spotter.ApplyEffect(new Spotter(Source, VampirismSys.Rules.Feed.DURATION));
+                return true;
             }
-            else
-                Spotter.ApplyEffect(new Spotter(Source, VampirismSys.Rules.Feed.DURATION));
-            return spot;
+            return false;
         }
 
     }
@@ -117,8 +96,11 @@ namespace XRL.World.Effects
     public class Spotter : Effect
     {
         public GameObjectReference Player;
-        public Spotter() => DisplayName = "";
-        public Spotter(GameObject player, int Duration) : this()
+        public Spotter()
+        {
+            DisplayName = "";
+        }
+        internal Spotter(GameObject player, int Duration) : this()
         {
             this.Player = player.Reference();
             base.Duration = Duration;

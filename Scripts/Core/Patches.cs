@@ -10,9 +10,40 @@ using XRL.Liquids;
 using Qud.UI;
 using System;
 using VampirismSys.Core;
+using XRL.World.Effects;
+using XRL.World.Parts.Mutation;
 
 namespace VampirismSys.Patches
 {
+
+    [HarmonyPatch(typeof(Asleep), nameof(Asleep.Apply))]
+
+    internal static class AsleepApplyPatch
+    {
+        static bool PreventSleepStack = false;
+
+        [HarmonyPrefix]
+        static bool Prefix(GameObject Object)
+        {
+            if (Object.HasEffectDescendedFrom<Asleep>())
+            {
+                PreventSleepStack = true;
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPostfix]
+
+        static void Postfix(ref bool __result)
+        {
+            if (PreventSleepStack)
+            {
+                PreventSleepStack = false;
+                __result = false;
+            }
+        }
+    }
 
     [HarmonyPatch(typeof(GameObject), nameof(GameObject.ShouldAutoget))]
     internal static class AutogetSilverAilment //i will probably redo blood autoget to be this one day but for now its just for silver ailment
@@ -31,7 +62,7 @@ namespace VampirismSys.Patches
         [HarmonyPostfix]
         static void Postfix(ref bool __result, TorchProperties __instance, InventoryActionEvent E)
         {
-            if (__result == true && E.Command == "TorchLight" && Options.GetOptionBool(ModOptions.FIRE) && Options.GetOptionBool(ModOptions.TORCH) && Core.QudExtensions.IsVampire(E.Actor, out var v))
+            if (__result == true && E.Command == "TorchLight" && Options.GetOptionBool(ModOptions.FIRE) && Options.GetOptionBool(ModOptions.TORCH) && E.Actor.IsVampire(out Vampirism v))
             {
                 __result = false;
                 v.FakeDropRotschrek(__instance.ParentObject);
@@ -77,9 +108,7 @@ namespace VampirismSys.Patches
         [HarmonyPostfix]
         static void Postfix(ref bool __result)
         {
-            if (!PreventGhostConsumption)
-                __result = true;
-            else
+            if (PreventGhostConsumption)
             {
                 __result = false;
                 PreventGhostConsumption = false; //true flipper, necessary due to statics. i know youre smart enough to know that, this note is for me

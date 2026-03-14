@@ -18,15 +18,48 @@ namespace XRL.World.Parts
     [Serializable]
     public abstract class BaseVampireSpell : IScribedPart
     {
-        public Guid SpellID = Guid.Empty;
         public const string CATEGORY = "Blood Magic";
-        public string CommandName; //should be assigned in public parameterless constructor
-        public string AbilityMenuName; //otherwise will throw exception
+        protected Guid SpellID
+        {
+            get => _spellID;
+            private set
+            {
+                _spellID = value;
+            }
+        }
+        public string CommandName
+        {
+            get => _commandName;
+            protected init
+            {
+                _commandName = value;
+            }
+        }
+        public string AbilityMenuName
+        {
+            get => _abilityName;
+            protected init
+            {
+                _abilityName = value;
+            }
+        }
+
+        Guid _spellID = Guid.Empty;
+
+        string _commandName;
+
+        string _abilityName;
+
         public int Level => ParentObject.GetPart<Vampirism>().Level;
+
         public virtual int Cost => VampirismSys.Rules.Vitae.BLOOD_PER_SIP; //default 10k  
+
         public abstract int Cooldown { get; } //these are getter-only so that they can be easily changed in the future if i want
+
         public virtual bool Toggled => false; //this is only for AddMyActivatedAbility. you need to track the actual toggled on/off state yourself
+
         public abstract void CollectStats(Templates.StatCollector stats);
+
         public override bool WantEvent(int ID, int Cascade)
         {
             if (ID == PooledEvent<CommandEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
@@ -57,7 +90,7 @@ namespace XRL.World.Parts
         }
         public virtual void RemoveSpell()
         {
-            RemoveMyActivatedAbility(ref SpellID);
+            RemoveMyActivatedAbility(ref _spellID);
             ParentObject.RemovePart(this);
         }
         public bool EnoughBlood(string text)
@@ -109,6 +142,22 @@ namespace XRL.World.Parts
                 return false;
             }
             return true;
+        }
+
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+            Writer.Write(_spellID);
+            Writer.Write(_commandName);
+            Writer.Write(_abilityName);
+            base.Write(Basis, Writer);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+            _spellID = Reader.ReadGuid();
+            _commandName = Reader.ReadString();
+            _abilityName = Reader.ReadString();
+            base.Read(Basis, Reader);
         }
     }
 }

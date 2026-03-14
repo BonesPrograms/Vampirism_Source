@@ -58,11 +58,11 @@ namespace XRL.World.Parts
             _ => "{{r|Ravenous}}"
         };
 
-        public virtual bool WantsMetabolism => true; //should definitely check this before subtracting blood from an object externally
+        protected virtual bool WantsMetabolism => true; //should definitely check this before subtracting blood from an object externally
 
-        public virtual bool WantsVomit => true;//you dont really need to check this before invoking vomit its internal
+        protected virtual bool WantsVomit => true;//you dont really need to check this before invoking vomit its internal
         //but public incase anyone does end up needing it
-        public virtual int MetabolismRate => ParentObject.IsVampire() ? VampirismSys.Rules.Vitae.BLOOD_METAB : VampirismSys.Rules.Vitae.Metab_Settings.DEFAULT;
+        protected virtual int MetabolismRate => ParentObject.IsVampire() ? VampirismSys.Rules.Vitae.BLOOD_METAB : VampirismSys.Rules.Vitae.Metab_Settings.DEFAULT;
 
         public bool Glut => Blood >= VampirismSys.Rules.Vitae.BLOOD_GLUTTONOUS;
 

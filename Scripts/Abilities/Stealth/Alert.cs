@@ -158,11 +158,6 @@ namespace VampirismSys.Stealth
         /// Finds the closest person and assigns them as the "exposer" for popups.
         /// </summary>
 
-        internal void FindClosestExposerInList()
-        {
-            ProcessList(null);
-        }
-
         /// <summary>
         /// If your target is showing up as the exposer and you want to prevent it, pass them by this method.
         /// </summary>
@@ -171,7 +166,7 @@ namespace VampirismSys.Stealth
         {
             ProcessList(tgt);
         }
-        internal void RemoveEffectFromWitness<T>(uint radius = Rules.Stealth.AI_RADIUS) where T : Effect, new()
+        internal void RemoveEffectFromWitness<T>(uint radius = Rules.Stealth.AI_RADIUS) where T : Effect
         {
             Witnesses.Where(x => Validated(x, radius)).ForEach(x => x.RemoveEffect<T>());
         }

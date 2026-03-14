@@ -108,7 +108,7 @@ namespace XRL.World.Effects
                 Object.RequireMutation<Vampirism>(Level);
                 Object.SetStringProperty(VampirismSys.Properties.Flags.FLEDGLING, null);
                 Object.ApplyEffect(new AfterEmbracedFX());
-                Object.ApplyEffect(new Pale(999));
+                Object.ApplyEffect(new Pale());
                 Message($"{Object.t()} rises from the dead!");
             }
             else
@@ -147,7 +147,7 @@ namespace XRL.World.Effects
 
         public override bool HandleEvent(EffectAppliedEvent E)
         {
-            if (E.Effect is IFeeding feed && feed.isAttacker)
+            if (E.Effect is BaseFeedEffect feed && feed.isAttacker)
                 Duration = 0;
             return base.HandleEvent(E);
         }

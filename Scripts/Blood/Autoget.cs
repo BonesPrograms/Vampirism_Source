@@ -15,14 +15,14 @@ namespace VampirismSys.Blood
     [HasGameBasedStaticCache]
     internal static class Autoget //honestly i just didnt want people to complain that blood autoget doesnt work for my mod when its not my fault... lol...
     {               ///this probably isnt as good/efficient of code as the dev's autoget but it works more consistently
-        static GameObject Player => The.Player;
+        static GameObject Player => The.Player; //according to recent reports it also blows up peoples game more consistently...
 
         [GameBasedStaticCache(false)]
         static List<LiquidVolume> PureLiquid = new();
 
         [GameBasedStaticCache(false, true)]
-        static GameObject[] ContainerCache = Array.Empty<GameObject>();
-        
+        static List<LiquidVolume> Containers = new();
+
         const int MAX = 64;
 
         const string Container = "WaterContainer";
@@ -34,12 +34,12 @@ namespace VampirismSys.Blood
         internal static void Clear()
         {
             PureLiquid = new();
-            ContainerCache = Array.Empty<GameObject>();
+            Containers = new();
         }
         internal static void Autogetter()
         {
             ValidateCache();
-            if (ContainerCache.Length > 0)
+            if (Containers.Count > 0)
             {
                 FindBlood();
                 if (FoundBlood)
@@ -52,10 +52,8 @@ namespace VampirismSys.Blood
         static void ValidateCache()
         {
             var inventory = Player.Inventory.Objects;
-            var query = inventory.Where(x => x != null && CheckTag(x.GetBlueprint())); //AddBlood's query expression throws exceptions if you do not place a null check here
-            if (query.Count() != ContainerCache.Length) //which is strange cause you'd except GetBlueprint to throw
-                ContainerCache = query.ToArray();          //i tested adding null checks to here and AddBlood's query, but i didnt test long enough for any definitive results
-        }
+            Containers = inventory.Where(x => x != null && CheckTag(x.GetBlueprint())).Select(x => x.GetPart<LiquidVolume>()).ToList();
+        } //if you dont resync this every turn then containers will go null
         static bool CheckTag(GameObjectBlueprint blueprint)
         {
             bool valid = false;
@@ -115,13 +113,9 @@ namespace VampirismSys.Blood
         // }
         static void AddBlood()
         {
-            ContainerCache
-            .TakeWhile(x => FoundBlood)
-            .Select(x => x.GetPart<LiquidVolume>())
-            .Where(x => !x.Sealed && x.Volume < MAX) //split up for debugging incase anyone gets a rare autoget exception
-            .ForEach(x => CheckForStoredLiquids(x, x.ParentObject));
+           // Containers.Where(x => x?.ParentObject == null).SafeForEach(x => Containers.Remove(x));
+            Containers.TakeWhile(x => FoundBlood).Where(x => !x.Sealed && x.Volume < MAX).ForEach(x => CheckForStoredLiquids(x, x.ParentObject));
         }
-
         static void CheckForStoredLiquids(LiquidVolume part, GameObject waterskin)
         {
             if ((part.ContainsLiquid(LiquidType) && part.IsPureLiquid()) || part.Volume == 0)
@@ -197,7 +191,7 @@ namespace VampirismSys.Blood
         }
         static void DealWithLiquid(IEnumerable<GameObject> objects)
         {
-            var foundBlood = objects.Select(x => x.GetPart<LiquidVolume>()).Where(x => x != null && x.ContainsLiquid(LiquidType) && x.IsPureLiquid() && !x.ParentObject.HasTag(Container) && x.ParentObject.Blueprint != "FangBloodDrop");
+            var foundBlood = objects.Select(x => x?.GetPart<LiquidVolume>()).Where(x => x?.ParentObject != null && x.ContainsLiquid(LiquidType) && x.IsPureLiquid() && !x.ParentObject.HasTag(Container) && x.ParentObject.Blueprint != "FangBloodDrop");
             PureLiquid = new(foundBlood);
         }
 

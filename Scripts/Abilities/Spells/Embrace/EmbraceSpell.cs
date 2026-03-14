@@ -121,7 +121,7 @@ namespace XRL.World.Parts
             obj.MakeActive();
             Object.CurrentCell.AddObject(obj);
             int time = WikiRng.Next(50, 100);
-            obj.ApplyEffect(new KO(time, true, false));
+            obj.ApplyEffect(new KO(time, true));
             obj.ApplyEffect(new BeingEmbracedFX(ParentObject, time, Level));
             obj.hitpoints = 2;
             Object.Obliterate();

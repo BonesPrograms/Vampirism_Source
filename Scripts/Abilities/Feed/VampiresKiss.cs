@@ -1,6 +1,8 @@
 using System;
 using XRL.Core;
 using VampirismSys.Core;
+using VampirismSys.Rules;
+using XRL.World.Parts;
 
 namespace XRL.World.Effects
 {
@@ -8,48 +10,32 @@ namespace XRL.World.Effects
     /// The Exhausted-based stunning effect that incapacitates victims of Feeding.
     /// </summary>
     [Serializable]
-    public class Vampires_Kiss : Exhausted
+    public class VampiresKiss : Exhausted
     {
-        public Vampires_Kiss() => DisplayName = "";
-        public Vampires_Kiss(int Duration) : this() => base.Duration = Duration;
+        public GameObject Feeder;
+        public VampiresKiss() 
+        {
+            DisplayName = "";
+            Duration = Feed.DURATION;
+        }
+
+        internal VampiresKiss(GameObject feeder) : this()
+        {
+            Feeder = feeder;
+        }
         public override string GetDescription() => "{{R sequence|vampire's kiss}}";
         public override string GetStateDescription() => "{{R sequence|vampire's kiss}}";
-        public override bool WantEvent(int ID, int cascade)
-        {
-            if (ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == PooledEvent<IsConversationallyResponsiveEvent>.ID)
-                return true;
-            return base.WantEvent(ID, cascade);
-        }
         public override bool HandleEvent(BeginTakeActionEvent E)
         {
-            if (E.Object == base.Object)
+            if (Feeder?.HasEffectDescendedFrom<BaseFeedEffect>() ?? false)
             {
-                if (base.Object.IsPlayer())
-                    XRLCore.Core.RenderDelay(500);
-                else
-                    base.Object.ParticleText("{{K|*remains stunned*}}");
-                base.Object.ForfeitTurn();
-                return false;
+                base.Object.ParticleText("{{K|*remains stunned*}}");
+                base.Object.PassTurn();
             }
-            return base.HandleEvent(E);
-        }
-
-        public override bool HandleEvent(IsConversationallyResponsiveEvent E)
-        {
-            if (E.Speaker == base.Object)
+            else
             {
-                if (E.Mental && !E.Physical)
-                {
-                    E.Message = base.Object.Poss("mind") + " is in disarray.";
-                }
-                else
-                {
-                    E.Message = base.Object.Does("can't") + " respond to you.";
-                }
-
-                return false;
+                Duration = 0;
             }
-
             return base.HandleEvent(E);
         }
 
@@ -62,7 +48,7 @@ namespace XRL.World.Effects
             return true;
         }
 
-        public void Remove()
+        public override void Remove(GameObject Object)
         {
             if (!base.Object.MakeSave("Toughness", 13, null, null, "Dazed From Kiss") && !Object.Unaware(true))
                 base.Object.ApplyEffect(new Dazed(WikiRng.Next(16, 20)));

@@ -24,7 +24,14 @@ namespace VampirismSys.Stealth
 
         [GameBasedStaticCache]
         static int _trueCount = 0;
-        internal static int TrueCount => _trueCount;
+        internal static int TrueCount
+        {
+            get=>_trueCount;
+            private set
+            {
+                _trueCount = value;
+            }
+        }
         internal static void ScanEnvironment(Zone zone)
         {
             zone.CombatObjects(x => ValidSentient(x)).SafeForEach(x => CheckValidity(x));
@@ -34,9 +41,9 @@ namespace VampirismSys.Stealth
             GameObject[] invalids = Nightbeast.Witnesses.Keys.Where(x => x == null || !x.HasHitpoints() || !x.InSameZone(Player)).ToArray();
             invalids.ForEach(x => Nightbeast.Witnesses.Remove(x));
             Nightbeast.Witnesses.Keys.SafeForEach(x => Nightbeast.Witnesses[x] = NearbySentient(x) && ActiveWitness(x));
-            _trueCount = Nightbeast.Witnesses.Count(x => x.Value);
+            TrueCount = Nightbeast.Witnesses.Count(x => x.Value);
         }
-        static void CheckValidity(GameObject obj) //zoneload
+        internal static void CheckValidity(GameObject obj) //zoneload
         {
             Nightbeast.Witnesses[obj] = NearbySentient(obj) && ActiveWitness(obj);
         }
@@ -81,7 +88,7 @@ namespace VampirismSys.Stealth
         /// <returns></returns>
         internal static bool NearbySentient(GameObject witness)
         {
-            return witness.HasLOSTo(Player, false) && witness.DistanceTo(Player) <= VampirismSys.Rules.Stealth.AI_RADIUS && witness.InSameZone(Player);
+            return witness.HasLOSTo(Player, false) && witness.DistanceTo(Player) <= VampirismSys.Rules.Stealth.AI_RADIUS;
         }
 
         /// <summary>

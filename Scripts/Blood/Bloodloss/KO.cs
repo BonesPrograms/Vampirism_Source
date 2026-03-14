@@ -1,32 +1,30 @@
 using System;
 using XRL.World.Capabilities;
 using VampirismSys.Core;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace XRL.World.Effects
 {
 
     [Serializable]
-    class KO : Asleep
+    internal class KO : Asleep
     {
-        public int victimHP => base.Object.GetHPPercent();
-        public bool victim => base.Object.HasEffectDescendedFrom<IFeeding>();
-        public KO() => DisplayName = "unconscious";
-
+        int victimHP => base.Object.GetHPPercent();
+        bool victim => base.Object.HasEffectDescendedFrom<BaseFeedEffect>();
         public override bool SameAs(Effect e) => false;
-        public KO(int Duration)
-            : this()
+        public KO()
         {
-            base.Duration = Duration;
+            DisplayName = "unconscious";
+            base.Duration = 9999;
         }
 
-    public KO(int Duration, bool forced = false, bool quicksleep = false, bool Voluntary = false)
-        : this()
-    {
-        base.Duration = Duration;
-        this.forced = forced;
-        this.quicksleep = quicksleep;
-        this.Voluntary = Voluntary;
-    }
+        internal KO(int Duration, bool forced) : this()
+        {
+            base.Duration = Duration;
+            this.forced = forced;
+            quicksleep = false;
+            Voluntary = false;
+        }
         public override bool HandleEvent(IsConversationallyResponsiveEvent E)
         {
             if (E.Speaker == base.Object)
@@ -60,8 +58,9 @@ namespace XRL.World.Effects
 
         public override bool Apply(GameObject Object)
         {
-            if (Object.HasEffect<Woozy>())
-                Object.RemoveEffect<Woozy>();
+            if (Object.HasEffectDescendedFrom<Asleep>())
+                return false;
+            Object.RemoveEffect<Woozy>();
             Object.ApplyEffect(new Prone(LyingOn: AsleepOn, Voluntary: false));
             Object.MovementModeChanged("Asleep", !Voluntary);
             if (Object.IsPlayer())
@@ -86,12 +85,20 @@ namespace XRL.World.Effects
                     AddPlayerMessage(base.Object.t() + " shambles to " + base.Object.its + " feet.");
                 DidX("wake", "up in a daze", null, null, null, null, base.Object);
                 base.Object.ApplyEffect(new Dazed(WikiRng.Next(3, 5), false));
-                base.Object.ApplyEffect(new Woozy(9999, 5));
+                base.Object.ApplyEffect(new Woozy(5));
             }
         }
 
-        void ApplyStats() => base.StatShifter.SetStatShift("DV", -12);
-        void UnapplyStats() => base.StatShifter.RemoveStatShifts(base.Object);
+        private void ApplyStats() //instead of instancing asleep and calling these with reflection, we copy
+        {
+            base.StatShifter.SetStatShift("DV", -12);
+        }
+
+        private void UnapplyStats()
+        {
+            base.StatShifter.RemoveStatShifts(base.Object);
+        }
+
         void BloodRegen()
         {
             if (!victim)

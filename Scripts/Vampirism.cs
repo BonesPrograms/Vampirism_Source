@@ -29,20 +29,21 @@ namespace XRL.World.Parts.Mutation
 		public string ManagerID => ParentObject.ID + "::Vampiric Fangs"; //i never really researched managerid yet. i assume that the fangs object counts as a bodypart and this is its manager
 		public override bool CanSelectVariant => false;
 		public override bool UseVariantName => false;
-		public bool GameOver = default;
-		public int BloodyFangsCounter = default;
-
-		[NonSerialized]
-		public bool Rotschrek = default;
-
-		[NonSerialized]
-		public bool Immune = default;
-
-		[NonSerialized]
-		public int TimeOnWorldMap = 0; //problem with this not serializing is if you quit/save while on world map then it will not advance time. to solve this problem i would probably
-								 //map this value to Stomach.WasOnWorldMap but for now its local				 
-		public bool WasOnWorldMap => TimeOnWorldMap > 0;
-		//bool AlreadyBurnedWithSilver = default;
+		public bool GameOver;
+		public int BloodyFangsCounter;
+		public bool Rotschrek
+		{
+			get => _rotschrek;
+			private set
+			{
+				_rotschrek = value;
+			}
+		}
+		bool _rotschrek;
+		bool Immune;
+		int TimeOnWorldMap = 0; //problem with this not serializing is if you quit/save while on world map then it will not advance time. to solve this problem i would probably
+								//map this value to Stomach.WasOnWorldMap but for now its local				 
+		bool WasOnWorldMap => TimeOnWorldMap > 0;
 
 
 		#region FireEvent/Register
@@ -50,11 +51,11 @@ namespace XRL.World.Parts.Mutation
 		//custom diseases and spores - see True Undead
 
 		//the only one were missing is CanApplyEffect fireEvent - we should check E.GetStringParameter("Name")
-		public static readonly string[] RegisteredEvents =
+		static readonly string[] RegisteredEvents =
 		{ "LungedTarget", Events.GAMEOVER, Events.WISH_HUMANITY, "CanApplySpores", "ApplySpores", "ApplyDiseaseOnset", "ApplyDisease", "CanApplyAshPoison" };
 		public override void Register(GameObject Object, IEventRegistrar Registrar)
 		{
-			RegisteredEvents.ForEach(x=>Registrar.Register(x));
+			RegisteredEvents.ForEach(x => Registrar.Register(x));
 		}
 		public override bool FireEvent(Event E)
 		{
@@ -96,7 +97,7 @@ namespace XRL.World.Parts.Mutation
 			if (ID == EffectRemovedEvent.ID)
 				return Rotschrek || Immune;
 			if (ID == EnteringZoneEvent.ID)
-				return ParentObject.HasStringProperty(Flags.GAMEOBJECT_VERSION_TAG) && ParentObject.IsPlayer();
+				return ParentObject.HasStringProperty(Flags.Mod.OLD_SAVE) && ParentObject.IsPlayer();
 			if (ID == EquipperEquippedEvent.ID || ID == TookEvent.ID)
 				return The.Game.Turns > 0;//will fire and go crazy if you spawn with silver items in your inventory or torches
 			return base.WantEvent(ID, cascade);
@@ -158,8 +159,8 @@ namespace XRL.World.Parts.Mutation
 
 		#region Nightbeast
 
-		public override bool HandleEvent(EnteredCellEvent E) //this is code from stomach - note to self - if we have problems with the nonserialization _timeOnWorldMap field,
-		{                                                   //we can use the Long property "OnWorldMapSince" perhaps
+		public override bool HandleEvent(EnteredCellEvent E)
+		{
 			if (!ParentObject.OnWorldMap())
 			{
 				if (WasOnWorldMap)
@@ -178,15 +179,7 @@ namespace XRL.World.Parts.Mutation
 
 		bool IsOutsideDuringTheDay() => CheckNightbeast() && IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false);
 
-		bool CheckNightbeast()
-		{
-			if (Options.GetOptionBool(ModOptions.NIGHTBEAST) && ParentObject.IsPlayer())
-			{
-				return !ParentObject.OnWorldMap();
-			}
-			return false;
-
-		}
+		bool CheckNightbeast() => Options.GetOptionBool(ModOptions.NIGHTBEAST) && ParentObject.IsPlayer() && !ParentObject.OnWorldMap();
 
 		public static void AdvanceTimeToNight()
 		{
@@ -195,15 +188,15 @@ namespace XRL.World.Parts.Mutation
 		}
 
 		//this method is used across the board by everyone except this type itself
-        public static bool SunlightInterference(GameObject ParentObject)
-        {
-            if (Options.GetOptionBool(ModOptions.NIGHTBEAST))
-            {
-                if (Calendar.IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false))
-                    return true;
-            }
-            return false;
-        }
+		public static bool SunlightInterference(GameObject ParentObject)
+		{
+			if (Options.GetOptionBool(ModOptions.NIGHTBEAST))
+			{
+				if (Calendar.IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false))
+					return true;
+			}
+			return false;
+		}
 
 
 		#endregion
@@ -432,29 +425,6 @@ namespace XRL.World.Parts.Mutation
 
 		#endregion
 
-
-		// public void ForceDrop(GameObject Object)
-		// {
-		// //	EquipmentAPI.DropObject(Object);
-		// 	//	DidXToY("drop", Object, null, null, null, null, null, null, UseFullNames: false, IndefiniteSubject: false, IndefiniteObject: true);
-		// 	//ParentObject.CurrentCell.AddObject(Object);
-		// }
-
-		//FAKEDROP EXPLANATION:
-		//the reason we do this so funky is because for some reason, the torch was not considered valid, after being removed from inventory and forceunequipped, we could not add it to the players cell
-		//this does not occur with silver ailment, which actually places the original object on the ground, only torches seem to be invalid
-
-		//furthermore: when working with silver ailment, i found that using EquipmentAPI.DropObject, ForceUnequip, RemoveObjectFromInventory (any variation of these) would fire the TookEvent
-		//at least 2-3 times when equipping, before actually firing the EquipperEquippedEvent (??? it doesnt haoppen in FakeDrop but for some reason the EquippedEvent-TookEvent chain fires it repeatedly)
-		//this resulted in multiple silver ailment stacks
-		//because i could not find any silver mods on the workshop, and all silver items are default blueprints, i figured it wouldnt be an issue to destroy and replace
-		//considering that vampires cannot have silver anyways, it is unlikely it will destroy your favorite nugget that you painted with smiley faces
-
-		//because I did not feel like doing an entire DeepCopy for this, though if it ever came down to it...
-
-		//- Did a lot of experimenting with EquipmentAPI.DropObject, ForceUnequip, Unequip and Remove, RemoveFromInv (then add to cell), and the end result was the TookEvent firing 2-3 times in a row if done thru EquippedEvent, but these
-		//fire before equippedevent even fires
-
 		#region Structural/Helpers
 
 		GameObject FakeDrop(GameObject Item, string blueprint, bool accessInv = true)
@@ -503,12 +473,23 @@ namespace XRL.World.Parts.Mutation
 		#region Update
 		public override bool HandleEvent(AfterPlayerBodyChangeEvent E)
 		{
-			if (E.NewBody.IsVampire())
+			if (DeathHandler.Security())
 			{
-
-				VampirismSys.Update.Update.Spells(E.NewBody);
-				if (E.OldBody?.HasStringProperty(Flags.GAMEOBJECT_VERSION_TAG) ?? false) //from my experience oldbody is usually null, but what can you do
-					E.NewBody.SetStringProperty(Flags.GAMEOBJECT_VERSION_TAG, null);
+				GameObject player = DeathHandler.Player;
+				if (E.NewBody != player && E.NewBody.IsVampire()) //will throw errors on gamestart
+				{
+					string version = player.GetStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG);
+					E.NewBody.SetStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG, version);
+					if (player.TryGetStringProperty(Flags.Mod.OLD_SAVE, out var oldSave))
+					{
+						E.NewBody.SetStringProperty(Flags.Mod.OLD_SAVE, oldSave);
+					}
+				}
+				if (E.OldBody != player && (E.OldBody?.IsVampire() ?? false))
+				{
+					E.OldBody.RemoveStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG);
+					E.OldBody.RemoveStringProperty(Flags.Mod.OLD_SAVE);
+				}
 			}
 			return base.HandleEvent(E);
 		}
@@ -564,7 +545,7 @@ namespace XRL.World.Parts.Mutation
 			&& IsMyActivatedAbilityAIUsable(FangsActivatedAbilityID)
 			&& E.Target.CurrentCell?.GetCombatTarget(E.Actor) != null
 			&& !E.Actor.Incap(false)
-			&& !E.Target.HasEffect<Vampires_Kiss>() //this is so that they prefer to try and kill you instead of your victim
+			&& !E.Target.HasEffect<VampiresKiss>() //this is so that they prefer to try and kill you instead of your victim
 			&& Checks.AttackableForAI(E.Target);
 
 		public override string GetDescription() => "You feed on the blood of living creatures.";

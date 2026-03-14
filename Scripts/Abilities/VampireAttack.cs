@@ -32,7 +32,7 @@ namespace VampirismSys.Attack
         }
         internal void Attack(bool frenzy)
         {
-            Target.ApplyEffect(new Vampires_Kiss(Feed.DURATION));
+            Target.ApplyEffect(new VampiresKiss(Source.ParentObject));
             if (Source.ParentObject.IsPlayer() && Nightbeast.Stealthed && !frenzy && !friendly && SpotterCheck())
                 StealthATK();
             else
@@ -41,7 +41,7 @@ namespace VampirismSys.Attack
 
         bool SpotterCheck()
         {
-            if (new SpotterCore(Source.ParentObject).Check<OpinionDominate>(out GameObject spotter) == Spot.SPOTTER_IN_DETECTION)
+            if (new SpotterCore(Source.ParentObject).Check<OpinionDominate>(out GameObject spotter))
             {
                 Alert alert = new(Source.ParentObject, spotter);
                 alert.Add(Target);

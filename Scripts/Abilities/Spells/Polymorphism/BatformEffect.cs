@@ -12,7 +12,7 @@ namespace XRL.World.Effects
 {
 
     [Serializable]
-    public class BatformFX : BasePolymorphFX
+    public class BatformEffect : BasePolymorphEffect
     {
 
         public int OriginalCapOverride;
@@ -20,7 +20,7 @@ namespace XRL.World.Effects
         public bool AlreadyHadWings;
         public bool WasLessThanTen;
 
-        public BatformFX() : base()
+        public BatformEffect() : base()
         {
             Blueprint = GameObjectFactory.Factory.GetBlueprint("Bat");
             TargetFaction = Batform.FACTION;
@@ -67,7 +67,7 @@ namespace XRL.World.Effects
 
         void ChangeWings()
         {
-            if (base.Object.TryGetPart<Wings>(out var Wings))
+            if (base.Object.TryGetMutation<Wings>(out var Wings))
             {
                 HadWings(Wings);
             }

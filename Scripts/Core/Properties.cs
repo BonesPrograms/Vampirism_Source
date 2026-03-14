@@ -7,107 +7,106 @@ namespace VampirismSys.Properties
     /// <summary>
     /// Table of string constants for property strings to prevent typos.
     /// </summary>
-    public static class Flags
+    internal static class Flags
     {
 
-        public static class Mod
+        internal static class Mod
         {
-            public const string ZONE_VERSION_TAG = "VampirismModVersion";
-        }
-        public static class Embrace
-        {
-            public const string EMBRACEABLE = "EmbraceableObject";
+            internal const string ZONE_VERSION_TAG = "VampirismModVersion";
+            internal const string GAMEOBJECT_VERSION_TAG = "GameObjVersionVampirsmMod";
 
-            public const string LEVEL_ON_DEATH = "EmbraceableObjectLevel";
+            internal const string OLD_SAVE = "ActualOldVampirismSave";
+        }
+        internal static class Embrace
+        {
+            internal const string EMBRACEABLE = "EmbraceableObject";
+
+            internal const string LEVEL_ON_DEATH = "EmbraceableObjectLevel";
         }
         /// <summary>
         /// Constants for the string literal value of BLOOD_STATUS.
         /// </summary>
-        public static class Blood
+        internal static class Blood
         {
-            public const string GLUT = nameof(BaseBloodMetabolism.Glut);
+            internal const string GLUT = nameof(BaseBloodMetabolism.Glut);
 
-            public const string QUENCHED = nameof(BaseBloodMetabolism.Quenched);
+            internal const string QUENCHED = nameof(BaseBloodMetabolism.Quenched);
 
-            public const string THIRSTY = nameof(BaseBloodMetabolism.Thirsty);
+            internal const string THIRSTY = nameof(BaseBloodMetabolism.Thirsty);
 
-            public const string PARCHED = nameof(BaseBloodMetabolism.Parched);
+            internal const string PARCHED = nameof(BaseBloodMetabolism.Parched);
 
-            public const string MIN = nameof(BaseBloodMetabolism.Min);
+            internal const string MIN = nameof(BaseBloodMetabolism.Min);
         }
-        public static string TRUE = bool.TrueString;
+        internal static string TRUE = bool.TrueString;
 
-        public static string FALSE = bool.FalseString;
+        internal static string FALSE = bool.FalseString;
 
-        [Obsolete("Use Flags.TRUE")]
-        public const string TRUE_LEGACY = "true";
+        internal const string SPELLS = "HasVampirismSpells";
 
-        public const string SPELLS = "HasVampirismSpells";
-
-        public const string COFFIN = "VampireCoffinSourceID";
+        internal const string COFFIN = "VampireCoffinSourceID";
 
         /// <summary>
         /// Boolean.
         /// </summary>
-        public const string FRENZY = "VampirismModFrenzying";
+        internal const string FRENZY = "VampirismModFrenzying";
 
         /// <summary>
         /// Boolean.
         /// </summary>
-        public const string FEED = "VampirismModFeeding";
+        internal const string FEED = "VampirismModFeeding";
 
         /// <summary>
         /// Boolean.
         /// </summary>
-        public const string STEALTH = "VampirismModStealthy";
+        internal const string STEALTH = "VampirismModStealthy";
         /// <summary>
         /// Boolean.
         /// </summary>
-        public const string GO = "VampirismModHumanityGameover";
+        internal const string GO = "VampirismModHumanityGameover";
 
 
         /// <summary>
         /// The simplified string value of blood for UI display and Frenzy chances.
         /// </summary>
-        public const string BLOOD_STATUS = "VampirismModBlooddrinker";
+        internal const string BLOOD_STATUS = "VampirismModBlooddrinker";
         /// <summary>
         /// The integer value for blood.
         /// </summary>
-        public const string BLOOD_VALUE = "VampirismModVitae";
+        internal const string BLOOD_VALUE = "VampirismModVitae";
         /// <summary>
         /// The integer value for humanity score.
         /// </summary>
-        public const string HUMANITY = "VampirismModHumanity";
+        internal const string HUMANITY = "VampirismModHumanity";
         /// <summary>
         /// The integer value for humanity's regeneration.
         /// </summary>
-        public const string REGEN = "VampirismModHumanityRegen";
+        internal const string REGEN = "VampirismModHumanityRegen";
 
 
         /// <summary>
         /// Immutable boolean value given to all possible feeding targets the moment they are created in the game world. Hostiles are given a value of false. True innocents can cause humanity loss in various ways as a result of being fed on (only feeding related).
         /// </summary>
-        public const string INNOCENT = "VampirismModInnocent"; //yes huge note - only feeding related - humanity's death consequences do not actually check for innocence, only IFeeding does
-                                                                //which it uses to assign VICTIM, which is further checked in deaths
-        // LONG VALUES
+        internal const string INNOCENT = "VampirismModInnocent"; //yes huge note - only feeding related - humanity's death consequences do not actually check for innocence, only IFeeding does
+                                                                 //which it uses to assign VICTIM, which is further checked in deaths
+                                                                 // LONG VALUES
         /// <summary>
         /// Flag given to true innocents after feeding has ended, with a long value of marking the moment feed ended in game turn time. for DeathHandler.
         /// </summary>
-        public const string VICTIM = "VampirismModVictim";
+        internal const string VICTIM = "VampirismModVictim";
         /// <summary>
         /// Flag given to false innocents, who are currently companions, after feeding has ended. Allows humanity loss until they are no longer companions. For DeathHandler.
         /// </summary>
-        public const string VICTIM_HOSTILE = "VampirismModHostileVictim";
+        internal const string VICTIM_HOSTILE = "VampirismModHostileVictim";
         /// <summary>
         /// Special flag used to prevent DeathEventHandler from duplicating humanity losses if a true innocent or companion dies during feeding, due to the automatic application of VICTIM on feed removal.
         /// </summary>
-        public const string DEAD = "VampirismModKilledDuringFeed";
+        internal const string DEAD = "VampirismModKilledDuringFeed";
 
-        public const string FLEDGLING = "VampireFledgingMod";
+        internal const string FLEDGLING = "VampireFledgingMod";
 
-        public const string GAMEOBJECT_VERSION_TAG = "OldVampirismSaveNeedsUpdate"; //note: this may become a mod version identifier for all vampires on gameload/
-        //                                                              /anyone who doesnt have it will get it, anyone who has it and doesnt sync with the version will be updated
-                                                                //furthermore, our WantEvent that checks for OLD_SAVE will compare it against the version, rather than check for it in genera
+
+
+
     }
-}                                                   //turns out this property did become a tag for mod version... too bad the name is complete trash. "OldVampirismSaveNeedsUpdate" ugh
-                                                                
+}

@@ -17,13 +17,14 @@ namespace XRL.World.Parts
     [Serializable]
 
     [HasGameBasedStaticCache]
-    public class DeathHandler : IPart
+    internal class DeathHandler : IPart
     {
-        internal static bool FreeMote;
-        internal static GameObject Player => _player?.Object; //this is used for two major purposes: accessing the players humanity and checking hostility
+        internal static bool ShowDebug = false;
+        internal static bool FreeMote;                          //Player is nullable and should not be accessed before running Security()
+        internal static GameObject Player => _playerCache?.Object; //this is used for two major purposes: accessing the players humanity and checking hostility
                                                             //if you try to access by the.player (static) then you will get whatever
         [GameBasedStaticCache(false)]                       //gameobject they are currently dominating
-        static GameObjectReference _player;
+        static GameObjectReference _playerCache;            
 
         //instead of the gameobject that is "really" them 
         public bool FinishedInit;                                   //meaning: we cant find the humanity part, and innocence becomes relative to whatever gameobject the player is currently dominating
@@ -84,7 +85,7 @@ namespace XRL.World.Parts
             var obj = Dying.CurrentCell.Objects.FirstOrDefault(x => x.PropertyEquals("SourceBlueprint", Dying.Blueprint));
             if (obj != null)                                    //i want to note we used to check for SourceID, but not every corpse object has a source id property
                 DetermineEmbraceability(obj, Dying, isvampire);
-            else
+            else if (ShowDebug)
                 DebugFailedEmbrace(Dying.CurrentCell);
         }
         static void DebugFailedEmbrace(Cell cell)
@@ -149,7 +150,7 @@ namespace XRL.World.Parts
         //because you can die but still not be null and the system will break if you are domination-hopping to a new body
         static bool FindAndCheckPlayer()
         {
-            _player = PlayerFinder().Reference();
+            _playerCache = PlayerFinder().Reference();
             return Player.HasPart<Vampirism>();
         }
         static GameObject PlayerFinder()

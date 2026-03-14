@@ -22,7 +22,7 @@ namespace VampirismSys.Tests
 [Serializable]
     public class RobotPolymorph : BasePolymorphSpell
     {
-        public override BasePolymorphFX PolymorphFX => new RobotPolymorphFX();
+        public override BasePolymorphEffect Effect => new RobotPolymorphFX();
         public override int Cooldown => 0;
         public RobotPolymorph()
         {
@@ -36,7 +36,7 @@ namespace VampirismSys.Tests
 }
 
 [Serializable]
-public class RobotPolymorphFX : BasePolymorphFX
+public class RobotPolymorphFX : BasePolymorphEffect
 {
     public RobotPolymorphFX() : base()
     {
