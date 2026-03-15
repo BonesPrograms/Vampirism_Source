@@ -1,13 +1,8 @@
 using System;
-using XRL.UI;
 using XRL.World.AI;
 using VampirismSys.Core;
 using XRL.World.Parts;
-using System.Collections.Generic;
-using System.Linq;
 using VampirismSys.Stealth;
-using XRL.World.Parts.Mutation;
-using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Effects
 {
@@ -21,32 +16,21 @@ namespace XRL.World.Effects
 		public StealthFeed() : base()
 		{
 		}
-		internal StealthFeed(GameObject other, bool isAttacker, string Damage, int Duration, bool vampire) : base()
+		internal StealthFeed(GameObject other, bool isAttacker, string Damage, bool vampire) : base(other)
 		{
-			base.other = other.Reference();
-			base.isAttacker = isAttacker;
+			IsAttacker = isAttacker;
 			base.Damage = Damage;
-			base.Duration = Duration;
-			Ghoul = false;
-			base.vampire = vampire;
+			IsGhoul = false;
+			IsFriendly = false;	
+			IsVampire = vampire;
 
 		}
 
-        public override void Write(GameObject Basis, SerializationWriter Writer)
-        {
-			Writer.Write(ActiveStealth);
-            base.Write(Basis, Writer);
-        }
 
-        public override void Read(GameObject Basis, SerializationReader Reader)
-        {
-			ActiveStealth = Reader.ReadBoolean();
-            base.Read(Basis, Reader);
-        }
 
 		public override void Remove(GameObject Object)
 		{
-			if (isAttacker)
+			if (IsAttacker)
 				Knockout();
 			base.Remove(Object);
 		}
@@ -54,16 +38,16 @@ namespace XRL.World.Effects
 		public override bool WantEvent(int ID, int cascade)
 		{
 			if (ID == SingletonEvent<BeforeTakeActionEvent>.ID)
-				return isAttacker;
+				return IsAttacker;
 			if (ID == AfterDieEvent.ID)
-				return !isAttacker;
+				return !IsAttacker;
 			return base.WantEvent(ID, cascade);
 		}
 
 		public override bool HandleEvent(AfterDieEvent E)
 		{
-			if (E.Killer == null && E.Dying == Object && other?.Object != null) //stealthfeed doesnt perform a real attack so a death by stealth feed is always a null killer
-				KilledEvent.Send(Object, other.Object); //could cause problems maybe well wait and see
+			if (E.Killer == null && E.Dying == Object && Other != null) //stealthfeed doesnt perform a real attack so a death by stealth feed is always a null killer
+				KilledEvent.Send(Object, Other); //could cause problems maybe well wait and see
 			return base.HandleEvent(E);
 		}
 
@@ -77,32 +61,31 @@ namespace XRL.World.Effects
 		void CaughtInTheAct()
 		{
 			DoAlert(new Alert(Object));
-			if (other?.Object?.MakeSave("Toughness", 13, null, null, "Woke During Feeding") is false)
-				other.Object.ApplyEffect(new Terrified(WikiRng.Next(16, 20), base.Object, false, false));
+			if (Other?.MakeSave("Toughness", 13, null, null, "Woke During Feeding") is false)
+				Other.ApplyEffect(new Terrified(WikiRng.Next(16, 20), base.Object, false, false));
 			Duration = 0;
 		}
 
 		void DoAlert(Alert alert)
 		{
-			alert.FindClosestExposerInListExcept(alert.Add(other));
+			alert.FindClosestExposerInListExcept(alert.Add(Other));
 			alert.RemoveSleepFromWitnesses();
 			alert.AddOpinionToWitnessesAndExposer<OpinionDominate>();
 			alert.Popup(true, "You are caught in the act of predation by", "You are caught in the act of predation!");
 		}
 		protected override void Attack()
 		{
-			AddPlayerMessage(other.Object.t() + " takes {{}}" + Amount + " damage from bloodloss!");
-			other.Object.hitpoints -= Amount;
-			other?.Object?.ParticleText($"{Amount}", IComponent<GameObject>.ConsequentialColorChar(base.Object, other.Object));
+			AddPlayerMessage(Other.t() + " takes {{}}" + Amount + " damage from bloodloss!");
+			Other.hitpoints -= Amount;
+			Other?.ParticleText($"{Amount}", IComponent<GameObject>.ConsequentialColorChar(base.Object, Other));
 		}
 		void Knockout()
 		{
-			if (ActiveStealth && (other?.Object?.HasHitpoints() is true))
+			if (ActiveStealth && (Other?.HasHitpoints() is true))
 			{
-				other.Object.ApplyEffect(new Asleep(WikiRng.Next(50, 100)));
-				other.Object.RemoveEffect<Woozy>();
+				Other.ApplyEffect(new Asleep(WikiRng.Next(50, 100)));
+				Other.RemoveEffect<Woozy>();
 			}
 		}
-
 	}
 }

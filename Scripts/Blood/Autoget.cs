@@ -5,6 +5,7 @@ using VampirismSys.Core;
 using XRL;
 using System.Linq;
 using System;
+using XRL.World.Parts.Mutation;
 
 namespace VampirismSys.Blood
 {
@@ -22,8 +23,6 @@ namespace VampirismSys.Blood
 
         [GameBasedStaticCache(false, true)]
         static List<LiquidVolume> Containers = new();
-
-        const int MAX = 64;
 
         const string Container = "WaterContainer";
 
@@ -71,6 +70,7 @@ namespace VampirismSys.Blood
         //dont worry about this crazy shit
         //i havent deleted it just incase it needs to make a return tho
         //however this issue isnt a thing i notice anymore
+        //this code barely worked anyways its trash can you even really figure out whats going on at a first glance?
 
         // void SecretlyRearrangeBlood() //solution for unsolved issue with my current system where blood is not pooled into a single container but is spread out over all of them
         // {
@@ -113,30 +113,34 @@ namespace VampirismSys.Blood
         // }
         static void AddBlood()
         {
-           // Containers.Where(x => x?.ParentObject == null).SafeForEach(x => Containers.Remove(x));
-            Containers.TakeWhile(x => FoundBlood).Where(x => !x.Sealed && x.Volume < MAX).ForEach(x => CheckForStoredLiquids(x, x.ParentObject));
+            // Containers.Where(x => x?.ParentObject == null).SafeForEach(x => Containers.Remove(x));
+            Containers.TakeWhile(x => FoundBlood).Where(WantsToBeFilled).ForEach(x => FillContainer(x, x.ParentObject));
         }
-        static void CheckForStoredLiquids(LiquidVolume part, GameObject waterskin)
+        static bool WantsToBeFilled(LiquidVolume x)
+         =>
+            !x.Sealed
+            && x.Volume < x.MaxVolume
+            && (x.Volume == 0 || (x.ContainsLiquid(LiquidType) && x.IsPureLiquid()));
+        static void FillContainer(LiquidVolume part, GameObject waterskin)
         {
-            if ((part.ContainsLiquid(LiquidType) && part.IsPureLiquid()) || part.Volume == 0)
+            LiquidVolume pool = PureLiquid.GetRandomElement();
+            if (pool.Volume > 0)
             {
-                LiquidVolume pool = PureLiquid.GetRandomElement();
-                if (pool.Volume > 0)
-                {
-                    bool math = Math(pool, part, out int deduction);
-                    if (math && deduction > 0)
-                        Collect(pool, part, waterskin, deduction);
-                    else if (!math)
-                        Collect(pool, part, waterskin, pool.Volume);
-                }
-                PureLiquid.Remove(pool);
+                bool overflowing = CheckForOverflow(pool, part, out int deduction);
+                if (overflowing && deduction > 0)
+                    Collect(pool, part, waterskin, deduction);
+                else if (!overflowing)
+                    Collect(pool, part, waterskin, pool.Volume);
             }
+            PureLiquid.Remove(pool);
         }
 
         //Remove(Pool) is a solution to an issue where bloodpools were being double-collected from
         //for some reason their updated volume isnt being heard, it has the same volume and they arent removed when at volume 0
         //so when it GetsRandomElement it has a chance to get a duplicate of the pool you just collected from
-        //not sure if its an issue associated with the foreach over all this or maybe i should make some integer instances or a dictionary with ints
+        //not sure if its an issue associated with the foreach over all this
+        //(This is an old issue before I started using LINQ and havent debugged it since i fixed it because working on autoget isnt very fun) 
+        //(I am really bad at math and holding numbers in my head)
 
         //pool vol of 10
         //part vol of 60
@@ -159,11 +163,11 @@ namespace VampirismSys.Blood
 
         //yeah im really bad at math i had to proof and re-code this like 10 times
 
-        static bool Math(LiquidVolume pool, LiquidVolume part, out int deduction)
+        static bool CheckForOverflow(LiquidVolume pool, LiquidVolume part, out int deduction)
         {
-            if (pool.Volume + part.Volume >= MAX)
+            if (pool.Volume + part.Volume >= part.MaxVolume)
             {
-                deduction = MAX - part.Volume;
+                deduction = part.MaxVolume - part.Volume;
                 return true;
             }
             else
@@ -191,9 +195,17 @@ namespace VampirismSys.Blood
         }
         static void DealWithLiquid(IEnumerable<GameObject> objects)
         {
-            var foundBlood = objects.Select(x => x?.GetPart<LiquidVolume>()).Where(x => x?.ParentObject != null && x.ContainsLiquid(LiquidType) && x.IsPureLiquid() && !x.ParentObject.HasTag(Container) && x.ParentObject.Blueprint != "FangBloodDrop");
+            var foundBlood = objects.Select(x => x?.GetPart<LiquidVolume>()).Where(WantsToBeCollected);
             PureLiquid = new(foundBlood);
         }
+        static bool WantsToBeCollected(LiquidVolume x)
+          =>
+            x != null
+            && x.ContainsLiquid(LiquidType)
+            && x.IsPureLiquid()
+            && IsLiquidPool(x.ParentObject.GetBlueprint());
+
+        static bool IsLiquidPool(GameObjectBlueprint x) => x.InheritsFrom("Water") && x.HasTag("Pool") && x.Name != "FangBloodDrop";
 
     }
 }

@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using XRL.UI;
 using XRL.World.Effects;
 using XRL.World.AI;
 using XRL.World;
 using XRL.World.Parts.Mutation;
 using XRL;
-using VampirismSys.Core;
 using System.Linq;
 using XRL.World.Parts;
 
@@ -31,7 +29,8 @@ namespace VampirismSys.Biting
         }
         internal Bite(GameObject Biter, Vampirism Vampirism) : base(Biter)
         {
-            this._vampirism = Vampirism;
+            _vampirism = Vampirism;
+            _sim = new(Biter, this);
 
         }
         internal (string, bool)[] Flags => new (string, bool)[]

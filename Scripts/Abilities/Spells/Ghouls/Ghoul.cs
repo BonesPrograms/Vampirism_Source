@@ -1,7 +1,7 @@
-using XRL.World.Parts;
 using System;
-using VampirismSys.Rules;
 using VampirismSys.Core;
+using VampirismSys.Rules;
+using XRL.World.Parts;
 
 namespace XRL.World.Effects
 {
@@ -12,7 +12,7 @@ namespace XRL.World.Effects
     }
 
     [Serializable]
-    public class RelinquishedGhoul : IScribedEffect, IGhoulEffect
+    public class RelinquishedGhoul : BeastScribedEffect, IGhoulEffect
     {
         string IGhoulEffect.Name
         {
@@ -23,23 +23,31 @@ namespace XRL.World.Effects
             }
         }
         bool IGhoulEffect.Thrall => false;
+        public override bool Apply(GameObject Object)
+        {
+            Object.RemoveEffect<EnthralledGhoul>();
+            return base.Apply(Object);
+        }
         public RelinquishedGhoul()
         {
-            DisplayName = "{{r|relinquished}}";
+            DisplayName = "{{r|masterless}}";
             Duration = 9999;
         }
 
         public override string GetDescription()
         {
-            return "{{r|relinquished}}";
+            return "{{r|masterless}}";
         }
 
 
     }
 
     [Serializable]
-    public class EnthralledGhoul : IScribedEffect, IGhoulEffect
+    public class EnthralledGhoul : BeastScribedEffect, IGhoulEffect
     {
+
+        public GameObject Master { get => _master; private init { _master = value; } }
+        GameObject _master;
         string IGhoulEffect.Name
         {
             get => DisplayName;
@@ -49,13 +57,12 @@ namespace XRL.World.Effects
             }
         }
         bool IGhoulEffect.Thrall => true;
-        public GameObject Master;
         public EnthralledGhoul()
         {
             DisplayName = "{{r|ghoul}}";
             Duration = 9999;
         }
-        public EnthralledGhoul(GameObject Master) : this()
+        internal EnthralledGhoul(GameObject Master) : this()
         {
             this.Master = Master;
         }
@@ -127,10 +134,9 @@ namespace XRL.World.Effects
 
 
     [Serializable]
-    public class BuffedEnthralledGhoul : IScribedEffect
+    public class BuffedEnthralledGhoul : BeastScribedEffect
     {
-        public int Bonus;
-
+        int Bonus;
         public BuffedEnthralledGhoul()
         {
             Duration = Ghoul.BUFFTIME;
@@ -156,10 +162,8 @@ namespace XRL.World.Effects
         }
         public override void Remove(GameObject Object)
         {
-            Object.GetPart<GhoulBloodMetabolism>().Buffed = false;
             GhoulBloodMetabolism.Stats.ForEach(x => StatShifter.RemoveStatShift(Object, x));
         }
-
     }
 
 }

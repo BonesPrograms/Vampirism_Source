@@ -3,7 +3,7 @@ using System;
 namespace XRL.World.Effects
 {
     [Serializable]
-    internal class Woozy : Disoriented
+    public class Woozy : Disoriented
     {
         int victimHP => base.Object.GetHPPercent();
         bool victim => base.Object.HasEffectDescendedFrom<BaseFeedEffect>();

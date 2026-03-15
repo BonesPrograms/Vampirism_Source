@@ -23,7 +23,7 @@ namespace VampirismSys.Tests
     public class RobotPolymorph : BasePolymorphSpell
     {
         protected override BasePolymorphEffect Effect => new RobotPolymorphFX();
-        public override int Cooldown => 0;
+        protected override int Cooldown => 0;
         public RobotPolymorph()
         {
             CommandName = "RobotPolymorph";

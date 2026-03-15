@@ -14,7 +14,7 @@ namespace XRL.World.Parts
     [Serializable]
     public class GhoulSpell : BaseVampireSpell
     {
-        public override int Cooldown => VampirismSys.Rules.Ghoul.COOLDOWN;
+        protected override int Cooldown => VampirismSys.Rules.Ghoul.COOLDOWN;
         const string TEXT = "to enthrall";
         protected override int Roll() => WikiRng.Next(1, 8) + Math.Max(ParentObject.StatMod("Ego"), Level);
         public GhoulSpell()
@@ -71,6 +71,7 @@ namespace XRL.World.Parts
         {
             RemoveLastGhoul(ParentObject);
             var ghoul = new EnthralledGhoul(ParentObject);
+            Target.ApplyEffect(ghoul);
             ExpendBlood(ghoul, true);
             Target.ApplyEffect(ghoul);
         }
@@ -146,14 +147,14 @@ namespace XRL.World.Parts
             foreach (var obj in Object.Brain.PartyMembers.ToArray())
             {
                 var ghoul = obj.Value.Reference?.Object;
-                if (ghoul?.RemoveEffect<GhoulBloodMetabolism>() ?? false)
+                if (ghoul?.RemoveEffect<EnthralledGhoul>() ?? false)
                 {
                     Object.Brain.PartyMembers.Remove(obj.Key);
                     return;
                 }
             }
         }
-        public override void CollectStats(Templates.StatCollector stats)
+        protected override void CollectStats(Templates.StatCollector stats)
         {
             int num = Math.Max(ParentObject.StatMod("Ego"), Level + ParentObject.GetStat("Level").Value);
             switch (num)

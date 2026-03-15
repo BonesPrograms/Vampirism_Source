@@ -21,7 +21,7 @@ namespace VampirismSys.Core
         internal const string CORPSE = "Ashes";
         static readonly (string, int)[] IntProperties =
         {
-            (Flags.BLOOD_VALUE, Rules.Vitae.BLOOD_GLUTTONOUS), (Flags.HUMANITY, Rules.Humanity.MAX), (Flags.REGEN, default)
+            (Flags.BLOOD_VALUE, Rules.Metab.BLOOD_GLUTTONOUS), (Flags.HUMANITY, Rules.Hum.MAX), (Flags.REGEN, default)
         };
 
         static readonly (string, string)[] StringProperties =
@@ -173,6 +173,7 @@ namespace XRL.World.Parts
     [Serializable]
     public class VampireAshes : Corpse
     {
+        //this is another type that throws exceptions on deserialization if fields arent initialized
         public bool HasCopyData = false;
         public string OldBurntCorpseBlueprint = default;
         public string OldVaporizedCorpseBlueprint = default;

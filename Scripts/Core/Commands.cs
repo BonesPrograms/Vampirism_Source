@@ -57,7 +57,7 @@ namespace VampirismSys.Wish
         {
             if (Security())
             {
-                The.Player.GetPart<Humanity>().SetZero();
+                The.Player.GetPart<Humanity>().Score = 0;
                 The.Player.SetStringProperty(Flags.GO, Flags.TRUE);
                 The.Player.PassTurn();
             }
@@ -69,7 +69,7 @@ namespace VampirismSys.Wish
             if (Security())
             {
                 The.Player.FireEvent(Event.New(Events.WISH_HUMANITY));
-                The.Player.SetIntProperty(Flags.HUMANITY, Rules.Humanity.MAX);
+                The.Player.SetIntProperty(Flags.HUMANITY, Rules.Hum.MAX);
                 The.Player.SetStringProperty(Flags.GO, Flags.FALSE);
                 IComponent<GameObject>.AddPlayerMessage("{{G sequence|Humanity reset to maximum.}}");
             }
@@ -81,8 +81,8 @@ namespace VampirismSys.Wish
             if (Security())
             {
                 VampireBloodMetabolism Vitae = The.Player.GetPart<VampireBloodMetabolism>();
-                Vitae.Blood = VampirismSys.Rules.Vitae.BLOOD_GLUTTONOUS;
-                The.Player.SetIntProperty(Flags.BLOOD_VALUE, Rules.Vitae.BLOOD_GLUTTONOUS);
+                Vitae.Blood = VampirismSys.Rules.Metab.BLOOD_GLUTTONOUS;
+                The.Player.SetIntProperty(Flags.BLOOD_VALUE, Rules.Metab.BLOOD_GLUTTONOUS);
                 The.Player.SetStringProperty(Flags.BLOOD_STATUS, Flags.Blood.GLUT);
                 IComponent<GameObject>.AddPlayerMessage("{{G sequence|Thirst removed.}}");
             }

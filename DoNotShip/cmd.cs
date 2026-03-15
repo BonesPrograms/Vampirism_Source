@@ -21,6 +21,8 @@ public static class EnableDeveloperSpells
     {
         VampireBuilder.ENABLE_SPELLS = true;
         DeathHandler.ShowDebug = true;
+       // QudExtensions.DebugSerializer = true;
+        //QudExtensions.TargetTypes = null;
     }
 }
 public class AddCMDPart : IPlayerMutator

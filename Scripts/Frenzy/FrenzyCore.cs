@@ -37,19 +37,19 @@ namespace VampirismSys.Frenzy
             {
                 switch (Source.ParentObject.GetIntProperty(Flags.HUMANITY))
                 {
-                    case VampirismSys.Rules.Humanity.MID:
+                    case VampirismSys.Rules.Hum.MID:
                         {
                             if (_midFrenzyChance)
                                 Frenzy();
                             break;
                         }
-                    case VampirismSys.Rules.Humanity.LOW:
+                    case VampirismSys.Rules.Hum.LOW:
                         {
                             if (_highFrenzyChance)
                                 Frenzy();
                             break;
                         }
-                    case VampirismSys.Rules.Humanity.CRIT:
+                    case VampirismSys.Rules.Hum.CRIT:
                         {
                             if (_critFrenzyChance)
                                 Frenzy();

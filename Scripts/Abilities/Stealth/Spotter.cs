@@ -93,12 +93,11 @@ namespace XRL.World.Effects
     /// </summary>
 
     [Serializable]
-    public class Spotter : Effect
+    public class Spotter : BeastScribedEffect
     {
-        public GameObjectReference Player;
+        GameObjectReference Player;
         public Spotter()
         {
-            DisplayName = "";
         }
         internal Spotter(GameObject player, int Duration) : this()
         {
@@ -124,7 +123,7 @@ namespace XRL.World.Effects
             }
             return base.HandleEvent(E);
         }
-
         public override bool UseStandardDurationCountdown() => false;
+
     }
 }

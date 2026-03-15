@@ -1,53 +1,19 @@
-using XRL.World.Effects;
 using System;
-using VampirismSys.Rules;
 using VampirismSys.Core;
-using XRL.World.Parts.Mutation;
-using System.Linq;
-using XRL.World.Anatomy;
 using XRL.World.Parts;
 using System.Collections.Generic;
-using AiUnity.NLog.Core.Targets;
-using Qud.API;
+using System.Reflection;
 
 namespace XRL.World.Effects
 {
 
     [Serializable]
-    public abstract class BasePolymorphEffect : IScribedEffect
+    public abstract class BasePolymorphEffect : BeastScribedEffect
     {
-        public GameObjectBlueprint Blueprint
-        {
-            get => _blueprint;
-            protected init
-            {
-                _blueprint = value;
-            }
-        }
-        public string FormName
-        {
-            get => _formName;
-            protected init
-            {
-                _formName = value;
-            }
-        }
-        public string TargetFaction
-        {
-            get => _targetFaction;
-            protected init
-            {
-                _targetFaction = value;
-            }
-        }
-        public int FactionFeeling
-        {
-            get => _factionFeeling;
-            protected init
-            {
-                _factionFeeling = value;
-            }
-        }
+        protected GameObjectBlueprint Blueprint { get => _blueprint; init { _blueprint = value; } }
+        protected string FormName { get => _formName; init { _formName = value; } }
+        protected string TargetFaction { get => _targetFaction; init { _targetFaction = value; } }
+        protected int FactionFeeling { get => _factionFeeling; init { _factionFeeling = value; } }
 
         int _factionFeeling;
 
@@ -67,16 +33,16 @@ namespace XRL.World.Effects
 
         string _lastDescriptionShort;
 
+        [NonSerialized]
         GameObjectBlueprint _blueprint;
 
-        List<GameObject> _equippedObjects = new();
+        List<GameObject> EquippedObjects;
 
-        GameObject _oldObject;
+        GameObject PreservedObject;
 
         public BasePolymorphEffect()
         {
             Duration = 9999;
-            DisplayName = "";
         }
 
         void VerifyInitialization()
@@ -103,7 +69,7 @@ namespace XRL.World.Effects
         public virtual void Transform()
         {
             Suppress(true);
-            _equippedObjects = UnequipAndGet();
+            EquippedObjects = UnequipAndGet();
             SaveLook();
             ChangeLook();
             ChangeBody();
@@ -146,11 +112,11 @@ namespace XRL.World.Effects
         }
         void ChangeLook()
         {
-            var part = Blueprint.GetPart(nameof(Parts.Render));
-            base.Object.DisplayName = part.GetParameterString("DisplayName");
-            base.Object.Render.Tile = part.GetParameterString("Tile");
-            base.Object.Render.ColorString = part.GetParameterString("TileColor");
-            base.Object.Render.RenderString = part.GetParameterString("DetailColor");
+            GamePartBlueprint render = Blueprint.GetPart(nameof(Parts.Render));
+            base.Object.DisplayName = render.GetParameterString("DisplayName");
+            base.Object.Render.Tile = render.GetParameterString("Tile");
+            base.Object.Render.ColorString = render.GetParameterString("TileColor");
+            base.Object.Render.RenderString = render.GetParameterString("DetailColor");
         }
         void SaveLook()
         {
@@ -162,7 +128,7 @@ namespace XRL.World.Effects
 
         void ChangeBody()
         {
-            _oldObject = Object.DeepCopy(CopyID: true);
+            PreservedObject = Object.DeepCopy(CopyID: true);
             base.Object.Body.Anatomy = Blueprint.GetPartParameter<string>(nameof(Body), "Anatomy");
         }
 
@@ -184,15 +150,16 @@ namespace XRL.World.Effects
 
         void AutoEquip()
         {
-            for (int i = 0; i < _equippedObjects.Count; i++)
-                Object.AutoEquip(_equippedObjects[i]);
+            foreach (var obj in EquippedObjects)
+                if (obj != null)
+                    Object.AutoEquip(obj);
         }
 
         void TryReEquip()
         {
-            for (int i = 0; i < _equippedObjects.Count; i++)
+            for (int i = 0; i < EquippedObjects.Count; i++)
             {
-                GameObject obj = _equippedObjects[i];
+                GameObject obj = EquippedObjects[i];
                 if (VerifyHasObject(obj))
                 {
                     Object.AutoEquip(obj);
@@ -227,12 +194,13 @@ namespace XRL.World.Effects
 
         void RevertBody()
         {
+
             Object.Body = null;
             Object.RemovePart<Body>();
-            Object.Body = Object.AddPart(_oldObject.Body);
-            _oldObject.Body.ParentObject = Object;
-            _oldObject.Body = null;
-            _oldObject = null;
+            Object.Body = Object.AddPart(PreservedObject.Body);
+            PreservedObject.Body.ParentObject = Object;
+            PreservedObject.Body = null;
+            PreservedObject = null;
             Object.Body.UpdateBodyParts();
         }
 
@@ -252,7 +220,7 @@ namespace XRL.World.Effects
 
         bool VerifyHasObject(GameObject obj)
         {
-            return Object.Inventory.InventoryContains(obj);//|| currentlyEquipped.Contains(obj);
+            return obj != null && Object.Inventory.InventoryContains(obj);//|| currentlyEquipped.Contains(obj);
         }
 
         void Unequip()
@@ -276,40 +244,5 @@ namespace XRL.World.Effects
             Messages.MessageQueue.Suppress = value;
         }
 
-        public override void Write(GameObject Basis, SerializationWriter Writer)
-        {
-            Writer.Write(_equippedObjects.Count);
-            for (int i = 0; i < _equippedObjects.Count; i++)
-                Writer.WriteGameObject(_equippedObjects[i]);
-            Writer.WriteGameObject(_oldObject);
-            Writer.Write(_oldTile);
-            Writer.Write(_oldDisplayName);
-            Writer.Write(_oldColorString);
-            Writer.Write(_oldRenderString);
-            Writer.Write(_originalBlueprint);
-            Writer.Write(_lastDescriptionShort);
-            Writer.Write(_formName);
-            Writer.Write(_targetFaction);
-            Writer.Write(_factionFeeling);
-            base.Write(Basis, Writer);
-        }
-
-        public override void Read(GameObject Basis, SerializationReader Reader)
-        {
-            int length = Reader.ReadInt32();
-            for (int i = 0; i < length; i++)
-                _equippedObjects.Add(Reader.ReadGameObject());
-            _oldObject = Reader.ReadGameObject();
-            _oldTile = Reader.ReadString();
-            _oldDisplayName = Reader.ReadString();
-            _oldColorString = Reader.ReadString();
-            _oldRenderString = Reader.ReadString();
-            _originalBlueprint = Reader.ReadString();
-            _lastDescriptionShort = Reader.ReadString();
-            _formName = Reader.ReadString();
-            _targetFaction = Reader.ReadString();
-            _factionFeeling = Reader.ReadInt32();
-            base.Read(Basis, Reader);
-        }
     }
 }

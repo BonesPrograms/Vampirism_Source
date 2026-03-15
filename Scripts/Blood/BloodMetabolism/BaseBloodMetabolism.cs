@@ -4,6 +4,7 @@ using System.Linq;
 using XRL.UI;
 using VampirismSys.Core;
 using VampirismSys.Blood;
+using VampirismSys.Rules;
 using System;
 
 namespace VampirismSys.Blood
@@ -23,32 +24,21 @@ namespace XRL.World.Parts
 {
 
     [Serializable]
-    public abstract class BaseBloodMetabolism : IScribedPart
+    public abstract class BaseBloodMetabolism : BeastScribedPart
     {
         public int Blood
         {
             get => _blood;
             set
             {
-                _blood = value > 0 ? value : 0;
+                _blood =
+                  value < 0 ? 0
+                : value > Metab.BLOOD_PUKE ? Metab.BLOOD_PUKE
+                : value;
             }
         }
-        public BloodLevel Status
-        {
-            get => _status;
-            private set
-            {
-                _status = value;
-            }
-        }
-        public string StringStatus //this is for the string property and is less flexible than using the enum Status, wouldnt use this if you have access to this type at compile time
-        {                           //i think the string properties are nice so im not getting rid of it
-            get => _stringStatus;
-            private set
-            {
-                _stringStatus = value;
-            }
-        }
+        public BloodLevel Status { get => _status; private set { _status = value; } }
+        public string StringStatus { get => _stringStatus; private set { _stringStatus = value; } }
         public virtual string UIBloodDisplay => Status switch
         {
             >= BloodLevel.GLUT => "{{G|Glutted}}",
@@ -58,35 +48,37 @@ namespace XRL.World.Parts
             _ => "{{r|Ravenous}}"
         };
 
-        protected virtual bool WantsMetabolism => true; //should definitely check this before subtracting blood from an object externally
+        protected virtual bool WantsMetabolism => true;
 
-        protected virtual bool WantsVomit => true;//you dont really need to check this before invoking vomit its internal
-        //but public incase anyone does end up needing it
-        protected virtual int MetabolismRate => ParentObject.IsVampire() ? VampirismSys.Rules.Vitae.BLOOD_METAB : VampirismSys.Rules.Vitae.Metab_Settings.DEFAULT;
+        protected virtual bool WantsVomit => true;
 
-        public bool Glut => Blood >= VampirismSys.Rules.Vitae.BLOOD_GLUTTONOUS;
+        protected virtual int MetabolismRate => ParentObject.IsVampire() ? VampirismSys.Rules.Metab.BLOOD_METAB : VampirismSys.Rules.Metab.Metab_Settings.DEFAULT;
 
-        public bool Quenched => Blood >= VampirismSys.Rules.Vitae.BLOOD_QUENCHED && Blood < VampirismSys.Rules.Vitae.BLOOD_GLUTTONOUS;
+        public bool Glut => Blood >= VampirismSys.Rules.Metab.BLOOD_GLUTTONOUS;
 
-        public bool Thirsty => Blood >= VampirismSys.Rules.Vitae.BLOOD_THIRSTY && Blood < VampirismSys.Rules.Vitae.BLOOD_QUENCHED;
+        public bool Quenched => Blood >= VampirismSys.Rules.Metab.BLOOD_QUENCHED && Blood < VampirismSys.Rules.Metab.BLOOD_GLUTTONOUS;
 
-        public bool Parched => Blood >= VampirismSys.Rules.Vitae.BLOOD_PARCHED && Blood < VampirismSys.Rules.Vitae.BLOOD_THIRSTY;
+        public bool Thirsty => Blood >= VampirismSys.Rules.Metab.BLOOD_THIRSTY && Blood < VampirismSys.Rules.Metab.BLOOD_QUENCHED;
 
-        public bool Min => Blood < VampirismSys.Rules.Vitae.BLOOD_PARCHED;
+        public bool Parched => Blood >= VampirismSys.Rules.Metab.BLOOD_PARCHED && Blood < VampirismSys.Rules.Metab.BLOOD_THIRSTY;
 
-        int _blood = VampirismSys.Rules.Vitae.BLOOD_GLUTTONOUS;
+        public bool Min => Blood < VampirismSys.Rules.Metab.BLOOD_PARCHED;
 
-        BloodLevel _status;
+        int _blood = Metab.BLOOD_GLUTTONOUS;
 
-        BloodLevel _lastStatus;
+        BloodLevel _status = default;
 
-        string _stringStatus;
+        BloodLevel _lastStatus = default; //these will also cause deserialization errors
+
+        string _stringStatus = string.Empty;
 
         const int WATER = 35000;
 
         static readonly string[] _vomitStrings = { "You vomit!", "You vomit {{R sequence|blood!}}" };
 
         protected Stomach Stomach => _stomach ??= ParentObject.GetPart<Stomach>();
+
+        [NonSerialized]
         Stomach _stomach;
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
@@ -144,7 +136,7 @@ namespace XRL.World.Parts
             Blood -= MetabolismRate;
             SetStatus();
         }
-        public void Drink(int value = VampirismSys.Rules.Vitae.BLOOD_PER_SIP)
+        public void Drink(int value = VampirismSys.Rules.Metab.BLOOD_PER_SIP)
         {
             Blood += value;
             Event E = Event.New("AddFood");
@@ -163,7 +155,7 @@ namespace XRL.World.Parts
             bool ExitInterface = false;
             InduceVomitingEvent.Send(ParentObject, ref ExitInterface, new StringBuilder());
         }
-        public bool StatusChange(out bool lostBlood, out bool gainedBlood)
+        protected bool StatusChange(out bool lostBlood, out bool gainedBlood)
         {
             lostBlood = false;
             gainedBlood = false;
@@ -177,7 +169,7 @@ namespace XRL.World.Parts
 
         void Overfed()
         {
-            if (Blood > VampirismSys.Rules.Vitae.BLOOD_PUKE && WantsVomit)
+            if (Blood >= VampirismSys.Rules.Metab.BLOOD_PUKE && WantsVomit)
             {
                 if (ParentObject.IsPlayer())
                     Popup.Show("You overfed!");
@@ -266,23 +258,7 @@ namespace XRL.World.Parts
                 cell.RemoveObject(pool);
         }
 
-        public override void Write(GameObject Basis, SerializationWriter Writer)
-        {
-            Writer.Write(_blood);
-            Writer.Write((int)_status);
-            Writer.Write((int)_lastStatus);
-            Writer.Write(_stringStatus);
-            base.Write(Basis, Writer);
-        }
 
-        public override void Read(GameObject Basis, SerializationReader Reader)
-        {
-            _blood = Reader.ReadInt32();
-            _status = (BloodLevel)Reader.ReadInt32();
-            _lastStatus = (BloodLevel)Reader.ReadInt32();
-            _stringStatus = Reader.ReadString();
-            base.Read(Basis, Reader);
-        }
 
     }
 }

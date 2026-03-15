@@ -1,50 +1,43 @@
 using System;
-using VampirismSys.Rules;
 using VampirismSys.Properties;
 using XRL.World.Effects;
 using System.Linq;
-
 using VampirismSys.Core;
 using XRL.Messages;
-
-using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Parts
 {
 
     [Serializable]
-    public class EmbraceableObject : IPart
+    internal class EmbraceableObject : IPart
     {
-        [NonSerialized]
-        public GameObject Object;
-
-
-
+        internal GameObject Object { get => _object; private init { _object = value; } }
+        GameObject _object;
         public override void Write(GameObject Basis, SerializationWriter Writer)
         {
-            Writer.WriteGameObject(Object);
+            Writer.WriteGameObject(_object);
             base.Write(Basis, Writer);
         }
 
         public override void Read(GameObject Basis, SerializationReader Reader)
         {
-            Object = Reader.ReadGameObject();
+            _object = Reader.ReadGameObject();
             base.Read(Basis, Reader);
         }
         public EmbraceableObject()
         {
 
         }
-        public EmbraceableObject(GameObject Object)
+        internal EmbraceableObject(GameObject Object)
         {
-            this.Object = Object.DeepCopy();
+           this.Object = Object.DeepCopy();
         }
     }
 
     [Serializable]
     public class EmbraceSpell : BaseVampireSpell
     {
-        public override int Cooldown => VampirismSys.Rules.Embrace.COOLDOWN;
+        protected override int Cooldown => VampirismSys.Rules.Embrace.COOLDOWN;
 
         bool Roll(GameObject Object)
         {
@@ -122,7 +115,7 @@ namespace XRL.World.Parts
             Object.CurrentCell.AddObject(obj);
             int time = WikiRng.Next(50, 100);
             obj.ApplyEffect(new KO(time, true));
-            obj.ApplyEffect(new BeingEmbracedFX(ParentObject, time, Level));
+            obj.ApplyEffect(new BeingEmbracedFX(time, Level));
             obj.hitpoints = 2;
             Object.Obliterate();
             MessageQueue.Suppress = false;

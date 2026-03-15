@@ -4,7 +4,6 @@ using XRL.World.Parts;
 using VampirismSys.Properties;
 using VampirismSys.Core;
 using XRL.World.Parts.Mutation;
-using SerializeField = UnityEngine.SerializeField;
 
 namespace XRL.World.Effects
 {
@@ -14,59 +13,30 @@ namespace XRL.World.Effects
 	/// </summary>
 
 	[Serializable]
-	public abstract class BaseFeedEffect : IScribedEffect
+	public abstract class BaseFeedEffect : BeastScribedEffect
 	{
 
 		internal static bool AutoLevel;
-		public GameObjectReference other; // a long time ago, this was life drain
-		VampireBloodMetabolism _Vitae;
+		public GameObject Other { get => _other; private init { _other = value; } }
+		GameObject _other;
 		VampireBloodMetabolism Vitae => _Vitae ??= Object.GetPart<VampireBloodMetabolism>();
-		int VictimHP => isAttacker ? other.Object.GetHPPercent() : base.Object.GetHPPercent();
+
+		[NonSerialized]
+		VampireBloodMetabolism _Vitae;
+
+		[NonSerialized]
 		protected int Amount;
-		public bool isAttacker
-		{
-			get => _isAttacker;
-			protected init
-			{
-				_isAttacker = value;
-			}
-		}
-		public string Damage
-		{
-			get => _damage;
-			protected init
-			{
-				_damage = value;
-			}
-		}
 
-		public bool Ghoul
-		{
-			get => _ghoul;
-			protected init
-			{
-				_ghoul = value;
-			}
-		}
+		public bool IsAttacker { get => _isAttacker; protected init { _isAttacker = value; } }
 
-		public bool friendly
-		{
-			get => _friendly;
-			protected init
-			{
-				_friendly = value;
-			}
-		}
+		protected string Damage { get => _damage; init { _damage = value; } }
 
-		public bool vampire
-		{
-			get => _vampire;
-			protected init
-			{
-				_vampire = value;
-			}
-		}
+		//Victim flags
+		protected bool IsGhoul { get => _ghoul; init { _ghoul = value; } }
 
+		protected bool IsFriendly { get => _friendly; init { _friendly = value; } }
+
+		protected bool IsVampire { get => _vampire; init { _vampire = value; } }
 		bool _isAttacker;
 
 		string _damage;
@@ -76,62 +46,46 @@ namespace XRL.World.Effects
 		bool _friendly;
 
 		bool _vampire;
-
-		public override void Write(GameObject Basis, SerializationWriter Writer)
-		{
-			Writer.Write(_isAttacker);
-			Writer.Write(_damage);
-			Writer.Write(_ghoul);
-			Writer.Write(_friendly);
-			Writer.Write(_vampire);
-			base.Write(Basis, Writer);
-		}
-
-		public override void Read(GameObject Basis, SerializationReader Reader)
-		{
-			_isAttacker = Reader.ReadBoolean();
-			_damage = Reader.ReadString();
-			_ghoul = Reader.ReadBoolean();
-			_friendly = Reader.ReadBoolean();
-			_vampire = Reader.ReadBoolean();
-			base.Read(Basis, Reader);
-		}
+		int VictimHP => IsAttacker ? Other.GetHPPercent() : base.Object.GetHPPercent();
 
 		public BaseFeedEffect()
 		{
-			DisplayName = "";
 		}
-		internal BaseFeedEffect(GameObject other, bool isAttacker, string DamagePerRound, int Duration, bool Ghoul, bool friendly, bool vampire) : this()
+		protected BaseFeedEffect(GameObject other) : base()
 		{
-			this.Damage = DamagePerRound;
-			this.Duration = Duration;
-			this.other = other.Reference();
-			this.isAttacker = isAttacker;
-			this.Ghoul = Ghoul;
-			this.friendly = friendly;
-			this.vampire = vampire;
+			Duration = VampirismSys.Rules.Feed.DURATION;
+			Other = other;
 		}
-		public override string GetDescription() => isAttacker ? "{{R sequence|feeding}}" : "";
+		protected BaseFeedEffect(GameObject other, bool isAttacker, string DamagePerRound, bool Ghoul, bool friendly, bool vampire) : this(other)
+		{
+			Damage = DamagePerRound;
+			IsAttacker = isAttacker;
+			IsGhoul = Ghoul;
+			IsFriendly = friendly;
+			IsVampire = vampire;
+		}
+		public override string GetDescription() => IsAttacker ? "{{R sequence|feeding}}" : "";
 		public override string GetDetails() => Damage + " damage per turn.";
-		bool InvalidActor() => other?.Object?.IsInvalid() ?? true || !other.Object.InSameZone(Object);
+		bool InvalidActor() => Object?.IsInvalid() ?? true || !Other.InSameZone(Object);
 		protected abstract void Attack();
 		public override bool WantEvent(int ID, int cascade)
 		{
 			if (ID == KilledEvent.ID)
-				return isAttacker;
+				return IsAttacker;
 			if (ID == SingletonEvent<UseEnergyEvent>.ID)
-				return isAttacker && Object.IsPlayer();
+				return IsAttacker && Object.IsPlayer();
 			if (ID == TookDamageEvent.ID)
-				return isAttacker && !Object.IsPlayer();
+				return IsAttacker && !Object.IsPlayer();
 			if (ID == SingletonEvent<EndTurnEvent>.ID)
 				return Duration > 0 && Security() && !FeedBroken();
 			return base.WantEvent(ID, cascade);
 		}
 		public override bool HandleEvent(EndTurnEvent E)
 		{
-			if (isAttacker && Feed())
+			UI.Popup.Show($"{Duration}");
+			if (IsAttacker && Feed())
 				Attack();
-			else if (!isAttacker)
+			else if (!IsAttacker)
 				Bloodloss();
 			return base.HandleEvent(E);
 		}
@@ -139,7 +93,7 @@ namespace XRL.World.Effects
 		{
 			if (E.Killer == Object)
 			{
-				if (E.Dying != null && E.Dying == other?.Object)
+				if (E.Dying != null && E.Dying == Other)
 				{
 					KilledEventHandler();
 				}
@@ -175,7 +129,7 @@ namespace XRL.World.Effects
 		bool Feed()
 		{
 			int damage = Damage.RollCached();
-			Amount = Ghoul ? damage / 2 : damage;
+			Amount = IsGhoul ? damage / 2 : damage;
 			if (base.Object.IsPlayer())
 			{
 				if (Vitae.PukeWarning(true))
@@ -183,7 +137,7 @@ namespace XRL.World.Effects
 					Duration = 0;
 					return false;
 				}
-				Vitae.Drink(VampirismSys.Rules.Vitae.BLOOD_PER_FEED);
+				Vitae.Drink(VampirismSys.Rules.Metab.BLOOD_PER_FEED);
 			}
 			Strings();
 			base.Object.Heal(Amount, Message: true, FloatText: true, RandomMinimum: true);
@@ -192,11 +146,11 @@ namespace XRL.World.Effects
 
 		void KilledEventHandler()
 		{
-			if (vampire)
+			if (IsVampire)
 				Diablerie();
-			else if (Object.IsPlayer() && UI.Options.GetOptionBool(VampirismSys.Rules.ModOptions.HUMANITY) && !Object.CheckFlag(Flags.GO) && (friendly || other.Object.CheckFlag(Flags.INNOCENT)))
+			else if (Object.IsPlayer() && UI.Options.GetOptionBool(VampirismSys.Rules.ModOptions.HUMANITY) && !Object.CheckFlag(Flags.GO) && (IsFriendly || Other.CheckFlag(Flags.INNOCENT)))
 			{
-				if (UI.Options.GetOptionBool(VampirismSys.Rules.ModOptions.DOUG) && friendly && !other.Object.IsGhoulOf(Object) && !other.Object.IsBeguiledBy(Object))
+				if (UI.Options.GetOptionBool(VampirismSys.Rules.ModOptions.DOUG) && IsFriendly && !Other.IsGhoulOf(Object) && !Other.IsBeguiledBy(Object))
 					return;
 				else
 					VampireKilled();
@@ -205,7 +159,7 @@ namespace XRL.World.Effects
 
 		void Diablerie()
 		{
-			if (Object != null && (!other?.Object?.HasStringProperty(Flags.FLEDGLING) ?? false))
+			if (Object != null && (!Other?.HasStringProperty(Flags.FLEDGLING) ?? false))
 			{
 				if (AutoLevel || WikiRng.Next(1, 20) == 1)
 				{
@@ -213,7 +167,7 @@ namespace XRL.World.Effects
 					if (Object.IsPlayer())
 					{
 						string msg = WikiRng.Next(1, 2) == 2 ? "Diablerie!" : "Amaranth!";
-						UI.Popup.Show($"{msg} You consume {other.Object.t()}'s soul!");
+						UI.Popup.Show($"{msg} You consume {Other.t()}'s soul!");
 					}
 					var e = Object.GetPart<Vampirism>();
 					e.BaseLevel++;
@@ -226,21 +180,21 @@ namespace XRL.World.Effects
 		{
 			if (InvalidActor())
 			{
-				other = null;
+				_other = null;
 				Duration = 0;
 				return false;
 			}
-			if (!other.Object.HasHitpoints())
+			if (!Other.HasHitpoints())
 			{
 				Duration = 0;
 				return false;
 			}
-			if (!other.Object.HasEffectDescendedFrom<BaseFeedEffect>())
+			if (!Other.HasEffectDescendedFrom<BaseFeedEffect>())
 			{
 				Duration = 0;
 				return false;
 			}
-			if (Object.DistanceTo(other.Object) > 1)
+			if (Object.DistanceTo(Other) > 1)
 			{
 				Duration = 0;
 				return false;
@@ -252,17 +206,17 @@ namespace XRL.World.Effects
 
 		void CheckIfRecognized(GameObject Object)
 		{
-			if (!Ghoul && Object.TryGetLongProperty(Flags.VICTIM, Flags.VICTIM_HOSTILE, out var value) && value > 1000)
+			if (!IsGhoul && Object.TryGetLongProperty(Flags.VICTIM, Flags.VICTIM_HOSTILE, out var value) && value > 1000)
 				AddPlayerMessage("You recognize the flavor of this one.");
 		}
 		bool ThrallCheck()
 		{
-			if (Ghoul)
+			if (IsGhoul)
 			{
-				if (other.Object.hitpoints - Amount <= 0)
+				if (Other.hitpoints - Amount <= 0)
 				{
 					Duration = 0;
-					AddPlayerMessage($"{other.Object.t()} has no more blood to give.");
+					AddPlayerMessage($"{Other.t()} has no more blood to give.");
 					return false;
 				}
 			}
@@ -283,7 +237,7 @@ namespace XRL.World.Effects
 
 		bool FeedBroken()
 		{
-			if (isAttacker && (Object?.Incap(false) ?? true))
+			if (IsAttacker && (Object?.Incap(false) ?? true))
 			{
 				Duration = 0;
 				return true;
@@ -293,14 +247,14 @@ namespace XRL.World.Effects
 
 		void VampireKilled()
 		{
-			PlayHumanityMessages(friendly);
-			other.Object.SetStringProperty(Flags.DEAD, null); //checking for if they have Hitpoints in Remove() did not work. causes a humanity loss dupe bug because victim = true on death.
+			PlayHumanityMessages(IsFriendly);
+			Other.SetStringProperty(Flags.DEAD, null); //checking for if they have Hitpoints in Remove() did not work. causes a humanity loss dupe bug because victim = true on death.
 			Object.GetPart<Humanity>().VampireKilled();
 		}
 
 		public override bool Apply(GameObject Object)
 		{
-			if (isAttacker)
+			if (IsAttacker)
 			{
 				Object.SetStringProperty(Flags.FEED, Flags.TRUE);
 				CheckIfRecognized(Object);
@@ -309,12 +263,12 @@ namespace XRL.World.Effects
 		}
 		public override void Remove(GameObject Object)
 		{
-			if (isAttacker)
+			if (IsAttacker)
 			{
 				EndingStrings(Object);
 				MakeFangsBloody(Object.GetPart<Vampirism>());
 			}
-			else if (!other?.Object?.HasEffect<Dominated>() ?? false)
+			else if (!Other?.HasEffect<Dominated>() ?? false)
 				MarkVictim(Object);
 		}
 
@@ -329,25 +283,25 @@ namespace XRL.World.Effects
 		{
 			if (Object.CheckFlag(Flags.INNOCENT))
 				Object.SetLongProperty(Flags.VICTIM, The.Game.Turns);
-			else if (Object.IsFriendly(other.Object))
+			else if (Object.IsFriendly(Other))
 				Object.SetLongProperty(Flags.VICTIM_HOSTILE, The.Game.Turns);
 		}
 
 		void Strings()
 		{
-			if (base.Object is not null && other?.Object is not null)
+			if (base.Object is not null && Other is not null)
 			{
-				if (!base.Object.IsPlayer() && !other.Object.IsPlayer())
+				if (!base.Object.IsPlayer() && !Other.IsPlayer())
 				{
-					IComponent<GameObject>.AddPlayerMessage(base.Object.t() + " {{R sequence|feeds}}" + " on " + other.Object.t() + ".");
+					IComponent<GameObject>.AddPlayerMessage(base.Object.t() + " {{R sequence|feeds}}" + " on " + Other.t() + ".");
 				}
-				else if (!base.Object.IsPlayer() && other.Object.IsPlayer())
+				else if (!base.Object.IsPlayer() && Other.IsPlayer())
 				{
 					IComponent<GameObject>.AddPlayerMessage(base.Object.t() + " {{R sequence|feeds}} on you!");
 				}
 				else if (base.Object.IsPlayer())
 				{
-					IComponent<GameObject>.AddPlayerMessage(base.Object.t() + " {{R sequence|feed}}" + " on " + other.Object.t() + ".");
+					IComponent<GameObject>.AddPlayerMessage(base.Object.t() + " {{R sequence|feed}}" + " on " + Other.t() + ".");
 				}
 			}
 		}
@@ -370,15 +324,15 @@ namespace XRL.World.Effects
 
 		void EndingStrings(GameObject Object)
 		{
-			bool victimNotNull = other?.Object != null; //unfortunately cant really know if its ending because the other is null or not
+			bool victimNotNull = Other != null; //unfortunately cant really know if its ending because the other is null or not
 			if (Object.IsPlayer())
 			{
 				if (victimNotNull)
-					AddPlayerMessage("You release " + other.Object.t() + "'s neck.");
+					AddPlayerMessage("You release " + Other.t() + "'s neck.");
 				else
 					AddPlayerMessage("You release your victim's neck.");
 			}
-			else if (victimNotNull && other.Object.IsPlayer())
+			else if (victimNotNull && Other.IsPlayer())
 			{
 				if (Object.HasHitpoints())
 					AddPlayerMessage(Object.t() + " releases your neck.");
@@ -388,10 +342,10 @@ namespace XRL.World.Effects
 			else if (Object.HasHitpoints())
 			{
 				if (victimNotNull)
-					AddPlayerMessage(base.Object.t() + " releases " + other.Object.t() + "'s neck.");
+					AddPlayerMessage(base.Object.t() + " releases " + Other.t() + "'s neck.");
 			}
 			else if (victimNotNull)
-				AddPlayerMessage($"{Object.t()}'s grip on {other.Object.t()}'s neck goes slack.");
+				AddPlayerMessage($"{Object.t()}'s grip on {Other.t()}'s neck goes slack.");
 		}
 
 		public override bool UseStandardDurationCountdown()
@@ -406,7 +360,7 @@ namespace XRL.World.Effects
 
 		public override bool Render(RenderEvent E)
 		{
-			if (!isAttacker)
+			if (!IsAttacker)
 			{
 				int num = XRLCore.CurrentFrame % 60;
 				if (num > 25 && num < 35)

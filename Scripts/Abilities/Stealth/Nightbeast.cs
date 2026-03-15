@@ -29,7 +29,7 @@ namespace XRL.World.Parts
 	[HasGameBasedStaticCache]
 	public class Nightbeast : IPart
 	{
-		public static Dictionary<GameObject, bool> Witnesses => _witnesses;
+		internal static Dictionary<GameObject, bool> Witnesses => _witnesses;
 
 		[GameBasedStaticCache]
 		internal static bool NeedsReactivate = false; //for gamestart

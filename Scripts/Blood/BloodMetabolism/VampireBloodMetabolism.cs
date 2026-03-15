@@ -16,9 +16,11 @@ namespace XRL.World.Parts
     [Serializable]
 
     public class VampireBloodMetabolism : BaseBloodMetabolism
-    {
-        public bool GameOver;
-        public bool Bloodlusted;
+    {   
+
+        public bool GameOver { get => _gameOver; private set { _gameOver = value; } }
+        bool _gameOver = false;
+        bool Bloodlusted = false;
         protected override bool WantsMetabolism => ParentObject.IsPlayer(); //in the future, vampire AI may metabolize if theyre in the same party as player
         protected override bool WantsVomit => !ParentObject.CheckFlag(Flags.FRENZY);    //however, their metabrate will be at least 1/2 (similar to ghouls)
         internal static bool AntiPuke;
@@ -27,6 +29,18 @@ namespace XRL.World.Parts
 
         [NonSerialized]
         public static List<GameObject> containers = new();
+
+        public VampireBloodMetabolism()
+        {
+
+        }
+
+        internal VampireBloodMetabolism(bool gameOver, bool bloodlusted, int blood)
+        {
+            this.GameOver = gameOver;
+            this.Bloodlusted = bloodlusted;
+            this.Blood = blood;
+        }
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
             Registrar.Register(Events.GAMEOVER);
@@ -51,11 +65,20 @@ namespace XRL.World.Parts
                 return true;
             if (ID == SingletonEvent<BeforeTakeActionEvent>.ID)
                 return WantsAutoget();
+            if (ID == EffectRemovedEvent.ID)
+                return Bloodlusted;
             return base.WantEvent(ID, cascade);
+        }
+
+        public override bool HandleEvent(EffectRemovedEvent E)
+        {
+            if (E.Effect.GetType() == typeof(Bloodlust))
+                Bloodlusted = false;
+            return base.HandleEvent(E);
         }
         public override bool HandleEvent(BeginTakeActionEvent E)
         {
-            if (AntiPuke && Blood >= VampirismSys.Rules.Vitae.SIP_PUKE_WARN)
+            if (AntiPuke && Blood >= VampirismSys.Rules.Metab.SIP_PUKE_WARN)
                 Blood = 1;
             return base.HandleEvent(E);
         }
@@ -86,12 +109,12 @@ namespace XRL.World.Parts
         {
             if (!ParentObject.CheckFlag(Flags.FRENZY) && !ParentObject.Incap(false) && ParentObject.IsPlayer())
             {
-                if (Blood >= VampirismSys.Rules.Vitae.FEED_PUKE_WARN && feeding)
+                if (Blood >= VampirismSys.Rules.Metab.FEED_PUKE_WARN && feeding)
                 {
                     if (Popup.ShowYesNo("Feeding that much will probably make you sick. Do you still want to feed?") == DialogResult.No)
                         return true;
                 }
-                else if (Blood >= VampirismSys.Rules.Vitae.SIP_PUKE_WARN && !feeding)
+                else if (Blood >= VampirismSys.Rules.Metab.SIP_PUKE_WARN && !feeding)
                 {
                     if (Popup.ShowYesNo("Drinking that much will probably make you sick. Do you still want a drink?") == DialogResult.No)
                         return true;
@@ -116,7 +139,7 @@ namespace XRL.World.Parts
         {
             if (ParentObject.HasEffect<Bleeding>() && Options.GetOptionBool(ModOptions.BLEED_THIRST))
             {
-                Blood -= ParentObject.CheckFlag(Flags.FEED) ? VampirismSys.Rules.Vitae.BLOOD_PERBloodLOSS_FEED : VampirismSys.Rules.Vitae.BLOOD_PERBloodLOSS;
+                Blood -= ParentObject.CheckFlag(Flags.FEED) ? VampirismSys.Rules.Metab.BLOOD_PERBloodLOSS_FEED : VampirismSys.Rules.Metab.BLOOD_PERBloodLOSS;
                 IComponent<GameObject>.AddPlayerMessage("Bloodloss makes you {{R|thistier}}!");
             }
         }
@@ -202,11 +225,11 @@ namespace XRL.World.Parts
         public override bool HandleEvent(BeforeBeginTakeActionEvent E)
         {
             ParentObject.RemoveStringProperty("OldVampirismSaveNeedsUpdate");
-            ParentObject.AddPart(new VampireBloodMetabolism() { Blood = Blood, GameOver = GameOver, Bloodlusted = Bloodlusted });
-            ParentObject.RemovePart(this);              
-            return base.HandleEvent(E);               
-        }                                              
-    }                                                   
+            ParentObject.AddPart(new VampireBloodMetabolism(GameOver, Bloodlusted, Blood));
+            ParentObject.RemovePart(this);
+            return base.HandleEvent(E);
+        }
+    }
 
 
 }

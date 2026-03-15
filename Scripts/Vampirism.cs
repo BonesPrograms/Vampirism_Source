@@ -9,7 +9,6 @@ using VampirismSys.Core;
 using VampirismSys.Attack;
 using VampirismSys.Rules;
 using System.Collections.Generic;
-using Qud.API;
 using System.Linq;
 
 
@@ -24,8 +23,7 @@ namespace XRL.World.Parts.Mutation
 		public const string BODYPART_TYPE = "Face";
 		public Guid FangsActivatedAbilityID = Guid.Empty;
 		public GameObject FangsObject; //your actual fangs
-		internal FeedAbility FeedAbility => _feedCommand ??= new(this);
-		FeedAbility _feedCommand;
+		internal FeedAbility FeedAbility => _feedAbility ??= new(this);
 		public string ManagerID => ParentObject.ID + "::Vampiric Fangs"; //i never really researched managerid yet. i assume that the fangs object counts as a bodypart and this is its manager
 		public override bool CanSelectVariant => false;
 		public override bool UseVariantName => false;
@@ -39,8 +37,17 @@ namespace XRL.World.Parts.Mutation
 				_rotschrek = value;
 			}
 		}
+
+		[NonSerialized]
+		FeedAbility _feedAbility;
+
+		[NonSerialized]
 		bool _rotschrek;
+
+		[NonSerialized]
 		bool Immune;
+
+		[NonSerialized]
 		int TimeOnWorldMap = 0; //problem with this not serializing is if you quit/save while on world map then it will not advance time. to solve this problem i would probably
 								//map this value to Stomach.WasOnWorldMap but for now its local				 
 		bool WasOnWorldMap => TimeOnWorldMap > 0;
@@ -476,7 +483,7 @@ namespace XRL.World.Parts.Mutation
 			if (DeathHandler.Security())
 			{
 				GameObject player = DeathHandler.Player;
-				if (E.NewBody != player && E.NewBody.IsVampire()) //will throw errors on gamestart
+				if (E.NewBody != player && E.NewBody.IsVampire())
 				{
 					string version = player.GetStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG);
 					E.NewBody.SetStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG, version);

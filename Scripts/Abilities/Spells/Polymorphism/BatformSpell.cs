@@ -10,7 +10,7 @@ namespace XRL.World.Parts
     [Serializable]
     public class BatformSpell : BasePolymorphSpell
     {
-        public override int Cooldown => Batform.COOLDOWN;
+        protected override int Cooldown => Batform.COOLDOWN;
         protected override BasePolymorphEffect Effect => new BatformEffect();
         public BatformSpell()
         {

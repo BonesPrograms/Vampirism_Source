@@ -1,10 +1,8 @@
-using System.Collections.Generic;
 using XRL.UI;
 using XRL.World.Effects;
 using VampirismSys.Core;
 using XRL.World;
 using System.Linq;
-using HarmonyLib;
 
 namespace VampirismSys.Biting
 {

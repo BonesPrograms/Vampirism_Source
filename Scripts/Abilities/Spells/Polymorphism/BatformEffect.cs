@@ -1,12 +1,9 @@
-using XRL.World.Effects;
 using System;
-using VampirismSys.Rules;
+
 using VampirismSys.Core;
+using VampirismSys.Rules;
+
 using XRL.World.Parts.Mutation;
-using System.Linq;
-using XRL.World.Anatomy;
-using XRL.World.Parts;
-using System.Collections.Generic;
 
 namespace XRL.World.Effects
 {
@@ -14,11 +11,9 @@ namespace XRL.World.Effects
     [Serializable]
     public class BatformEffect : BasePolymorphEffect
     {
-
-        public int OriginalCapOverride;
-        public int CurrentWingLevel;
-        public bool AlreadyHadWings;
-        public bool WasLessThanTen;
+        int CurrentWingLevel;
+        bool AlreadyHadWings;
+        bool WasLessThanTen;
 
         public BatformEffect() : base()
         {
@@ -45,7 +40,7 @@ namespace XRL.World.Effects
             base.Transform();
             Suppress(true);
             ChangeWings();
-            CommandEvent.Send(base.Object, Wings.COMMAND_NAME);
+            CommandEvent.Send(Object, Wings.COMMAND_NAME);
             Suppress(false);
         }
         public override void Revert()

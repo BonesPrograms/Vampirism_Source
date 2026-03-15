@@ -30,8 +30,10 @@ namespace XRL.World.Parts
 
 		public FrenzyCore Core => _Core ??= new FrenzyCore(this);
 
+		[NonSerialized]
 		FrenzyCore _Core;
 
+		[NonSerialized]
 		Vampirism _Base;
 
 		public bool GameOver;

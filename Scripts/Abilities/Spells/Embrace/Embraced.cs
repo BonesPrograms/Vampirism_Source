@@ -10,20 +10,22 @@ namespace XRL.World.Effects
 
 {
     [Serializable]
-    public class BeingEmbracedFX : IScribedEffect
+    public class BeingEmbracedFX : BeastScribedEffect
     {
-        public GameObjectReference Embracer;
-        public bool FailedEmbrace;
-        public int Level;
+        int Level;
+
+        [NonSerialized]
+        bool FailedEmbrace;
         public BeingEmbracedFX()
         {
         }
-        public BeingEmbracedFX(GameObject Embracer, int time, int level)
+        internal BeingEmbracedFX(int time, int level)
         {
-            this.Embracer = Embracer.Reference();
             base.Duration = time;
             this.Level = level;
         }
+
+
 
         public override string GetDescription()
         {
@@ -123,31 +125,35 @@ namespace XRL.World.Effects
         }
 
     }
+
+
     [Serializable]
     public class AfterEmbracedFX : IScribedEffect
     {
+
+        [NonSerialized]
+        TheBeast _Beast;
+        TheBeast Beast => _Beast ??= Object.GetPart<TheBeast>();
         public AfterEmbracedFX()
         {
             Duration = 9999;
-            DisplayName = "";
         }
         public override string GetDescription() => "{{r|embraced}}";
         public sealed override string GetDetails() => "A newly embraced flegling vampire that has yet to feed.";
-        bool Roll => WikiRng.Next(1, 100) == 100; //ridiculously high frenzy chance. not always instant, enough time for you to back up a bit or something
-        TheBeast _Beast;
-        public TheBeast Beast => _Beast ??= Object.GetPart<TheBeast>();
+        bool Roll() => WikiRng.Next(1, 100) == 100; //ridiculously high frenzy chance. not always instant, enough time for you to back up a bit or something
+
         public override bool WantEvent(int ID, int Cascade)
         {
             if (ID == EffectAppliedEvent.ID)
                 return true;
-            if (Roll && ID == SingletonEvent<BeginTakeActionEvent>.ID)
-                return !Beast.CantFrenzy();
+            if (ID == SingletonEvent<BeginTakeActionEvent>.ID)
+                return Roll() && !Beast.CantFrenzy();
             return base.WantEvent(ID, Cascade);
         }
 
         public override bool HandleEvent(EffectAppliedEvent E)
         {
-            if (E.Effect is BaseFeedEffect feed && feed.isAttacker)
+            if (E.Effect is BaseFeedEffect feed && feed.IsAttacker)
                 Duration = 0;
             return base.HandleEvent(E);
         }
@@ -163,16 +169,18 @@ namespace XRL.World.Effects
             if (!Obj.IsPlayer())
             {
                 Parts.VampireBloodMetabolism v = Obj.GetPart<Parts.VampireBloodMetabolism>();
-                v.Blood = VampirismSys.Rules.Vitae.BLOOD_QUENCHED;
+                v.Blood = VampirismSys.Rules.Metab.BLOOD_QUENCHED;
             }
         }
 
         public override bool Apply(GameObject Obj)
         {
             Parts.VampireBloodMetabolism v = Obj.GetPart<Parts.VampireBloodMetabolism>();
-            v.Blood = VampirismSys.Rules.Vitae.BLOOD_MIN;
+            v.Blood = VampirismSys.Rules.Metab.BLOOD_MIN;
             return true;
         }
+
+
 
     }
 }

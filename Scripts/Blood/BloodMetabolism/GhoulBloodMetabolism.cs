@@ -1,7 +1,7 @@
 using System;
-using XRL.World.Effects;
 using VampirismSys.Blood;
 using VampirismSys.Core;
+using XRL.World.Effects;
 
 namespace XRL.World.Parts
 {
@@ -10,11 +10,25 @@ namespace XRL.World.Parts
     {
         public static readonly string[] Stats = { "Strength", "Agility", "Toughness", "Willpower", "Ego", "Hitpoints" };
 
-        protected override int MetabolismRate => VampirismSys.Rules.Vitae.Metab_Settings.DEFAULT / 2;
+        protected override int MetabolismRate => VampirismSys.Rules.Metab.Metab_Settings.DEFAULT / 2;
 
-        public bool Buffed;
+        bool Buffed;
 
-        public bool Bloodstarved;
+        bool Bloodstarved;
+
+        public override bool WantEvent(int ID, int cascade)
+        {
+            if (ID == EffectRemovedEvent.ID)
+                return Buffed;
+            return base.WantEvent(ID, cascade);
+        }
+
+        public override bool HandleEvent(EffectRemovedEvent E)
+        {
+            if (E.Effect.GetType() == typeof(BuffedEnthralledGhoul))
+                Buffed = false;
+            return base.HandleEvent(E);
+        }
 
         int DebuffRate => Status switch //rough draft, in the future the scaling will be based on the individual value of each statistic
         {                               //though this will probably be handled at the site of debuff, and DebuffRate will be used as a "base debuff value"

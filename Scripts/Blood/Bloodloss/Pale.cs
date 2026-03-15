@@ -7,7 +7,7 @@ namespace XRL.World.Effects
     [Serializable]
 
 
-    internal class Pale : Dazed
+    public class Pale : Dazed
     {
 
         int victimHP => base.Object.GetHPPercent();

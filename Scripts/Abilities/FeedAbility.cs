@@ -68,7 +68,7 @@ namespace VampirismSys.Attack
                 return false;
             else if (Target.TryGetEffect(out BaseFeedEffect feed)) //this block of code determiens the outcome if you try to interfere with another vampires feed
             {
-                GameObject Feeder = feed.other.Object;
+                GameObject Feeder = feed.Other;
                 friends = Feeder.IsFriendly(Source.ParentObject);
                 return friends || NotFriendly(Feeder, Target);
             }
@@ -84,12 +84,12 @@ namespace VampirismSys.Attack
                     if (Popup.ShowYesNo(Target.t() + " looks gross. Are you sure you want to bite " + Target.them + "?") == DialogResult.No)
                         return false;
             }
-            if (Source.ParentObject.GetIntProperty(Flags.HUMANITY) == Rules.Humanity.CRIT)
+            if (Source.ParentObject.GetIntProperty(Flags.HUMANITY) == Rules.Hum.CRIT)
             {
                 if (Popup.ShowYesNo("Your {{G sequence|Humanity}} is {{R|CRITICAL!}}\nAre you sure you want to feed on " + Target.t() + "?") == DialogResult.No)
                     return false;
             }
-            if (Source.ParentObject.GetIntProperty(Flags.BLOOD_VALUE) >= Rules.Vitae.FEED_PUKE_WARN && Source.ParentObject.IsPlayer())
+            if (Source.ParentObject.GetIntProperty(Flags.BLOOD_VALUE) >= Rules.Metab.FEED_PUKE_WARN && Source.ParentObject.IsPlayer())
             {
                 if (Source.ParentObject.GetPart<XRL.World.Parts.VampireBloodMetabolism>().PukeWarning(true))
                     return false;

@@ -7,7 +7,7 @@ namespace XRL.World.Effects
 {
 
     [Serializable]
-    internal class KO : Asleep
+    public class KO : Asleep
     {
         int victimHP => base.Object.GetHPPercent();
         bool victim => base.Object.HasEffectDescendedFrom<BaseFeedEffect>();
@@ -18,7 +18,7 @@ namespace XRL.World.Effects
             base.Duration = 9999;
         }
 
-        internal KO(int Duration, bool forced) : this()
+        public KO(int Duration, bool forced) : this()
         {
             base.Duration = Duration;
             this.forced = forced;
@@ -67,7 +67,7 @@ namespace XRL.World.Effects
                 IComponent<GameObject>.AddPlayerMessage("You pass out from bloodloss!");
             else if (Visible())
                 IComponent<GameObject>.AddPlayerMessage(Object.t() + " passes out from bloodloss.");
-            Object.Brain?.Goals.Clear();
+            Object.Brain.Goals.Clear();
             Object.ForfeitTurn();
             if (Object.IsPlayer())
                 AutoAct.Interrupt();

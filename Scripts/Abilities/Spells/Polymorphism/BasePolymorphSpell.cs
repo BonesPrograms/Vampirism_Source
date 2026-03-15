@@ -6,41 +6,15 @@ using VampirismSys.Core;
 namespace XRL.World.Parts
 {
     [Serializable]
-    public abstract class BasePolymorphSpell : BaseVampireSpell //the original version used metamorphosis to turn you into a literal bat, but your party would not sync and i didnt feel like trying to fix that
-    {                                           //because the alternative is easier: fake transformation as you see in this type. there are also tons of other issues like mutations and stats and precognition not easily being synced so this is optimal
-   
-        public override bool Toggled => true;
+    public abstract class BasePolymorphSpell : BaseVampireSpell
+    {
+        protected override bool Toggled => true;
 
-        public bool Transformed
-        {
-            get => _transformed;
-            private set
-            {
-                _transformed = value;
-            }
-        }
-        public string FormName
-        {
-            get=>_formName;
-            protected init
-            {
-                _formName = value;
-            }
-        }
-
-        public string HUDName
-        {
-            get=>_hudName;
-            protected init
-            {
-                _hudName = value;
-            }
-        }
-
+        public bool Transformed { get => _transformed; private set { _transformed = value; } }
+        protected string FormName { get => _formName; init { _formName = value; } }
+        protected string HUDName { get => _hudName; init { _hudName = value; } }
         string _formName;
-
         string _hudName;
-
         bool _transformed;
         protected abstract BasePolymorphEffect Effect { get; }
         protected override void CollectStats(Templates.StatCollector stats)
@@ -88,22 +62,6 @@ namespace XRL.World.Parts
                     }
                 }
             }
-        }
-
-        public override void Write(GameObject Basis, SerializationWriter Writer)
-        {
-            Writer.Write(_formName);
-            Writer.Write(_hudName);
-            Writer.Write(_transformed);
-            base.Write(Basis, Writer);
-        }
-
-        public override void Read(GameObject Basis, SerializationReader Reader)
-        {
-            _formName = Reader.ReadString();
-            _hudName = Reader.ReadString();
-            _transformed = Reader.ReadBoolean();
-            base.Read(Basis, Reader);
         }
 
     }

@@ -6,9 +6,53 @@ using System;
 using XRL.UI;
 using XRL.World.Parts.Mutation;
 using System.Linq;
-using System.Collections;
-using static XRL.World.Cell;
-using XRL.World.Anatomy;
+using System.Reflection;
+using VampirismSys.Core;
+
+
+namespace XRL.World.Parts
+{
+
+	//These are custom types that use my custom serializer. Inherit from them if you want access to easy serialization of public and private fields.
+	//For info on constraints, limitations and RULES!!! see the method definitions.
+	//Because there are constraints, limitations and rules
+
+	[Serializable]
+	public abstract class BeastScribedPart : IPart
+	{
+		public override void Write(GameObject Basis, SerializationWriter Writer)
+		{
+			Writer.WriteNamedInstanceFields(this);
+		}
+
+		public override void Read(GameObject Basis, SerializationReader Reader)
+		{
+			Reader.ReadNamedInstanceFields(this);
+		}
+	}
+}
+
+namespace XRL.World.Effects
+{
+
+	[Serializable]
+	public abstract class BeastScribedEffect : Effect
+	{
+		public override void Write(GameObject Basis, SerializationWriter Writer)
+		{
+			Writer.WriteNamedInstanceFields(this);
+			XRL.UI.Popup.Show(Duration.ToString() + "write D");
+		}
+
+		public  override void Read(GameObject Basis, SerializationReader Reader)
+		{
+			Reader.ReadNamedInstanceFields(this);
+			XRL.UI.Popup.Show(Duration.ToString() + "read D");
+		}
+
+	}
+}
+
 
 namespace VampirismSys.Core
 {
@@ -16,7 +60,7 @@ namespace VampirismSys.Core
 
 	internal static class QudExtensions
 	{
-		readonly static Type[] UnawareFX =
+		readonly static Type[] UnawareEffects =
 		{
 			typeof(VampiresKiss), typeof(KO), typeof(Stun), typeof(Paralyzed), typeof(Asleep), typeof(Exhausted)
 		};
@@ -110,11 +154,11 @@ namespace VampirismSys.Core
 		{
 			if (Object.IsConfused && !Object.IsPlayer()) //normally confusion does not count as technical unawareness for the player
 				return true;                            //the effect of this can be noticed in Incap()'s references; ie. feed does not end for a confused player but ends for a confused AI
-			for (int i = 0; i < UnawareFX.Length; i++)
+			for (int i = 0; i < UnawareEffects.Length; i++)
 			{
 				for (int x = 0; x < Object.Effects.Count; x++)
 				{
-					if (UnawareFX[i] == Object.Effects[x].GetType())
+					if (UnawareEffects[i] == Object.Effects[x].GetType())
 					{
 						if (kissing && i == 0)
 							continue;
@@ -223,7 +267,7 @@ namespace VampirismSys.Core
 
 
 		#endregion
-		
+
 		#region Mutations Part
 		internal static T GetMutation<T>(this Mutations mutations) where T : BaseMutation
 		{
@@ -271,6 +315,174 @@ namespace VampirismSys.Core
 
 		#endregion
 
+		#region Serialization
+
+		internal static bool DebugSerializer = false;
+		internal static Type[] TargetTypes = null;
+
+		//INFO:
+
+		//WriteToBase and ReadToBase will read/write from the current type up to it's most base type, halting at the built-in game types (IPart and Effect respectively)
+		//Public and Private instance fields will be written and read. Mark a field as [NonSerialized] to exclude it.
+		//Following IScribed rules, fields are serialized and deserialized by name.
+		//If you're inheriting one of my base types, they will have BeastScribed serialization.
+
+		//RULES FOR INHERITING FROM BeastScribed TYPES:
+
+		//if you want to serialize a field that cannot be serialized by WriteObject, mark it as [NonSerialized] for clarity and safety
+		//serialize it yourself, then call base.Read and base.Write in your overrides
+		//you should follow the rules of IScribed and serialize its name too!
+
+		//LIMITATIONS:
+
+		//These methods cannot serialize GameObjectReference fields (Writer.WriteObject ignores gameobjectreference fields)
+		//These methods can only serialize enums whos underlying type is int or uint (Writer.WriteObject handles this)
+
+		//EXCEPTIONS:
+
+		//Sometimes, uninitialized fields will throw exceptions on deserialization. If you are getting deserialization exceptions
+		//the first thing you should do is initialize your fields to a non-null value, or mark them [NonSerialized]
+		//I have not determined the cause of this problem
+
+		public static void WriteNamedInstanceFields(this SerializationWriter Writer, IPart instance)
+		{
+			Type type = instance.GetType();
+			while (type != typeof(IPart))
+			{
+				Writer.WriteNamedInstanceFields(instance, type);
+				type = type.BaseType;
+			}
+			if (DebugSerializer && (TargetTypes.IsNullOrEmpty() || TargetTypes.Contains(instance.GetType())))
+				LogFieldTypes(instance);
+		}
+
+		public static void ReadNamedInstanceFields(this SerializationReader Reader, IPart instance)
+		{
+			Type type = instance.GetType();
+			while (type != typeof(IPart))
+			{
+				Reader.ReadNamedInstanceFields(instance, type);
+				type = type.BaseType;
+			}
+		}
+
+		public static void WriteNamedInstanceFields(this SerializationWriter Writer, Effect instance)
+		{
+			Type type = instance.GetType();
+			while (type != typeof(Effect))
+			{
+				Writer.WriteNamedInstanceFields(instance, type);
+				type = type.BaseType;
+			}
+			if (DebugSerializer && (TargetTypes.IsNullOrEmpty() || TargetTypes.Contains(instance.GetType())))
+				LogFieldTypes(instance);
+		}
+
+		public static void ReadNamedInstanceFields(this SerializationReader Reader, Effect instance)
+		{
+			Type type = instance.GetType();
+			while (type != typeof(Effect))
+			{
+				Reader.ReadNamedInstanceFields(instance, type);
+				type = type.BaseType;
+			}
+		}
+
+
+
+		//i was having issues working with the base-game methods for serializing named fields, it was not serializing one of my GameObject fields
+		//this is a slightly modified version that only excludes flags that specifically mark themselves as nonserialized
+		//and obviously ignores any static/const fields
+		static void WriteNamedInstanceFields(this SerializationWriter writer, object instance, Type type)
+		{
+			FieldInfo[] array = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+			int size = array.Length;
+			int serializeableCount = 0;
+			for (int i = 0; i < size; i++)
+			{
+				if (!array[i].Attributes.HasFlag(FieldAttributes.NotSerialized))
+					serializeableCount++;
+			}
+			writer.WriteOptimized(serializeableCount);
+			for (int x = 0; x < size; x++)
+			{
+				if (serializeableCount <= 0)
+					break;
+				var info = array[x];
+				if (!array[x].Attributes.HasFlag(FieldAttributes.NotSerialized))
+				{
+					writer.WriteOptimized(info.Name);
+					writer.WriteObject(info.GetValue(instance));
+					serializeableCount--;
+				}
+			}
+		}
+
+		static void ReadNamedInstanceFields(this SerializationReader reader, object instance, Type type)
+		{
+			FieldInfo[] array = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+			int serializedSize = reader.ReadOptimizedInt32();
+			for (int i = 0; i < serializedSize; i++)
+			{
+				string text = reader.ReadOptimizedString();
+				object value = reader.ReadObject();
+				for (int x = 0; x < array.Length; x++)
+				{
+					FieldInfo fieldInfo = array[x];
+					if (fieldInfo.Name == text)
+					{
+						if (type == typeof(VampireBloodMetabolism) || type == typeof(BaseBloodMetabolism))
+						{
+							MetricsManager.LogInfo(fieldInfo.Name);
+							MetricsManager.LogInfo(value.ToString());
+						}
+						fieldInfo.SetValue(instance, value);
+						break;
+					}
+				}
+			}
+		}
+
+		static void LogFieldTypes(IPart instance)
+		{
+			Type type = instance.GetType();
+			while (type != typeof(IPart))
+			{
+				ReadFieldInfo(type);
+				type = type.BaseType;
+				Skip<IPart>(type);
+			}
+
+		}
+
+		static void LogFieldTypes(Effect instance)
+		{
+			Type type = instance.GetType();
+			while (type != typeof(Effect))
+			{
+				ReadFieldInfo(type);
+				type = type.BaseType;
+				Skip<Effect>(type);
+			}
+		}
+
+		static void Skip<T>(Type type)
+		{
+			if (type != typeof(T))
+				for (int i = 0; i < 25; i++)
+					MetricsManager.LogInfo("\n");
+		}
+
+		static void ReadFieldInfo(Type type)
+		{
+			MetricsManager.LogInfo($"Reading field info on {type.Name}");
+			foreach (var obj in type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance))
+			{
+				MetricsManager.LogInfo($"{obj.Name}. {obj.FieldType}. {obj.Attributes}");
+			}
+		}
+
+		#endregion
 	}
 
 

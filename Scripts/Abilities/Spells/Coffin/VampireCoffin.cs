@@ -6,20 +6,23 @@ namespace XRL.World.Parts
     [Serializable]
     public class VampireCoffin : Bed
     {
+
+        [NonSerialized]
         GameObject _ownerCache;
 
         /// <summary>
         /// Potentially null value 
         /// </summary>
-        public GameObject OwnerCache => _ownerCache ??= GameObject.FindByID(OwnerID);
-        public string OwnerID;
+        GameObject OwnerCache => _ownerCache ??= GameObject.FindByID(OwnerID);
+        public string OwnerID { get => _ownerID; private init { _ownerID = value; } }
+        string _ownerID;
 
         public VampireCoffin()
         {
 
         }
 
-        public VampireCoffin(GameObject Object)
+        internal VampireCoffin(GameObject Object)
         {
             _ownerCache = Object;
             OwnerID = Object.ID;
@@ -89,6 +92,18 @@ namespace XRL.World.Parts
             if (player)
                 UI.Popup.Show($"{ParentObject.t()} will not open for you.");
             return false;
+        }
+
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+            Writer.Write(_ownerID);
+            base.Write(Basis, Writer);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+            _ownerID = Reader.ReadString();
+            base.Read(Basis, Reader);
         }
     }
 }

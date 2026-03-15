@@ -74,7 +74,7 @@ namespace XRL.World.Parts
                 ParentObject.Obliterate();
                 return false;
             }
-            if (h.Score >= VampirismSys.Rules.Humanity.MAX)
+            if (h.Score >= VampirismSys.Rules.Hum.MAX)
             {
                 UI.Popup.Show("You are flush with false life, and cannot absorb any more humanity.");
                 return false;

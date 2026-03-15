@@ -2,29 +2,32 @@ using System;
 using XRL.World.Effects;
 using VampirismSys.Core;
 using VampirismSys.Rules;
-
-using SerializeField = UnityEngine.SerializeField;
 using System.Linq;
 using XRL.World.Parts.Mutation;
+
 namespace XRL.World.Parts
 {
 
     [Serializable]
     public class CoffinSpell : BaseVampireSpell
     {
-        public GameObject Coffin;
-        public override int Cooldown => VampirismSys.Rules.Coffin.MATERIALIZE_COOLDOWN;
-        public int JauntCooldown;
-        public int Timer;
-        public bool CoolingOff;
-        public bool HasCoffin;
-        public string Zone;
-        public int CellX;
-        public int CellY;
-        bool _justJaunted;
-        bool _tookFireDamage;
-        internal static bool ShowDebug;
+        [NonSerialized]
+        GameObject Coffin;
+        protected override int Cooldown => VampirismSys.Rules.Coffin.MATERIALIZE_COOLDOWN;
+        bool CoolingOff => JauntCooldown > 0;
+        int JauntCooldown = 0;
+        int CooldownTimer = 0;
+        bool HasCoffin = false; //i had at least 5 nullref deserialization errors with this type, so all values are initialized to avoid them
+        string Zone = string.Empty;
+        int CellX = default;
+        int CellY = default;
 
+        [NonSerialized]
+        bool JustJaunted;
+
+        [NonSerialized]
+        bool TookFireDamage;
+        internal static bool ShowDebug;
         public CoffinSpell()
         {
             AbilityMenuName = VampirismSys.Rules.Coffin.ABILITY_NAME;
@@ -32,7 +35,7 @@ namespace XRL.World.Parts
         }
         protected override int Roll() => WikiRng.Next(1, 20) + Level;
         //uses vampirism level like all spells
-        
+
         public bool UpdateXY(Cell cell)
         {
             if (cell != null)
@@ -51,24 +54,13 @@ namespace XRL.World.Parts
             return false;
         }
 
-        public override void Write(GameObject Basis, SerializationWriter Writer)
-        {
-            Writer.WriteGameObject(Coffin);
-            base.Write(Basis, Writer);
-        }
-
-        public override void Read(GameObject Basis, SerializationReader Reader)
-        {
-            Coffin = Reader.ReadGameObject();
-            base.Read(Basis, Reader);
-        }
 
         public override bool WantEvent(int ID, int Cascade)
         {
             if (ID == BeforeDieEvent.ID || ID == BeforeTookDamageEvent.ID)
                 return !CoolingOff && HasCoffin;
             if (ID == SingletonEvent<BeginTakeActionEvent>.ID)
-                return _justJaunted || CoolingOff;
+                return JustJaunted || CoolingOff;
             if (ID == AfterDieEvent.ID)
                 return HasCoffin;
             return base.WantEvent(ID, Cascade);
@@ -94,7 +86,7 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(BeginTakeActionEvent E)
         {
-            if (_justJaunted)
+            if (JustJaunted)
                 Jaunted();
             if (CoolingOff)
                 CoolOff();
@@ -103,7 +95,7 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(BeforeDieEvent E)
         {
-            if (E.Dying == ParentObject && !_tookFireDamage && !Vampirism.SunlightInterference(ParentObject))
+            if (E.Dying == ParentObject && !TookFireDamage && !Vampirism.SunlightInterference(ParentObject))
             {
                 if ((Roll() >= VampirismSys.Rules.Coffin.SAVING_THROW_DC) || UI.Options.GetOptionBool(ModOptions.COFFIN))
                 {
@@ -114,7 +106,7 @@ namespace XRL.World.Parts
                         E.Dying.TeleportTo(cell);
                         E.Dying.TeleportSwirl(null, "&C", Voluntary: true, null, 'ù', IsOut: true);
                         E.RequestInterfaceExit();
-                        _justJaunted = true;
+                        JustJaunted = true;
                         return false;
                     }
                 }
@@ -126,7 +118,7 @@ namespace XRL.World.Parts
         {
             if (E.Object == ParentObject && UI.Options.GetOptionBool(ModOptions.FIRE))
             {
-                _tookFireDamage = E.Damage.Attributes.Contains("Fire");
+                TookFireDamage = E.Damage.Attributes.Contains("Fire");
             }
             return base.HandleEvent(E);
         }
@@ -210,11 +202,10 @@ namespace XRL.World.Parts
         }
         void CoolOff()
         {
-            Timer++;
-            if (Timer >= JauntCooldown)
+            CooldownTimer++;
+            if (CooldownTimer >= JauntCooldown)
             {
-                CoolingOff = false;
-                Timer = default;
+                CooldownTimer = default;
                 JauntCooldown = default;
             }
         }
@@ -228,9 +219,8 @@ namespace XRL.World.Parts
                 UI.Popup.Show("You return to your coffin!");
             else
                 AddPlayerMessage($"{ParentObject.t()} vanishes!");
-            _justJaunted = false;
-            CoolingOff = true;
-            Timer = 0;
+            JustJaunted = false;
+            CooldownTimer = 0;
             JauntCooldown = WikiRng.Next(VampirismSys.Rules.Coffin.SAVE_FROM_DEATH_MIN, VampirismSys.Rules.Coffin.SAVE_FROM_DEATH_MAX);
             ParentObject.ApplyEffect(new Asleep(null, WikiRng.Next(200, 500), true, false, false, true));
         }
@@ -243,7 +233,7 @@ namespace XRL.World.Parts
 
         protected override void CollectStats(Templates.StatCollector stats)
         {
-            stats.Set("Save-From-Death Cooldown", JauntCooldown - Timer, true);
+            stats.Set("Save-From-Death Cooldown", JauntCooldown - CooldownTimer, true);
             stats.Set("SaveAndChance", Chance(), true);
             stats.CollectCooldownTurns(MyActivatedAbility(SpellID), VampirismSys.Rules.Coffin.MATERIALIZE_COOLDOWN);
 
@@ -257,19 +247,3 @@ namespace XRL.World.Parts
         }
     }
 }
-
-
-//NOTES ON ACTIVATECOFFIN(OUT CELL CELL):
-
-//I noticed a few bugs during developemnt. However, these bugs are kindof bugfoot: they come and go. I havent noticed them in recent testing, but here they are:
-
-//coffin goes null if you leave the zone, and if it doesnt go null, its blueprint changes
-//coffins must be a single persistent object, so we pretty much need to find the coffin by zone, recreate it entirely, and re-assign it to Coffin
-//however during this process, Coffin.CurrentCell == null, so we need to get it's cell by XY
-//so that we can remove it (because using TeleportTo doesnt actually remove it and instead duplicates)
-
-//i have a feeling this could be causing hidden issues... if you try to get the coffin by bp it doesnt work always, but getting it by part does work
-//it may be accidentally stealing world objects...
-
-//Currently, we are not accidentally stealing world objects, and I have verified that the coffin retain's its proper blueprint, even to the extent that the coffin does not
-// consistently go null when leaving the zone. Those strange situations where the blueprint changed (this happened multiple times) has not occured recently.

@@ -98,7 +98,7 @@ namespace VampirismSys.Rules
         internal const int DURATION = 5;
         internal const int COOLDOWN = 50;
     }
-    internal static class Humanity
+    internal static class Hum
     {
         internal const int REGEN_TIME = 5000;
         internal const int REGEN = 1;
@@ -112,7 +112,7 @@ namespace VampirismSys.Rules
 
     }
 
-    internal static class Vitae
+    internal static class Metab
     {
 
         internal const int BLOOD_MIN = 0;

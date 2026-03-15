@@ -3,21 +3,12 @@ using XRL.World.Parts.Mutation;
 using XRL.World.Effects;
 using System.Collections.Generic;
 using System.Linq;
-using VampirismSys.Core;
 
 namespace VampirismSys.Biting
 {
-
-    /// <summary>
-    /// Minimum value takes priority.
-    /// </summary>
-    /// 
-    /// 
-    
-    
     internal abstract class BaseBite
     {
-        protected internal enum Ending
+        internal enum Ending
         {
             VOMIT = 4,
             FAIL = 3,
@@ -26,9 +17,6 @@ namespace VampirismSys.Biting
             OUT_OF_RANGE = 0
         }
         readonly protected GameObject Biter;
-        protected BaseBite()
-        {
-        }
         protected BaseBite(GameObject Biter)
         {
             this.Biter = Biter;

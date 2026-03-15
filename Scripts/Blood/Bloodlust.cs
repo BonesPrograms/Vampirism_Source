@@ -1,11 +1,9 @@
 using System;
-using XRL.Core;
-using XRL.World.Parts;
-using XRL.World.Capabilities;
-using VampirismSys.Properties;
-using VampirismSys.Rules;
 using VampirismSys.Core;
+using VampirismSys.Properties;
 using VampirismSys.Registry;
+using XRL.Core;
+using XRL.World.Capabilities;
 
 namespace XRL.World.Effects
 {
@@ -13,14 +11,16 @@ namespace XRL.World.Effects
     /// Manages player feedback for their frenzy chance, based on thirst level, but does not determine Frenzy chance - see FrenzyCore.cs.
     /// </summary>
     [Serializable]
-    public class Bloodlust : Effect
+    public class Bloodlust : BeastScribedEffect
     {
-        public bool stage1;
-        public bool stage2;
-        public bool Gameover;
-        public Bloodlust() => DisplayName = "";
+        bool stage1;
+        bool stage2;
+        bool Gameover;
+        public Bloodlust()
+        {
+            
+        }
         public Bloodlust(int Duration, bool Gameover)
-            : this()
         {
             base.Duration = Duration;
             this.Gameover = Gameover;
@@ -61,7 +61,7 @@ namespace XRL.World.Effects
         public override bool HandleEvent(BeginTakeActionEvent E)
         {
             int vitae = base.Object.GetIntProperty(Flags.BLOOD_VALUE);
-            if (vitae >= VampirismSys.Rules.Vitae.BLOOD_QUENCHED)
+            if (vitae >= VampirismSys.Rules.Metab.BLOOD_QUENCHED)
                 Duration = 0;
             else
                 DiseaseStatus(vitae);
@@ -106,9 +106,9 @@ namespace XRL.World.Effects
         }
         void CheckBloodLevel(int vitae)
         {
-            if (vitae > VampirismSys.Rules.Vitae.BLOOD_PARCHED && stage2)
+            if (vitae > VampirismSys.Rules.Metab.BLOOD_PARCHED && stage2)
                 stage2 = false;
-            if (vitae > VampirismSys.Rules.Vitae.BLOOD_THIRSTY && stage1)
+            if (vitae > VampirismSys.Rules.Metab.BLOOD_THIRSTY && stage1)
                 stage1 = false;
         }
 
@@ -116,8 +116,6 @@ namespace XRL.World.Effects
         {
             if (!Object.CheckFlag(Flags.FRENZY) && Object.IsPlayer())
                 AddPlayerMessage(Gameover ? "You gorge on as much blood as you can, but your {{r|bloodlust}} will never truly be satiated." : "Your {{R sequence|thirst}} is quenched.");
-            Parts.VampireBloodMetabolism v = Object.GetPart<Parts.VampireBloodMetabolism>();
-            v.Bloodlusted = false;
         }
 
         public override bool SameAs(Effect e)

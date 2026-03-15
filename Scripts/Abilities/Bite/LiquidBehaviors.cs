@@ -1,10 +1,8 @@
-using System.Collections.Generic;
 using XRL.UI;
 using XRL.World.Effects;
 using VampirismSys.Core;
 using XRL.World;
 using System.Linq;
-using AiUnity.Common.Extensions;
 
 namespace VampirismSys.Biting
 {
@@ -90,7 +88,7 @@ namespace VampirismSys.Biting
             return Result(BadLiquids.Where(x => x.Item2).Select(x => Cycle(x.Item1)));
         }
 
-         Ending Cycle(string liquid) =>
+        Ending Cycle(string liquid) =>
         liquid switch
         {
             "sludge" => SludgeLiquid(),

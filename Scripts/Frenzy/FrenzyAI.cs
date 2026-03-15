@@ -15,18 +15,22 @@ namespace XRL.World.Effects
     /// </summary>
     /// 
     [Serializable]
-    public class FrenzyAI : IScribedEffect 
+    public class FrenzyAI : BeastScribedEffect 
     {
-        public GameObject Target;
+        internal GameObject Target;
         public TheBeast Source => _source ??= Object.GetPart<TheBeast>();
-        TheBeast _source;
         ActionAI Action => _action ??= new(this, Source.Base.FeedAbility.Bite, Source.Core.Search);
+
+        [NonSerialized]
         ActionAI _action;
+
+        [NonSerialized]
+        TheBeast _source;
         public bool InRange => base.Object.DistanceTo(Target) <= 1;
-        public bool gameover;
+        public bool gameover {get=> _gameover; private init{_gameover = value;}}
+        bool _gameover;
         public FrenzyAI()
         {
-            DisplayName = "";
             Duration = 9999;
         }
         internal FrenzyAI(GameObject Target, bool gameover) : this()
@@ -57,7 +61,7 @@ namespace XRL.World.Effects
 
         public override bool HandleEvent(EffectRemovedEvent E)
         {
-            if (!gameover && E.Effect is BaseFeedEffect feed && feed.isAttacker)
+            if (!gameover && E.Effect is BaseFeedEffect feed && feed.IsAttacker)
             {
                 Duration = 0;
             }
@@ -108,17 +112,9 @@ namespace XRL.World.Effects
         void Cleanup()
         {
             base.Object.RemoveEffect<Running>();
-            CheckBloodAndCooldown();
+            Source.Base.CooldownMyActivatedAbility(Source.Base.FangsActivatedAbilityID, Feed.COOLDOWN);
             Source.Frenzied = false;
             Source.ParentObject.SetStringProperty(Flags.FRENZY, Flags.FALSE);
-        }
-
-        void CheckBloodAndCooldown()
-        {
-            Parts.VampireBloodMetabolism vitae = base.Object.GetPart<Parts.VampireBloodMetabolism>();
-            Source.Base.CooldownMyActivatedAbility(Source.Base.FangsActivatedAbilityID, Feed.COOLDOWN);
-            if (vitae.Blood >= VampirismSys.Rules.Vitae.BLOOD_PUKE) //prevents vomit softlock from having 184,000 blood after a crazy wassail sesh
-                vitae.Blood = VampirismSys.Rules.Vitae.BLOOD_PUKE;
         }
 
         public override bool Apply(GameObject Object)
@@ -148,5 +144,10 @@ namespace XRL.World.Effects
         public override bool SameAs(Effect e) => false;
         public override string GetDetails() => "{{R sequence|The Beast}} has taken control.";
 
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+            Writer.Write(_gameover);
+            base.Write(Basis, Writer);
+        }
     }
 }

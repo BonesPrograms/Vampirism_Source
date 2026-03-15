@@ -17,9 +17,22 @@ namespace XRL.World.Parts
 	public class Humanity : IPart //AI do not experience humanity on their own, but if dominated, 
 								  //they can lose humanity by killing people via feeding, and enter a gameover state.
 	{                               //Other forms of humanity loss covered by DeathEvents all track back to the original player instead.
-		bool State_GO => Score <= VampirismSys.Rules.Humanity.GAMEOVER;
-		public int Score = VampirismSys.Rules.Humanity.MAX;
-		public int RegenTimer;
+		bool State_GO => Score <= VampirismSys.Rules.Hum.GAMEOVER;
+
+		public int Score
+		{
+			get => _score;
+			set
+			{
+				_score = 
+				  GameOver ? 0
+				: value > Hum.MAX ? Hum.MAX
+				: value < Hum.GAMEOVER ? Hum.GAMEOVER
+				: value;
+			}
+		}
+		public int _score = VampirismSys.Rules.Hum.MAX;
+		public int _regen;
 		public bool GameOver;
 
 		public override void Register(GameObject Object, IEventRegistrar Registrar) => Registrar.Register(Events.WISH_HUMANITY);
@@ -27,7 +40,7 @@ namespace XRL.World.Parts
 		{
 			if (E.ID == Events.WISH_HUMANITY)
 			{
-                Score = VampirismSys.Rules.Humanity.MAX;
+				Score = VampirismSys.Rules.Hum.MAX;
 				GameOver = false;
 			}
 			return base.FireEvent(E);
@@ -39,10 +52,9 @@ namespace XRL.World.Parts
 
 		public void VampireKilled()
 		{
-            Score -= VampirismSys.Rules.Humanity.LOSS_PER_KILL;
-			ParentObject.SetIntProperty(Flags.HUMANITY, Score);
-			if (Score > VampirismSys.Rules.Humanity.GAMEOVER)
-                AddPlayerMessage("{{R|HUMANITY LOST!}}\nYou have " + strings() + " {{G sequence|Humanity}}.");
+			Score -= VampirismSys.Rules.Hum.LOSS_PER_KILL;
+			if (Score > VampirismSys.Rules.Hum.GAMEOVER)
+				AddPlayerMessage("{{R|HUMANITY LOST!}}\nYou have " + strings() + " {{G sequence|Humanity}}.");
 		}
 		public override bool WantEvent(int ID, int cascade)
 		{
@@ -57,30 +69,25 @@ namespace XRL.World.Parts
 			else
 				HumanityGameOver();
 			ParentObject.SetIntProperty(Flags.HUMANITY, Score);
-			ParentObject.SetIntProperty(Flags.REGEN, RegenTimer);
+			ParentObject.SetIntProperty(Flags.REGEN, _regen);
 			return base.HandleEvent(E);
-		}
-
-		public void SetZero()
-		{
-			Score = 0;
 		}
 
 		public void AddHumanity()
 		{
-            Score += VampirismSys.Rules.Humanity.REGEN;
+			Score += VampirismSys.Rules.Hum.REGEN;
 			AddPlayerMessage("{{G sequence|Humanity}} gained!\nYou have " + strings() + " {{G sequence|Humanity.}}");
 		}
 
 		void Regenerate()
 		{
-			if (Score < VampirismSys.Rules.Humanity.MAX)
+			if (Score < VampirismSys.Rules.Hum.MAX)
 			{
-                RegenTimer++;
-				if (RegenTimer >= VampirismSys.Rules.Humanity.REGEN_TIME)
+				_regen++;
+				if (_regen >= VampirismSys.Rules.Hum.REGEN_TIME)
 				{
-                    AddHumanity();
-                    RegenTimer = 0;
+					AddHumanity();
+					_regen = 0;
 				}
 			}
 
@@ -95,14 +102,14 @@ namespace XRL.World.Parts
 
 		string strings()
 		 =>
-            Score switch
+			Score switch
 			{
-                VampirismSys.Rules.Humanity.CRIT => "{{R sequence|1}}{{Y sequence|/5}}",
-                VampirismSys.Rules.Humanity.LOW => "{{W sequence|2}}{{Y sequence|/5}}",
-                VampirismSys.Rules.Humanity.MID => "{{W sequence|3}}{{Y sequence|/5}}",
-                VampirismSys.Rules.Humanity.HIGH => "{{G sequence|4}}{{Y sequence|/5}}",
-                VampirismSys.Rules.Humanity.MAX => "{{G sequence|5}}{{Y sequence|/5}}",
-                VampirismSys.Rules.Humanity.GAMEOVER => "{{R sequence|0}}",
+				VampirismSys.Rules.Hum.CRIT => "{{R sequence|1}}{{Y sequence|/5}}",
+				VampirismSys.Rules.Hum.LOW => "{{W sequence|2}}{{Y sequence|/5}}",
+				VampirismSys.Rules.Hum.MID => "{{W sequence|3}}{{Y sequence|/5}}",
+				VampirismSys.Rules.Hum.HIGH => "{{G sequence|4}}{{Y sequence|/5}}",
+				VampirismSys.Rules.Hum.MAX => "{{G sequence|5}}{{Y sequence|/5}}",
+				VampirismSys.Rules.Hum.GAMEOVER => "{{R sequence|0}}",
 				_ => OutOfRange()
 			};
 

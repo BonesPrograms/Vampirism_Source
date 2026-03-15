@@ -12,10 +12,9 @@ namespace XRL.World.Effects
     [Serializable]
     public class VampiresKiss : Exhausted
     {
-        public GameObject Feeder;
+        GameObject Feeder;
         public VampiresKiss() 
         {
-            DisplayName = "";
             Duration = Feed.DURATION;
         }
 
@@ -23,6 +22,8 @@ namespace XRL.World.Effects
         {
             Feeder = feeder;
         }
+
+
         public override string GetDescription() => "{{R sequence|vampire's kiss}}";
         public override string GetStateDescription() => "{{R sequence|vampire's kiss}}";
         public override bool HandleEvent(BeginTakeActionEvent E)
@@ -56,5 +57,17 @@ namespace XRL.World.Effects
         }
         public override bool SameAs(Effect e) => false;
         public override bool Render(RenderEvent E) => true;
+
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+            Writer.WriteGameObject(Feeder);
+            base.Write(Basis, Writer);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+            Feeder = Reader.ReadGameObject();
+            base.Read(Basis, Reader);
+        }
     }
 }

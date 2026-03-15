@@ -60,16 +60,16 @@ namespace VampirismSys.Attack
                 bool ghoul = Target.IsGhoulOf(Source.ParentObject);
                 if (ghoul && Target.TryGetEffect(out Bleeding bleed) && bleed.Owner == Source.ParentObject)
                     Target.RemoveEffect(bleed);
-                Source.ParentObject.ApplyEffect(new CombatFeed(Target, true, dice, Feed.DURATION, frenzy, friendly, ghoul, vampire));
-                Target.ApplyEffect(new CombatFeed(Source.ParentObject, false, dice, Feed.DURATION, frenzy, friendly, ghoul, vampire));
+                Source.ParentObject.ApplyEffect(new CombatFeed(Target, true, dice, frenzy, friendly, ghoul, vampire));
+                Target.ApplyEffect(new CombatFeed(Source.ParentObject, false, dice,  frenzy, friendly, ghoul, vampire));
             }
 
         }
         void StealthATK()
         {
             IComponent<GameObject>.AddPlayerMessage("{{G sequence|You ambush " + Target.t() + " and}} {{B|silently}} {{G sequence|sink your fangs into " + Target.its + " neck.}}");
-            Source.ParentObject.ApplyEffect(new StealthFeed(Target, true, dice, Feed.DURATION, vampire));
-            Target.ApplyEffect(new StealthFeed(Source.ParentObject, false, dice, Feed.DURATION, vampire));
+            Source.ParentObject.ApplyEffect(new StealthFeed(Target, true, dice,  vampire));
+            Target.ApplyEffect(new StealthFeed(Source.ParentObject, false, dice, vampire));
         }
 
     }

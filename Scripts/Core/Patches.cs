@@ -46,10 +46,10 @@ namespace VampirismSys.Patches
     }
 
     [HarmonyPatch(typeof(GameObject), nameof(GameObject.ShouldAutoget))]
-    internal static class AutogetSilverAilment //i will probably redo blood autoget to be this one day but for now its just for silver ailment
+    internal static class AutogetSilverAilment 
     {
         [HarmonyPostfix]
-        static void Postfix(ref bool __result, GameObject __instance) //prevents you from autogetting silver nuggets and burning yourself to death
+        static void Postfix(ref bool __result, GameObject __instance) 
         {
             if (__result == true && __instance.IsSilver() && Options.GetOptionBool(ModOptions.SILVER))
                 __result = false;
@@ -89,7 +89,7 @@ namespace VampirismSys.Patches
                         Target.FireEvent(Event.New("AfterDrank"));
                         return false;
                     }
-                    if (vitae.Blood >= Rules.Vitae.SIP_PUKE_WARN)
+                    if (vitae.Blood >= Rules.Metab.SIP_PUKE_WARN)
                     {
                         PreventGhostConsumption = vitae.PukeWarning(false);
                         if (PreventGhostConsumption)
