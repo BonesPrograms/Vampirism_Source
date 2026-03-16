@@ -1,5 +1,5 @@
 using VampirismSys.Stealth;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using System;
 using System.Security.Principal;
 

@@ -8,7 +8,7 @@ using System.Linq;
 using VampirismSys.Properties;
 using XRL.World.Parts.Mutation;
 
-namespace VampirismSys.Core
+namespace VampirismSys.Extensions
 {
     [PlayerMutator]
     internal class VampirismStartGame : IPlayerMutator

@@ -6,9 +6,9 @@ using VampirismSys.Rules;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 
-namespace VampirismSys.Core
+namespace VampirismSys.Extensions
 {
     /// <summary>
     /// Assigns properties, adds parts and effects to Vampires.

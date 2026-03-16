@@ -1,6 +1,6 @@
 using System;
 using XRL.World.AI;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using XRL.World.Parts;
 using VampirismSys.Stealth;
 

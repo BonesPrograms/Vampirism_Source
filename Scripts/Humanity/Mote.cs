@@ -1,4 +1,4 @@
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Rules;
 using XRL.Rules;
 using Qud.API;

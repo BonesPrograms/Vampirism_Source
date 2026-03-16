@@ -8,7 +8,7 @@ using XRL.World;
 using VampirismSys.Biting;
 using XRL.Rules;
 using System;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Rules;
 
 

@@ -9,7 +9,7 @@ using VampirismSys.Rules;
 using XRL.Liquids;
 using Qud.UI;
 using System;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using XRL.World.Effects;
 using XRL.World.Parts.Mutation;
 

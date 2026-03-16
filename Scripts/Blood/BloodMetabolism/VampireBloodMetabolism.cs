@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using XRL.UI;
 using VampirismSys.Properties;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Registry;
 using VampirismSys.Blood;
 using VampirismSys.Rules;

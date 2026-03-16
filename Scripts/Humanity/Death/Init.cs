@@ -1,6 +1,6 @@
 using XRL.World;
 using VampirismSys.Properties;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 
 namespace VampirismSys.Death
 {

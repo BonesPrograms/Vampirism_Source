@@ -3,7 +3,7 @@ using XRL.World.Effects;
 using System.Collections.Generic;
 using XRL.UI;
 using XRL.World.Parts.Skill;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Properties;
 using System;
 using XRL.World.Parts.Mutation;
@@ -34,7 +34,7 @@ public class AddCMDPart : IPlayerMutator
     }
 }
 
-namespace VampirismSys.Core
+namespace VampirismSys.Extensions
 {
     static class cmd_extensions
     {

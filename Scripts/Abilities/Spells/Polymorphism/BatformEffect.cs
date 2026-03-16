@@ -1,6 +1,6 @@
 using System;
 
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Rules;
 
 using XRL.World.Parts.Mutation;

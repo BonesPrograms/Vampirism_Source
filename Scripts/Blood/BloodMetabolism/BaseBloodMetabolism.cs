@@ -2,7 +2,7 @@ using XRL.World.Effects;
 using System.Text;
 using System.Linq;
 using XRL.UI;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Blood;
 using VampirismSys.Rules;
 using System;

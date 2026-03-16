@@ -1,6 +1,6 @@
 using XRL.UI;
 using XRL.World.Effects;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using XRL.World;
 using System.Linq;
 

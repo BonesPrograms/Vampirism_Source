@@ -1,5 +1,5 @@
 using System;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using XRL.World.Parts;
 using System.Collections.Generic;
 using System.Reflection;

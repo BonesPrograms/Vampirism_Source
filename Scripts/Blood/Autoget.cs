@@ -1,7 +1,7 @@
 using XRL.World.Parts;
 using XRL.World;
 using System.Collections.Generic;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using XRL;
 using System.Linq;
 using System;

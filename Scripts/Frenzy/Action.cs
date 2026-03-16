@@ -2,7 +2,7 @@ using XRL.World;
 using XRL.World.Parts;
 using XRL.World.Capabilities;
 using VampirismSys.Biting;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Properties;
 using VampirismSys.Attack;
 using XRL.World.Effects;
@@ -20,11 +20,11 @@ namespace VampirismSys.Frenzy
         readonly FrenzyAI AI;
         readonly Search Search;
         readonly Bite Bite;
-        internal ActionAI(FrenzyAI AI, Bite Bite, Search Search)
+        internal ActionAI(FrenzyAI AI)
         {
             this.AI = AI;
-            this.Bite = Bite;
-            this.Search = Search;
+            Bite = AI.Source.Base.FeedAbility.Bite;
+            Search = AI.Source.Core.Search;
         }
         bool BadBite(GameObject Target) => Bite.BadTarget(Target) && Bite.CannotFeed(Target);
 

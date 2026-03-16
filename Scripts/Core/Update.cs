@@ -1,6 +1,6 @@
 using XRL;
 using XRL.World;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Rules;
 using XRL.UI;
 using XRL.World.Parts;

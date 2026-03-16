@@ -4,7 +4,7 @@ using XRL.UI;
 using XRL.World.Effects;
 using System.Linq;
 using VampirismSys.Properties;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Registry;
 using XRL.World.Parts.Mutation;
 using VampirismSys.Frenzy;

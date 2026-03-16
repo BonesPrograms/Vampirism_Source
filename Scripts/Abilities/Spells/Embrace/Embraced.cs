@@ -1,7 +1,7 @@
 using System;
 using XRL.World.Parts;
 using VampirismSys.Rules;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 
 using XRL.World.Parts.Mutation;
 using SerializeField = UnityEngine.SerializeField;

@@ -1,5 +1,5 @@
 using System;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 
 namespace XRL.World.Effects
 {

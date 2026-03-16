@@ -2,7 +2,7 @@ using System;
 using VampirismSys.Properties;
 using XRL.World.Effects;
 using System.Linq;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using XRL.Messages;
 
 namespace XRL.World.Parts
@@ -55,7 +55,7 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(CommandEvent E)
         {
-            if (E.Command == VampirismSys.Rules.Embrace.COMMAND_NAME && VampirismSys.Core.Checks.Prerequisites(base.ParentObject, VampirismSys.Rules.Embrace.ABILITY_NAME, "embrace"))
+            if (E.Command == VampirismSys.Rules.Embrace.COMMAND_NAME && VampirismSys.Extensions.Checks.Prerequisites(base.ParentObject, VampirismSys.Rules.Embrace.ABILITY_NAME, "embrace"))
             {
                 FindEmbraceableObject();
             }

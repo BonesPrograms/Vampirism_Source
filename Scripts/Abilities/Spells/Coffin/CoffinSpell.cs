@@ -1,6 +1,6 @@
 using System;
 using XRL.World.Effects;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Rules;
 using System.Linq;
 using XRL.World.Parts.Mutation;

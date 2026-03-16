@@ -2,7 +2,7 @@ using XRL.World;
 using XRL.World.Parts;
 using XRL.World.Parts.Mutation;
 using System.Linq;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 
 namespace VampirismSys.Frenzy
 {

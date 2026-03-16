@@ -1,6 +1,6 @@
 using System;
 using VampirismSys.Blood;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using XRL.World.Effects;
 
 namespace XRL.World.Parts

@@ -2,7 +2,7 @@ using VampirismSys.Properties;
 using XRL.World;
 using XRL.World.Parts;
 using System.Linq;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using XRL;
 
 namespace VampirismSys.Stealth

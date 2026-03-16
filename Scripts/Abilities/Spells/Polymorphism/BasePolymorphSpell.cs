@@ -1,7 +1,7 @@
 using XRL.World.Effects;
 using System;
 using VampirismSys.Rules;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 
 namespace XRL.World.Parts
 {

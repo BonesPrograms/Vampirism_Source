@@ -1,7 +1,7 @@
 using System;
 using XRL.UI;
 using VampirismSys.Properties;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Registry;
 using VampirismSys.Rules;
 using SerializeField = UnityEngine.SerializeField;

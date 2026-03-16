@@ -3,7 +3,7 @@ using XRL.UI;
 using XRL.World.Parts;
 using XRL.World.Capabilities;
 using VampirismSys.Properties;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Rules;
 using VampirismSys.Frenzy;
 using System;
@@ -15,19 +15,19 @@ namespace XRL.World.Effects
     /// </summary>
     /// 
     [Serializable]
-    public class FrenzyAI : IBeastScribedEffect 
+    public class FrenzyAI : IBeastScribedEffect
     {
         internal GameObject Target;
         public TheBeast Source => _source ??= Object.GetPart<TheBeast>();
-        ActionAI Action => _action ??= new(this, Source.Base.FeedAbility.Bite, Source.Core.Search);
+        ActionAI Action => _action ??= new(this);
 
         [NonSerialized]
         ActionAI _action;
 
         [NonSerialized]
         TheBeast _source;
-        public bool InRange => base.Object.DistanceTo(Target) <= 1;
-        public bool gameover {get=> _gameover; private init{_gameover = value;}}
+        public bool InRange => Object.DistanceTo(Target) <= 1;
+        public bool gameover { get => _gameover; private init { _gameover = value; } }
         bool _gameover;
         public FrenzyAI()
         {

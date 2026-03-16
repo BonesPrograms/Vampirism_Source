@@ -2,7 +2,7 @@ using XRL.World;
 using XRL.UI;
 using XRL.World.Parts;
 using VampirismSys.Properties;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using XRL.World.Effects;
 
 namespace VampirismSys.Frenzy

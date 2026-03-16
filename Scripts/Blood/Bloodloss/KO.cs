@@ -1,6 +1,6 @@
 using System;
 using XRL.World.Capabilities;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace XRL.World.Effects

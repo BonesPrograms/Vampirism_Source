@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using XRL.World.Parts;
 using XRL.World;
 using XRL;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using XRL.World.Effects;
 
 

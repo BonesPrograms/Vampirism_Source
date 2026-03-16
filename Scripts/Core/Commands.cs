@@ -4,7 +4,7 @@ using XRL;
 using VampirismSys.Registry;
 using VampirismSys.Properties;
 using XRL.World;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using XRL.World.Effects;
 using XRL.World.Parts.Mutation;
 

@@ -5,7 +5,7 @@ using XRL.Rules;
 
 //copied straight from the wiki
 
-namespace VampirismSys.Core
+namespace VampirismSys.Extensions
 {
 
     [HasGameBasedStaticCache]

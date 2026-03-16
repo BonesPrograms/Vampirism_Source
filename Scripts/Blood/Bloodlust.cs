@@ -1,5 +1,5 @@
 using System;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Properties;
 using VampirismSys.Registry;
 using XRL.Core;

@@ -1,5 +1,5 @@
 using XRL.World.AI.Pathfinding;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Properties;
 using XRL.World.Capabilities;
 using System;

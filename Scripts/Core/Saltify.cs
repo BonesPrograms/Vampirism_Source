@@ -2,7 +2,7 @@ using XRL.World;
 using XRL.World.Parts;
 using static XRL.World.Cell;
 using System.Linq;
-namespace VampirismSys.Core
+namespace VampirismSys.Extensions
 {
     internal static class Saltify
     {

@@ -2,7 +2,7 @@ using XRL.World;
 using XRL.World.Parts;
 using XRL.World.Parts.Mutation;
 using XRL.World.Effects;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 using VampirismSys.Rules;
 using VampirismSys.Properties;
 using VampirismSys.Stealth;

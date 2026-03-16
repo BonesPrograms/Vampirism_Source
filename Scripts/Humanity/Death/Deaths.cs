@@ -3,7 +3,7 @@ using XRL.World.Effects;
 using XRL;
 using XRL.World.Parts;
 using VampirismSys.Properties;
-using VampirismSys.Core;
+using VampirismSys.Extensions;
 
 namespace VampirismSys.Death
 {
