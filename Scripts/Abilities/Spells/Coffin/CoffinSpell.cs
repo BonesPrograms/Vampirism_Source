@@ -15,8 +15,8 @@ namespace XRL.World.Parts
         GameObject Coffin;
         protected override int Cooldown => VampirismSys.Rules.Coffin.MATERIALIZE_COOLDOWN;
         bool CoolingOff => JauntCooldown > 0;
-        int JauntCooldown = 0;
-        int CooldownTimer = 0;
+        int JauntCooldown = default;
+        int CooldownTimer = default;
         bool HasCoffin = false; //i had at least 5 nullref deserialization errors with this type, so all values are initialized to avoid them
         string Zone = string.Empty;
         int CellX = default;

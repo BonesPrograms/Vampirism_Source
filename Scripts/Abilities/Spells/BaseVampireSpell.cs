@@ -16,7 +16,7 @@ namespace XRL.World.Parts
 {
 
     [Serializable]
-    public abstract class BaseVampireSpell : BeastScribedPart
+    public abstract class BaseVampireSpell : IBeastScribedPart
     {
         public const string CATEGORY = "Blood Magic";
         protected Guid SpellID { get => _spellID; private set { _spellID = value; } }

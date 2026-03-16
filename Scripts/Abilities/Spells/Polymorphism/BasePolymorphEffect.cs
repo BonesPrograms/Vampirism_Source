@@ -8,7 +8,7 @@ namespace XRL.World.Effects
 {
 
     [Serializable]
-    public abstract class BasePolymorphEffect : BeastScribedEffect
+    public abstract class BasePolymorphEffect : IBeastScribedEffect
     {
         protected GameObjectBlueprint Blueprint { get => _blueprint; init { _blueprint = value; } }
         protected string FormName { get => _formName; init { _formName = value; } }

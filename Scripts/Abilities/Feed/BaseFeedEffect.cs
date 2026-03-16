@@ -13,7 +13,7 @@ namespace XRL.World.Effects
 	/// </summary>
 
 	[Serializable]
-	public abstract class BaseFeedEffect : BeastScribedEffect
+	public abstract class BaseFeedEffect : IBeastScribedEffect
 	{
 
 		internal static bool AutoLevel;
@@ -82,7 +82,6 @@ namespace XRL.World.Effects
 		}
 		public override bool HandleEvent(EndTurnEvent E)
 		{
-			UI.Popup.Show($"{Duration}");
 			if (IsAttacker && Feed())
 				Attack();
 			else if (!IsAttacker)

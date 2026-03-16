@@ -10,7 +10,7 @@ namespace XRL.World.Effects
 
 {
     [Serializable]
-    public class BeingEmbracedFX : BeastScribedEffect
+    public class BeingEmbracedFX : IBeastScribedEffect
     {
         int Level;
 

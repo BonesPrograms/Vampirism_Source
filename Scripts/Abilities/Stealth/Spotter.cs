@@ -93,7 +93,7 @@ namespace XRL.World.Effects
     /// </summary>
 
     [Serializable]
-    public class Spotter : BeastScribedEffect
+    public class Spotter : IBeastScribedEffect
     {
         GameObjectReference Player;
         public Spotter()

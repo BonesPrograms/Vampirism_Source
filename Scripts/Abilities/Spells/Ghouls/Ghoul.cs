@@ -12,7 +12,7 @@ namespace XRL.World.Effects
     }
 
     [Serializable]
-    public class RelinquishedGhoul : BeastScribedEffect, IGhoulEffect
+    public class RelinquishedGhoul : IBeastScribedEffect, IGhoulEffect
     {
         string IGhoulEffect.Name
         {
@@ -43,7 +43,7 @@ namespace XRL.World.Effects
     }
 
     [Serializable]
-    public class EnthralledGhoul : BeastScribedEffect, IGhoulEffect
+    public class EnthralledGhoul : IBeastScribedEffect, IGhoulEffect
     {
 
         public GameObject Master { get => _master; private init { _master = value; } }
@@ -134,7 +134,7 @@ namespace XRL.World.Effects
 
 
     [Serializable]
-    public class BuffedEnthralledGhoul : BeastScribedEffect
+    public class BuffedEnthralledGhoul : IBeastScribedEffect
     {
         int Bonus;
         public BuffedEnthralledGhoul()

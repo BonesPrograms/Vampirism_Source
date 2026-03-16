@@ -24,7 +24,7 @@ namespace XRL.World.Parts
 {
 
     [Serializable]
-    public abstract class BaseBloodMetabolism : BeastScribedPart
+    public abstract class BaseBloodMetabolism : IBeastScribedPart
     {
         public int Blood
         {

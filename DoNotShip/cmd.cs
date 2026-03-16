@@ -21,7 +21,7 @@ public static class EnableDeveloperSpells
     {
         VampireBuilder.ENABLE_SPELLS = true;
         DeathHandler.ShowDebug = true;
-       // QudExtensions.DebugSerializer = true;
+        // QudExtensions.DebugSerializer = true;
         //QudExtensions.TargetTypes = null;
     }
 }
@@ -331,6 +331,14 @@ namespace XRL.World.Parts
 
 
         #region Vampirism Wishes
+
+        [WishCommand("findvampires")]
+
+        public static void FindVampires()
+        {
+            The.Player.CurrentZone.CombatObjects(x => x.IsVampire()).ForEach(x => AddPlayerMessage(x.DisplayName));
+            AddPlayerMessage("Found vampires?");
+        }
 
         [WishCommand(Command = "spells")]
 

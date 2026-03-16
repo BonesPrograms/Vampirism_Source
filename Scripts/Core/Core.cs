@@ -18,7 +18,7 @@ namespace XRL.World.Parts
 	//Because there are constraints, limitations and rules
 
 	[Serializable]
-	public abstract class BeastScribedPart : IPart
+	public abstract class IBeastScribedPart : IPart
 	{
 		public override void Write(GameObject Basis, SerializationWriter Writer)
 		{
@@ -36,23 +36,39 @@ namespace XRL.World.Effects
 {
 
 	[Serializable]
-	public abstract class BeastScribedEffect : Effect
+	public abstract class IBeastScribedEffect : Effect
 	{
 		public override void Write(GameObject Basis, SerializationWriter Writer)
 		{
 			Writer.WriteNamedInstanceFields(this);
-			XRL.UI.Popup.Show(Duration.ToString() + "write D");
 		}
 
-		public  override void Read(GameObject Basis, SerializationReader Reader)
+		public override void Read(GameObject Basis, SerializationReader Reader)
 		{
 			Reader.ReadNamedInstanceFields(this);
-			XRL.UI.Popup.Show(Duration.ToString() + "read D");
 		}
 
 	}
 }
 
+
+namespace XRL.World
+{
+	[Serializable]
+	public abstract class IBeastScribedComposite : IComposite
+	{
+		public bool WantFieldReflection => false;
+		public void Write(SerializationWriter Writer)
+		{
+			Writer.WriteNamedInstanceFields(this);
+		}
+
+		public void Read(SerializationReader Reader)
+		{
+			Reader.ReadNamedInstanceFields(this);
+		}
+	}
+}
 
 namespace VampirismSys.Core
 {
@@ -324,16 +340,19 @@ namespace VampirismSys.Core
 
 		//WriteToBase and ReadToBase will read/write from the current type up to it's most base type, halting at the built-in game types (IPart and Effect respectively)
 		//Public and Private instance fields will be written and read. Mark a field as [NonSerialized] to exclude it.
-		//Following IScribed rules, fields are serialized and deserialized by name.
+		//Following IScribed rules, fields are serialized and deserialized by name, and you cannot change a field's type without changing it's name.
 		//If you're inheriting one of my base types, they will have BeastScribed serialization.
 
 		//RULES FOR INHERITING FROM BeastScribed TYPES:
 
-		//if you want to serialize a field that cannot be serialized by WriteObject, mark it as [NonSerialized] for clarity and safety
-		//serialize it yourself, then call base.Read and base.Write in your overrides
-		//you should follow the rules of IScribed and serialize its name too!
+		//If you want to serialize a field of a type that cannot be written and read normally by WriteObject
+		//you should have that field's type inherit from IBeastScribedComposite, a basetype i made which has the serialization overrides set up for you
+		//If you have a field that cannot be serialized by WriteObject and you cannot control it's inheritance,
+		//you should mark it as [NonSerialized], and you will have to serialize it manually (make sure to serialize the name too!) by overriding Read and Write
+		//If you do not mark it as [NonSerialized], there may be unexpected deserialization problems
+		//in your overrides, call base.Read and base.Write. Do not invoke the methods you see below if you are inheriting from one of my types.
 
-		//LIMITATIONS:
+		//(known) LIMITATIONS:
 
 		//These methods cannot serialize GameObjectReference fields (Writer.WriteObject ignores gameobjectreference fields)
 		//These methods can only serialize enums whos underlying type is int or uint (Writer.WriteObject handles this)
@@ -344,6 +363,26 @@ namespace VampirismSys.Core
 		//the first thing you should do is initialize your fields to a non-null value, or mark them [NonSerialized]
 		//I have not determined the cause of this problem
 
+		public static void WriteNamedInstanceFields(this SerializationWriter Writer, IComposite instance)
+		{
+			Type type = instance.GetType();
+			while (type != null)
+			{
+				Writer.WriteNamedInstanceFields(instance, type);
+				type = type.BaseType;
+			}
+		}
+
+		public static void ReadNamedInstanceFields(this SerializationReader Reader, IComposite instance)
+		{
+			Type type = instance.GetType();
+			while (type != null)
+			{
+				Reader.ReadNamedInstanceFields(instance, type);
+				type = type.BaseType;
+			}
+		}
+
 		public static void WriteNamedInstanceFields(this SerializationWriter Writer, IPart instance)
 		{
 			Type type = instance.GetType();
@@ -352,8 +391,6 @@ namespace VampirismSys.Core
 				Writer.WriteNamedInstanceFields(instance, type);
 				type = type.BaseType;
 			}
-			if (DebugSerializer && (TargetTypes.IsNullOrEmpty() || TargetTypes.Contains(instance.GetType())))
-				LogFieldTypes(instance);
 		}
 
 		public static void ReadNamedInstanceFields(this SerializationReader Reader, IPart instance)
@@ -374,8 +411,6 @@ namespace VampirismSys.Core
 				Writer.WriteNamedInstanceFields(instance, type);
 				type = type.BaseType;
 			}
-			if (DebugSerializer && (TargetTypes.IsNullOrEmpty() || TargetTypes.Contains(instance.GetType())))
-				LogFieldTypes(instance);
 		}
 
 		public static void ReadNamedInstanceFields(this SerializationReader Reader, Effect instance)
@@ -420,67 +455,65 @@ namespace VampirismSys.Core
 
 		static void ReadNamedInstanceFields(this SerializationReader reader, object instance, Type type)
 		{
-			FieldInfo[] array = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-			int serializedSize = reader.ReadOptimizedInt32();
-			for (int i = 0; i < serializedSize; i++)
+			FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+			int serializedCount = reader.ReadOptimizedInt32();
+			for (int i = 0; i < serializedCount; i++)
 			{
-				string text = reader.ReadOptimizedString();
-				object value = reader.ReadObject();
-				for (int x = 0; x < array.Length; x++)
+				string serializedName = reader.ReadOptimizedString();
+				object serializedValue = reader.ReadObject();
+				for (int x = 0; x < fields.Length; x++)
 				{
-					FieldInfo fieldInfo = array[x];
-					if (fieldInfo.Name == text)
+					FieldInfo field = fields[x];
+					if (field.Name == serializedName)
 					{
-						if (type == typeof(VampireBloodMetabolism) || type == typeof(BaseBloodMetabolism))
-						{
-							MetricsManager.LogInfo(fieldInfo.Name);
-							MetricsManager.LogInfo(value.ToString());
-						}
-						fieldInfo.SetValue(instance, value);
+						field.SetValue(instance, serializedValue);
 						break;
 					}
 				}
 			}
 		}
 
-		static void LogFieldTypes(IPart instance)
-		{
-			Type type = instance.GetType();
-			while (type != typeof(IPart))
-			{
-				ReadFieldInfo(type);
-				type = type.BaseType;
-				Skip<IPart>(type);
-			}
+		// if (DebugSerializer && (TargetTypes.IsNullOrEmpty() || TargetTypes.Contains(instance.GetType())))
+		// 	LogFieldTypes(instance);
 
-		}
+		// static void LogFieldTypes(IPart instance)
+		// {
+		// 	Type type = instance.GetType();
+		// 	while (type != typeof(IPart))
+		// 	{
+		// 		ReadFieldInfo(type);
+		// 		type = type.BaseType;
+		// 		Skip<IPart>(type);
+		// 	}
 
-		static void LogFieldTypes(Effect instance)
-		{
-			Type type = instance.GetType();
-			while (type != typeof(Effect))
-			{
-				ReadFieldInfo(type);
-				type = type.BaseType;
-				Skip<Effect>(type);
-			}
-		}
+		// }
 
-		static void Skip<T>(Type type)
-		{
-			if (type != typeof(T))
-				for (int i = 0; i < 25; i++)
-					MetricsManager.LogInfo("\n");
-		}
+		// static void LogFieldTypes(Effect instance)
+		// {
+		// 	Type type = instance.GetType();
+		// 	while (type != typeof(Effect))
+		// 	{
+		// 		ReadFieldInfo(type);
+		// 		type = type.BaseType;
+		// 		Skip<Effect>(type);
+		// 	}
+		// }
 
-		static void ReadFieldInfo(Type type)
-		{
-			MetricsManager.LogInfo($"Reading field info on {type.Name}");
-			foreach (var obj in type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance))
-			{
-				MetricsManager.LogInfo($"{obj.Name}. {obj.FieldType}. {obj.Attributes}");
-			}
-		}
+		// static void Skip<T>(Type type)
+		// {
+		// 	if (type != typeof(T))
+		// 		for (int i = 0; i < 25; i++)
+		// 			MetricsManager.LogInfo("\n");
+		// }
+
+		// static void ReadFieldInfo(Type type)
+		// {
+		// 	MetricsManager.LogInfo($"Reading field info on {type.Name}");
+		// 	foreach (var obj in type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance))
+		// 	{
+		// 		MetricsManager.LogInfo($"{obj.Name}. {obj.FieldType}. {obj.Attributes}");
+		// 	}
+		// }
 
 		#endregion
 	}

@@ -15,7 +15,7 @@ namespace XRL.World.Effects
     /// </summary>
     /// 
     [Serializable]
-    public class FrenzyAI : BeastScribedEffect 
+    public class FrenzyAI : IBeastScribedEffect 
     {
         internal GameObject Target;
         public TheBeast Source => _source ??= Object.GetPart<TheBeast>();
