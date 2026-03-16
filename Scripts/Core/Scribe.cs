@@ -2,6 +2,7 @@ using VampirismSys.Serialization;
 using XRL.World;
 using System;
 using System.Reflection;
+using XRL.World.Parts;
 
 namespace VampirismSys.Serialization
 {
@@ -36,9 +37,9 @@ namespace VampirismSys.Serialization
             }
         }
 
-        static void WriteClass(SerializationWriter writer, object instance, Type type)
+        static void WriteClass(SerializationWriter writer, object instance, Type type, BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
         {
-            FieldInfo[] array = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            FieldInfo[] array = type.GetFields(Flags);
             int size = array.Length;
             int serializeableCount = 0;
             for (int i = 0; i < size; i++)
@@ -89,9 +90,13 @@ namespace VampirismSys.Serialization
                 type = type.BaseType;
             }
         }
-        static void ReadClass(SerializationReader reader, object instance, Type type)
+        static void ReadClass(SerializationReader reader, object instance, Type type, BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
         {
-            FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (instance is BaseVampireSpell part)
+            {
+                MetricsManager.LogInfo($"{part.ParentObject}");
+            }
+            FieldInfo[] fields = type.GetFields(flags);
             int serializedCount = reader.ReadOptimizedInt32();
             for (int i = 0; i < serializedCount; i++)
             {
@@ -102,10 +107,18 @@ namespace VampirismSys.Serialization
                     FieldInfo field = fields[x];
                     if (field.Name == serializedName)
                     {
+                        ReadDebug(type, serializedValue, serializedName);
                         field.SetValue(instance, serializedValue);
                         break;
                     }
                 }
+            }
+        }
+        static void ReadDebug(Type type, object value, string name)
+        {
+            if (type.BaseType == typeof(BasePolymorphSpell) || type.BaseType == typeof(BaseVampireSpell) || type == typeof(BasePolymorphSpell) || type == typeof(BaseVampireSpell))
+            {
+                MetricsManager.LogInfo($"{value} {name}");
             }
         }
     }
@@ -178,14 +191,15 @@ namespace XRL.World.Effects
 //Following IScribed rules, fields are serialized and deserialized by name, and you cannot change a field's type without changing it's name.
 //If you're inheriting one of my base types, they will have this form of serialization.
 
-//RULES FOR INHERITING FROM BeastScribed TYPES:
+//RULES FOR INHERITING FROM IBeastScribed TYPES:
 
 //If you want to serialize a field of a type that cannot be written normally by WriteObject
 //you should have that field's type inherit from IScribedComposite, a basetype i made which has the serialization overrides set up for you
 //If you have a field that cannot be serialized by WriteObject and you cannot control it's inheritance,
 //you should mark it as [NonSerialized], and you will have to serialize it manually (make sure to serialize the name too!) by overriding Read and Write
 //If you do not mark it as [NonSerialized], there may be unexpected deserialization problems
-//in your overrides, call base.Read and base.Write. Do not invoke any of the ScribedReader or ScribedWriter methods.
+//in your overrides, call base.Read and base.Write. 
+//Do not invoke any of the ScribedReader or ScribedWriter methods.
 
 //(known) LIMITATIONS:
 
