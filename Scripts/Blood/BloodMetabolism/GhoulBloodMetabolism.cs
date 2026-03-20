@@ -10,7 +10,7 @@ namespace XRL.World.Parts
     {
         public static readonly string[] Stats = { "Strength", "Agility", "Toughness", "Willpower", "Ego", "Hitpoints" };
 
-        protected override int MetabolismRate => VampirismSys.Rules.Metab.Metab_Settings.DEFAULT / 2;
+        protected override int MetabolismRate => 5;
 
         bool Buffed;
 
@@ -25,7 +25,7 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(EffectRemovedEvent E)
         {
-            if (E.Effect.GetType() == typeof(BuffedEnthralledGhoul))
+            if (E.Effect is BuffedEnthralledGhoul)
                 Buffed = false;
             return base.HandleEvent(E);
         }
@@ -39,6 +39,7 @@ namespace XRL.World.Parts
         };
         protected override void Cycle()
         {
+                            AddPlayerMessage($"{Blood}");
             if (Blood <= 0)
                 ParentObject.Die(); //just like that
             else
@@ -48,7 +49,10 @@ namespace XRL.World.Parts
                 {
                     CheckStatus();
                     if (Bloodstarved && LostBlood)
+                    {
+                        Capabilities.AutoAct.Interrupt();
                         Debuff();
+                    }
                 }
             }
 
@@ -69,7 +73,7 @@ namespace XRL.World.Parts
             string msg = Status > BloodLevel.MIN ? $"{ParentObject.t()} is thirsty for " + "{{r|blood}}!" : $"{ParentObject.t()} will die without " + "{{r|blood}}!";
             AddPlayerMessage(msg);
             int debuff = DebuffRate;
-            Stats.ForEach(x => StatShifter.SetStatShift(x, debuff));
+            Stats.ForEach(x => StatShifter.SetStatShift(x, -debuff));
         }
 
         void CheckStatus()
@@ -85,15 +89,15 @@ namespace XRL.World.Parts
         {
             if (!Bloodstarved)
             {
-                e.Name = "{{r|bloodstarved}}";
+                e.Description = "{{r|bloodstarved}}";
                 Bloodstarved = true;
             }
-            IComponent<GameObject>.AddPlayerMessage($"{ParentObject.t()} feels " + "{{R|thirsty}}.");
+           // IComponent<GameObject>.AddPlayerMessage($"{ParentObject.t()} feels " + "{{R|thirsty}}.");
         }
 
         void RemoveBloodStarved(IGhoulEffect e)
         {
-            e.Name = e.Thrall ? "{{r|ghoul}}" : "{{r|masterless}}";
+            e.Description = e.Thrall ? "{{r|ghoul}}" : "{{r|masterless}}";
             Bloodstarved = false;
             Stats.ForEach(x => StatShifter.RemoveStatShift(ParentObject, x));
         }

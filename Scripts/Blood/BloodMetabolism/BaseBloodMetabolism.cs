@@ -173,7 +173,7 @@ namespace XRL.World.Parts
 
         void Overfed()
         {
-            if (Blood >= VampirismSys.Rules.Metab.BLOOD_PUKE && WantsVomit)
+            if (Blood > VampirismSys.Rules.Metab.BLOOD_PUKE && WantsVomit)
             {
                 if (ParentObject.IsPlayer())
                     Popup.Show("You overfed!");

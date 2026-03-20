@@ -74,7 +74,6 @@ namespace XRL.World.Parts
             var ghoul = new EnthralledGhoul(ParentObject);
             Target.ApplyEffect(ghoul);
             ExpendBlood(ghoul, true);
-            Target.ApplyEffect(ghoul);
         }
 
         bool Enthrall(MentalAttackEvent E)
@@ -138,7 +137,7 @@ namespace XRL.World.Parts
         {
 
             ghoul.Object.GetPart<GhoulBloodMetabolism>().Buff(Roll());
-            string basemessage = $"You feed {ghoul.Object.t()} your blood.";
+            string basemessage = $"You feed {ghoul.Object.t()} your " + "{{R|blood}}";
             string output = showPopup == true ? $"{basemessage} and enthrall their mind." : $"{basemessage}.";
             base.ExpendBlood(showPopup, output);
 

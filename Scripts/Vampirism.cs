@@ -44,10 +44,8 @@ namespace XRL.World.Parts.Mutation
 		[NonSerialized]
 		bool Immune;
 
-		[GameBasedStaticCache]
-		static Stomach _stomach;
-		static Stomach Stomach { get { return _stomach ??= The.Player.GetPart<Stomach>(); } set { _stomach = value; } }
-		int TimeOnWorldMap => Stomach.WasOnWorldMap;
+		[NonSerialized]
+		int TimeOnWorldMap = 0;
 		bool WasOnWorldMap => TimeOnWorldMap > 0;
 
 
@@ -173,10 +171,10 @@ namespace XRL.World.Parts.Mutation
 			{
 				if (WasOnWorldMap)
 					AdvanceTimeToNight();
-				// TimeOnWorldMap = 0;
+				 TimeOnWorldMap = 0;
 			}
-			// else
-			// 	TimeOnWorldMap++;
+			 else
+			 	TimeOnWorldMap++;
 			return base.HandleEvent(E);
 		}
 		public override bool HandleEvent(BeforeRenderEvent E)
@@ -484,9 +482,6 @@ namespace XRL.World.Parts.Mutation
 			GameObject player = PlayerFinder.Player;
 			if (E.NewBody.IsVampire())
 			{
-				var stomach = E.NewBody.GetPart<Stomach>();
-				if (stomach != null)
-					Stomach = stomach;
 				if (E.NewBody != player)
 				{
 					string version = player.GetStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG);

@@ -976,7 +976,7 @@ namespace XRL.World.Parts
         /// <param name="obj"></param>
         static void StaticSwitch(string nameOf, Type obj)
         {
-            var field = obj.GetField(nameOf, BindingFlags.Static | BindingFlags.NonPublic);
+            var field = obj.GetField(nameOf, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic );
             _StaticSwitch(field, nameOf, obj);
         }
 

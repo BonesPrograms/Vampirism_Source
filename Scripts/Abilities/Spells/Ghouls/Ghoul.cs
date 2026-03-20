@@ -8,8 +8,8 @@ namespace XRL.World.Effects
     [Serializable]
     public abstract class IGhoulEffect : IBeastScribedEffect
     {
-        public string Name { get => DisplayName; set { DisplayName = value; } }
         public abstract bool Thrall { get; }
+        public string Description;
     }
 
     [Serializable]
@@ -23,13 +23,13 @@ namespace XRL.World.Effects
         }
         public MasterlessGhoul()
         {
-            DisplayName = "{{r|masterless}}";
+            Description = "{{r|masterless}}";
             Duration = 9999;
         }
 
         public override string GetDescription()
         {
-            return "{{r|masterless}}";
+            return Description;
         }
 
 
@@ -45,7 +45,7 @@ namespace XRL.World.Effects
         public override bool Thrall => true;
         public EnthralledGhoul()
         {
-            DisplayName = "{{r|ghoul}}";
+            Description = "{{r|ghoul}}";
             Duration = 9999;
         }
         public EnthralledGhoul(GameObject Master) : this()
@@ -94,7 +94,7 @@ namespace XRL.World.Effects
 
         public override string GetDescription()
         {
-            return "{{r|ghoul}}";
+            return Description;
         }
 
         public override bool Apply(GameObject Object)

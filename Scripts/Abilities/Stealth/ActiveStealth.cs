@@ -34,22 +34,10 @@ namespace VampirismSys.Stealth
         static bool _stealthStage2 = default;
 
         public static bool StealthStage1
-        {
-            get => _stealthStage1;
-            private set
-            {
-                _stealthStage1 = value;
-            }
-        }
+        { get => _stealthStage1; private set { _stealthStage1 = value; } }
 
         public static bool StealthStage2
-        {
-            get => _stealthStage2;
-            private set
-            {
-                _stealthStage2 = value;
-            }
-        }
+        { get => _stealthStage2; private set { _stealthStage2 = value; } }
 
         public static void Halt()
         {

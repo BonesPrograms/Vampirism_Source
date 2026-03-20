@@ -24,14 +24,7 @@ namespace VampirismSys.Stealth
 
         [GameBasedStaticCache]
         static int _trueCount = 0;
-        public static int TrueCount
-        {
-            get=>_trueCount;
-            private set
-            {
-                _trueCount = value;
-            }
-        }
+        public static int TrueCount { get => _trueCount; private set { _trueCount = value; } }
         public static void ScanEnvironment(Zone zone)
         {
             zone.CombatObjects(x => ValidSentient(x)).SafeForEach(x => CheckValidity(x));
@@ -100,7 +93,7 @@ namespace VampirismSys.Stealth
           =>
             witness?.Brain != null
             && witness != Player
-          //  && witness.IsCombatObject()
+            //  && witness.IsCombatObject()
             && !Inanimate(witness); //insamezone check cannot go here because we use this to check nextzone in EZ event and i dont feel like adding a zone parameter
         public static bool Inanimate(GameObject witness)
           =>
