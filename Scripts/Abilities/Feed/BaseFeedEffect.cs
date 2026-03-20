@@ -4,6 +4,7 @@ using XRL.World.Parts;
 using VampirismSys.Properties;
 using VampirismSys.Extensions;
 using XRL.World.Parts.Mutation;
+using VampirismSys.Core;
 
 namespace XRL.World.Effects
 {

@@ -1,0 +1,187 @@
+using VampirismSys.Serialization;
+using XRL.World;
+using System;
+using System.Reflection;
+using System.Linq;
+
+namespace XRL.World.Parts
+{
+
+    [Serializable]
+    public abstract class IBeastScribedPart : IPart
+    {
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+            Scribe.Writer.Scribe(Writer, this);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+            Scribe.Reader.Scribe(Reader, this);
+        }
+    }
+}
+
+namespace XRL.World.Effects
+{
+
+    [Serializable]
+    public abstract class IBeastScribedEffect : Effect
+    {
+        public override void Write(GameObject Basis, SerializationWriter Writer)
+        {
+            Scribe.Writer.Scribe(Writer, this);
+        }
+
+        public override void Read(GameObject Basis, SerializationReader Reader)
+        {
+            Scribe.Reader.Scribe(Reader, this);
+        }
+
+    }
+}
+
+namespace VampirismSys.Serialization
+{
+
+    [Serializable]
+    public abstract class IScribedComposite : IComposite
+    {
+
+        public bool WantFieldReflection => false;
+        public virtual void Write(SerializationWriter Writer)
+        {
+            Scribe.Writer.Scribe(Writer, this);
+        }
+
+        public virtual void Read(SerializationReader Reader)
+        {
+            Scribe.Reader.Scribe(Reader, this);
+        }
+    }
+    public static class Scribe
+    {
+        public static ScribeWriter Writer => ScribeWriter.Writer;
+        public static ScribeReader Reader => ScribeReader.Reader;
+    }
+    public abstract class BaseScribe<T>
+    {
+        protected const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+        private protected BaseScribe()
+        {
+
+        }
+
+        public abstract void AccessInstance(T serializer, object instance, Type type);
+        public void Scribe(T serializer, Effect instance)
+        {
+            LoopInheritance(serializer, instance, typeof(Effect));
+        }
+
+        public void Scribe(T serializer, IPart instance)
+        {
+            LoopInheritance(serializer, instance, typeof(IPart));
+        }
+
+        public void Scribe(T serializer, IComposite instance)
+        {
+            LoopInheritance(serializer, instance, null);
+        }
+        public void LoopInheritance(T serializer, object instance, Type limit)
+        {
+            Type type = instance.GetType();
+            while (type != limit)
+            {
+                AccessInstance(serializer, instance, type);
+                type = type.BaseType;
+            }
+        }
+
+
+    }
+
+    public sealed class ScribeWriter : BaseScribe<SerializationWriter>
+    {
+        static readonly Lazy<ScribeWriter> _writer = new(() => new ScribeWriter());
+        public static ScribeWriter Writer => _writer.Value;
+        ScribeWriter()
+        {
+
+        }
+        public override void AccessInstance(SerializationWriter writer, object instance, Type type)
+        {
+            writer.WriteNamedFields(instance, type, Flags);
+        }
+
+
+    }
+
+
+    public sealed class ScribeReader : BaseScribe<SerializationReader>
+    {
+        static readonly Lazy<ScribeReader> _reader = new(() => new ScribeReader());
+        public static ScribeReader Reader => _reader.Value;
+        ScribeReader()
+        {
+
+        }
+        public override void AccessInstance(SerializationReader reader, object instance, Type type)
+        {
+            FieldInfo[] fields = type.GetFields(Flags);
+            int serializedCount = reader.ReadOptimizedInt32();
+            for (int i = 0; i < serializedCount; i++)
+            {
+                string serializedName = reader.ReadOptimizedString();
+                object serializedValue = reader.ReadObject();
+                for (int x = 0; x < fields.Length; x++)
+                {
+                    FieldInfo field = fields[x];
+                    if (field.Name == serializedName)
+                    {
+                        field.SetValue(instance, serializedValue);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    //These are custom types that use my custom serializer. Inherit from them if you want access to easy serialization of public and private fields.
+    //For info on constraints, limitations and RULES!!! see below
+    //Because there are constraints, limitations and rules
+
+
+
+}
+
+
+
+
+//INFO:
+
+//ScribedWriter and ScribedReader will read/write from the current type up to it's most base type, halting at the built-in game types (IPart and Effect respectively)
+//Public and Private instance fields will be written and read. Mark a field as [NonSerialized] to exclude it.
+//Following IScribed rules, fields are serialized and deserialized by name, and you cannot change a field's type without changing it's name.
+//If you're inheriting one of my base types, they will have this form of serialization.
+
+//RULES FOR INHERITING FROM IBeastScribed TYPES:
+
+//If you want to serialize a field of a type that cannot be written normally by WriteObject
+//you should have that field's type inherit from IScribedComposite, a basetype i made which has the serialization overrides set up for you
+//If you have a field that cannot be serialized by WriteObject and you cannot control it's inheritance,
+//you should mark it as [NonSerialized], and you will have to serialize it manually (make sure to serialize the name too!) by overriding Read and Write
+//If you do not mark it as [NonSerialized], there may be unexpected deserialization problems
+//in your overrides, call base.Read and base.Write. 
+//Do not invoke any of the ScribedReader or ScribedWriter methods.
+//Again these rules are only for inheritance
+
+//LIMITATIONS:
+//Only serializes types that Writer.WriteObject is capable of serializing
+
+//EXCEPTIONS:
+
+//Sometimes, uninitialized fields will throw exceptions on deserialization. If you are getting deserialization exceptions
+//the first thing you should do is initialize your fields to a non-null value, or mark them [NonSerialized]
+//I have not determined the cause of this problem

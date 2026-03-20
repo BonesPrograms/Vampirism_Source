@@ -4,6 +4,7 @@ using XRL.World.Effects;
 using System.Linq;
 using VampirismSys.Extensions;
 using XRL.Messages;
+using VampirismSys.Core;
 
 namespace XRL.World.Parts
 {

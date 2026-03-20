@@ -10,6 +10,7 @@ using XRL.Rules;
 using System;
 using VampirismSys.Extensions;
 using VampirismSys.Rules;
+using VampirismSys.Core;
 
 
 namespace VampirismSys.Attack

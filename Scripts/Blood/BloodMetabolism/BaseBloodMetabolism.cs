@@ -6,6 +6,7 @@ using VampirismSys.Extensions;
 using VampirismSys.Blood;
 using VampirismSys.Rules;
 using System;
+using VampirismSys.Core;
 
 namespace VampirismSys.Blood
 {

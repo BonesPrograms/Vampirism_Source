@@ -10,6 +10,7 @@ using VampirismSys.Attack;
 using VampirismSys.Rules;
 using System.Collections.Generic;
 using System.Linq;
+using VampirismSys.Core;
 
 
 namespace XRL.World.Parts.Mutation
@@ -51,6 +52,7 @@ namespace XRL.World.Parts.Mutation
 		int TimeOnWorldMap = 0; //problem with this not serializing is if you quit/save while on world map then it will not advance time. to solve this problem i would probably
 								//map this value to Stomach.WasOnWorldMap but for now its local				 
 		bool WasOnWorldMap => TimeOnWorldMap > 0;
+	
 
 
 		#region FireEvent/Register
@@ -480,9 +482,9 @@ namespace XRL.World.Parts.Mutation
 		#region Update
 		public override bool HandleEvent(AfterPlayerBodyChangeEvent E)
 		{
-			if (DeathHandler.Security())
+			if (PlayerFinder.Security())
 			{
-				GameObject player = DeathHandler.Player;
+				GameObject player = PlayerFinder.Player;
 				if (E.NewBody != player && E.NewBody.IsVampire())
 				{
 					string version = player.GetStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG);

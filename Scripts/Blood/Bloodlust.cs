@@ -11,7 +11,7 @@ namespace XRL.World.Effects
     /// Manages player feedback for their frenzy chance, based on thirst level, but does not determine Frenzy chance - see FrenzyCore.cs.
     /// </summary>
     [Serializable]
-    public class Bloodlust : IBeastScribedEffect
+    public class Bloodlust : Effect
     {
         bool stage1;
         bool stage2;

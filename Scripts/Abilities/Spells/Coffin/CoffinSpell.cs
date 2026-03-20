@@ -4,6 +4,7 @@ using VampirismSys.Extensions;
 using VampirismSys.Rules;
 using System.Linq;
 using XRL.World.Parts.Mutation;
+using VampirismSys.Core;
 
 namespace XRL.World.Parts
 {
@@ -49,7 +50,8 @@ namespace XRL.World.Parts
 
         public bool CoffinDestroyed()
         {
-            UI.Popup.Show("You feel your coffin being destroyed.");
+            if (ParentObject?.IsPlayer() ?? false)
+                UI.Popup.Show("You feel your coffin being destroyed.");
             HasCoffin = false;
             return false;
         }
@@ -71,15 +73,7 @@ namespace XRL.World.Parts
             if (E.Dying == ParentObject)
             {
                 ActivateCoffin(out var cell);
-                if (Coffin != null)
-                {
-                    if (The.Player.HasLOSTo(cell, false))
-                    {
-                        Coffin.ParticleBlip("&R\u000f", 10, 0L);
-                        AddPlayerMessage($"{Coffin.t()} vanishes!");
-                    }
-                    Coffin.Obliterate();
-                }
+                Coffin?.Obliterate();
             }
             return base.HandleEvent(E);
         }

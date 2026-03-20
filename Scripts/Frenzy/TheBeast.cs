@@ -8,6 +8,7 @@ using VampirismSys.Extensions;
 using VampirismSys.Registry;
 using XRL.World.Parts.Mutation;
 using VampirismSys.Frenzy;
+using VampirismSys.Core;
 
 
 using SerializeField = UnityEngine.SerializeField;

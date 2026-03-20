@@ -2,6 +2,7 @@ using System;
 using XRL.World.Capabilities;
 using VampirismSys.Extensions;
 using Microsoft.CodeAnalysis.CSharp;
+using VampirismSys.Core;
 
 namespace XRL.World.Effects
 {

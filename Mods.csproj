@@ -11,5 +11,8 @@
     <Compile Remove="obj\**" />
     <EmbeddedResource Remove="obj\**" />
     <None Remove="obj\**" />
+      <Reference Include="mrbeastscribed">
+    <HintPath>../../ModAssemblies/mrbeastscribed.dll</HintPath>
+  </Reference>
   </ItemGroup>
 </Project>

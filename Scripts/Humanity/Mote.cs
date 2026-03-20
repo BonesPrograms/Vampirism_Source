@@ -4,6 +4,7 @@ using XRL.Rules;
 using Qud.API;
 using XRL.Language;
 using XRL.UI;
+using VampirismSys.Core;
 
 namespace XRL.World.Parts
 {

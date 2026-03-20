@@ -3,6 +3,7 @@ using VampirismSys.Extensions;
 using XRL.World.Parts;
 using System.Collections.Generic;
 using System.Reflection;
+using VampirismSys.Core;
 
 namespace XRL.World.Effects
 {
@@ -234,8 +235,8 @@ namespace XRL.World.Effects
 
         bool VerifyObject()
         {
-            DeathHandler.Security();
-            return base.Object != DeathHandler.Player; //so that we do not reset your description, only npc body descriptions
+            PlayerFinder.Security();
+            return base.Object != PlayerFinder.Player; //so that we do not reset your description, only npc body descriptions
         }
 
         public static void Suppress(bool value)

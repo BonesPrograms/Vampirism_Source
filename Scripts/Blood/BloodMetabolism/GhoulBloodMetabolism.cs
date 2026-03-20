@@ -90,7 +90,7 @@ namespace XRL.World.Parts
 
         void RemoveBloodStarved(IGhoulEffect e)
         {
-            e.Name = e.Thrall ? "{{r|ghoul}}" : "{{r|relinquished}}";
+            e.Name = e.Thrall ? "{{r|ghoul}}" : "{{r|masterless}}";
             Bloodstarved = false;
             Stats.ForEach(x => StatShifter.RemoveStatShift(ParentObject, x));
         }

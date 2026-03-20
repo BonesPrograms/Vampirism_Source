@@ -3,6 +3,7 @@ using XRL.World.AI;
 using VampirismSys.Extensions;
 using XRL.World.Parts;
 using VampirismSys.Stealth;
+using VampirismSys.Core;
 
 namespace XRL.World.Effects
 {

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using XRL.World.Parts.Mutation;
 using VampirismSys.Blood;
+using VampirismSys.Core;
 
 namespace XRL.World.Parts
 {

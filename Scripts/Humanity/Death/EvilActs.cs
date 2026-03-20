@@ -4,6 +4,8 @@ using XRL;
 using XRL.World.Parts;
 using VampirismSys.Properties;
 using VampirismSys.Extensions;
+using VampirismSys.Core;
+using XRL.UI;
 
 namespace VampirismSys.Death
 {
@@ -11,14 +13,14 @@ namespace VampirismSys.Death
     /// <summary>
     /// Collection of types of deaths that can reduce humanity.
     /// </summary>
-    internal class Deaths
+    internal class EvilActs
     {
         readonly GameObject Player;
         readonly GameObject Dying;
         readonly GameObject Killer;
         readonly bool friendly;
         readonly bool hostile;
-        internal Deaths(GameObject Player, GameObject Dying, GameObject Killer, bool friendly, bool hostile)
+        internal EvilActs(GameObject Player, GameObject Dying, GameObject Killer, bool friendly, bool hostile)
         {
             this.Player = Player;
             this.Dying = Dying;
@@ -27,8 +29,20 @@ namespace VampirismSys.Death
             this.hostile = hostile;
         }
 
+        internal static void Check(GameObject Killer, GameObject Dying)
+        {
+            if (Options.GetOptionBool(VampirismSys.Rules.ModOptions.HUMANITY) && PlayerFinder.Security() && !PlayerFinder.Player.CheckFlag(Flags.GO) && !Dying.HasStringProperty(Flags.DEAD))
+            {
+                bool friendly = Dying.IsFriendly(The.Player);
+                if (Options.GetOptionBool(VampirismSys.Rules.ModOptions.DOUG) && friendly && !Dying.IsGhoulOf(The.Player) && !Dying.IsBeguiledBy(The.Player))
+                    return;                             //The.Player != this.Player if the player is dominating. Targets beguiled by a gameobject will not be loyal to gameobjects that they dominate, only the source object
+                else                                    //so for us this means morality and friendship is relative to how AI feel about the player's current body rather than original body
+                    new EvilActs(PlayerFinder.Player, Dying, Killer, friendly, Dying.IsHostileTowards(The.Player)).Possibilities();
+            }
+        }
+
         void GetAndDunk() => Player.GetPart<Humanity>().VampireKilled();
-        internal void Possibilities()
+        void Possibilities()
         {
             if (Fractus())
                 return;

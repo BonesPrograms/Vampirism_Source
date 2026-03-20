@@ -1,4 +1,5 @@
 using System;
+using BeastScribe;
 
 namespace XRL.World.Parts
 {
@@ -38,6 +39,8 @@ namespace XRL.World.Parts
         {
             var part = OwnerCache?.GetPart<CoffinSpell>();
             part?.CoffinDestroyed();
+            ParentObject.ParticleBlip("&R\u000f", 10, 0L);
+            AddPlayerMessage($"{ParentObject.t()} vanishes!");
             return base.HandleEvent(E);
         }
 
@@ -96,14 +99,12 @@ namespace XRL.World.Parts
 
         public override void Write(GameObject Basis, SerializationWriter Writer)
         {
-            Writer.Write(_ownerID);
-            base.Write(Basis, Writer);
+            Scribe.Writer.Scribe(Writer, this);
         }
 
         public override void Read(GameObject Basis, SerializationReader Reader)
         {
-            _ownerID = Reader.ReadString();
-            base.Read(Basis, Reader);
+            Scribe.Reader.Scribe(Reader, this);
         }
     }
 }

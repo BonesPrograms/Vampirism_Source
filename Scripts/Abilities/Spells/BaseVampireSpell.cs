@@ -11,6 +11,7 @@ using XRL.UI;
 using XRL.World.AI;
 using System.Linq;
 using UnityEngine.UI;
+using VampirismSys.Core;
 
 namespace XRL.World.Parts
 {

@@ -5,24 +5,15 @@ using XRL.World.Parts;
 
 namespace XRL.World.Effects
 {
-    internal interface IGhoulEffect
+    public abstract class IGhoulEffect : IBeastScribedEffect
     {
-        internal string Name { get; set; }
-        internal bool Thrall { get; }
+        internal string Name { get => DisplayName; set { DisplayName = value; } }
+        internal bool Thrall => GetType() == typeof(EnthralledGhoul);
     }
 
     [Serializable]
-    public class RelinquishedGhoul : IBeastScribedEffect, IGhoulEffect
+    public class RelinquishedGhoul : IGhoulEffect
     {
-        string IGhoulEffect.Name
-        {
-            get => DisplayName;
-            set
-            {
-                DisplayName = value;
-            }
-        }
-        bool IGhoulEffect.Thrall => false;
         public override bool Apply(GameObject Object)
         {
             Object.RemoveEffect<EnthralledGhoul>();
@@ -43,20 +34,11 @@ namespace XRL.World.Effects
     }
 
     [Serializable]
-    public class EnthralledGhoul : IBeastScribedEffect, IGhoulEffect
+    public class EnthralledGhoul : IGhoulEffect
     {
 
         public GameObject Master { get => _master; private init { _master = value; } }
         GameObject _master;
-        string IGhoulEffect.Name
-        {
-            get => DisplayName;
-            set
-            {
-                DisplayName = value;
-            }
-        }
-        bool IGhoulEffect.Thrall => true;
         public EnthralledGhoul()
         {
             DisplayName = "{{r|ghoul}}";

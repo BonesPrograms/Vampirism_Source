@@ -12,6 +12,8 @@ using XRL.World.Parts;
 using System.Reflection;
 using System.Linq;
 using XRL;
+using VampirismSys.Death;
+using VampirismSys.Core;
 
 [HasModSensitiveStaticCache]
 public static class EnableDeveloperSpells
@@ -20,7 +22,7 @@ public static class EnableDeveloperSpells
     public static void EnableSpells()
     {
         VampireBuilder.ENABLE_SPELLS = true;
-        DeathHandler.ShowDebug = true;
+        MarkOnDeath.ShowDebug = true;
         // QudExtensions.DebugSerializer = true;
         //QudExtensions.TargetTypes = null;
     }
@@ -391,7 +393,7 @@ namespace XRL.World.Parts
         }
 
         [WishCommand("freemote")]
-        public static void Freemote() => Switch<DeathHandler>(nameof(DeathHandler.FreeMote), null);
+        public static void Freemote() => StaticSwitch(nameof(MarkOnDeath.FreeMote), typeof(MarkOnDeath));
 
         [WishCommand("findspotter")]
 
@@ -571,7 +573,7 @@ namespace XRL.World.Parts
 
         public static void GetStaticPlayer()
         {
-            cmd.msg($"{DeathHandler.Player?.DisplayName} sent");
+            cmd.msg($"{PlayerFinder.Player?.DisplayName} sent");
         }
 
         #endregion

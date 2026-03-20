@@ -3,6 +3,7 @@ using XRL.World.Effects;
 using VampirismSys.Extensions;
 using XRL.World;
 using System.Linq;
+using VampirismSys.Core;
 
 namespace VampirismSys.Biting
 {
