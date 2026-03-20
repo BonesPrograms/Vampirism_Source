@@ -18,8 +18,10 @@ namespace XRL.World.Effects
 	{
 
 		internal static bool AutoLevel;
-		public GameObject Other { get => _other; private init { _other = value; } }
-		GameObject _other;
+
+		//possibly null
+		public GameObject Other { get => _other?.Object; private init { _other = value.Reference(); } }
+		GameObjectReference _other;
 		VampireBloodMetabolism Vitae => _Vitae ??= Object.GetPart<VampireBloodMetabolism>();
 
 		[NonSerialized]
@@ -33,11 +35,11 @@ namespace XRL.World.Effects
 		protected string Damage { get => _damage; init { _damage = value; } }
 
 		//Victim flags
-		protected bool IsGhoul { get => _ghoul; init { _ghoul = value; } }
+		public bool IsGhoul { get => _ghoul; protected init { _ghoul = value; } }
 
-		protected bool IsFriendly { get => _friendly; init { _friendly = value; } }
+		public bool IsFriendly { get => _friendly; protected init { _friendly = value; } }
 
-		protected bool IsVampire { get => _vampire; init { _vampire = value; } }
+		public bool IsVampire { get => _vampire; protected init { _vampire = value; } }
 		bool _isAttacker;
 
 		string _damage;

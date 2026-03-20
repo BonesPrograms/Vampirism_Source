@@ -37,7 +37,6 @@ namespace XRL.World.Parts
         }
         public override bool HandleEvent(BeforeTakeActionEvent E)
         {
-            PlayerFinder.Security(); //changed - now that we can guarantee security always finds the player, even if the player is not a vampire, innocence will be prepared for them
             FinishedInit = Init.Evaluate(ParentObject, PlayerFinder.Player);
             return base.HandleEvent(E);
         }

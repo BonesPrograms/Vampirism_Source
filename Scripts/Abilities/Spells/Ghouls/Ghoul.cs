@@ -5,21 +5,23 @@ using XRL.World.Parts;
 
 namespace XRL.World.Effects
 {
+    [Serializable]
     public abstract class IGhoulEffect : IBeastScribedEffect
     {
         internal string Name { get => DisplayName; set { DisplayName = value; } }
-        internal bool Thrall => GetType() == typeof(EnthralledGhoul);
+        internal abstract bool Thrall { get; }
     }
 
     [Serializable]
-    public class RelinquishedGhoul : IGhoulEffect
+    public class MasterlessGhoul : IGhoulEffect
     {
+        internal override bool Thrall => false;
         public override bool Apply(GameObject Object)
         {
             Object.RemoveEffect<EnthralledGhoul>();
             return base.Apply(Object);
         }
-        public RelinquishedGhoul()
+        public MasterlessGhoul()
         {
             DisplayName = "{{r|masterless}}";
             Duration = 9999;
@@ -37,8 +39,10 @@ namespace XRL.World.Effects
     public class EnthralledGhoul : IGhoulEffect
     {
 
-        public GameObject Master { get => _master; private init { _master = value; } }
-        GameObject _master;
+        public GameObject Master { get => _master?.Object; private init { _master = value.Reference(); } }
+        GameObjectReference _master;
+
+        internal override bool Thrall => true;
         public EnthralledGhoul()
         {
             DisplayName = "{{r|ghoul}}";
@@ -104,7 +108,7 @@ namespace XRL.World.Effects
             Object.Brain.Goals.Clear();
             Object.PartyLeader = null;
             Object.Target = null;
-            Object.ApplyEffect(new RelinquishedGhoul());
+            Object.ApplyEffect(new MasterlessGhoul());
         }
 
         public bool IsGhoulOf(GameObject Target)

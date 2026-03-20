@@ -15,6 +15,7 @@ namespace XRL.World.Effects
         protected string FormName { get => _formName; init { _formName = value; } }
         protected string TargetFaction { get => _targetFaction; init { _targetFaction = value; } }
         protected int FactionFeeling { get => _factionFeeling; init { _factionFeeling = value; } }
+        protected GameObject PreservedObject { get => _preservedObject; private set { _preservedObject = value; } }
 
         int _factionFeeling;
 
@@ -39,7 +40,7 @@ namespace XRL.World.Effects
 
         List<GameObject> EquippedObjects;
 
-        GameObject PreservedObject;
+        GameObject _preservedObject;
 
         public BasePolymorphEffect()
         {
@@ -235,7 +236,6 @@ namespace XRL.World.Effects
 
         bool VerifyObject()
         {
-            PlayerFinder.Security();
             return base.Object != PlayerFinder.Player; //so that we do not reset your description, only npc body descriptions
         }
 

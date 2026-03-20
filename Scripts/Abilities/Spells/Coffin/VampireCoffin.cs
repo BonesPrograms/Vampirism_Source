@@ -9,12 +9,24 @@ namespace XRL.World.Parts
     {
 
         [NonSerialized]
-        GameObject _ownerCache;
+        GameObjectReference _ownerCache;
 
         /// <summary>
         /// Potentially null value 
         /// </summary>
-        GameObject OwnerCache => _ownerCache ??= GameObject.FindByID(OwnerID);
+        GameObject Owner
+        {
+            get
+            {
+                _ownerCache ??= GameObject.FindByID(OwnerID).Reference();
+                return _ownerCache?.Object;
+            }
+            set
+            {
+                _ownerCache = value.Reference();
+            }
+            
+        }
         public string OwnerID { get => _ownerID; private init { _ownerID = value; } }
         string _ownerID;
 
@@ -25,7 +37,7 @@ namespace XRL.World.Parts
 
         internal VampireCoffin(GameObject Object)
         {
-            _ownerCache = Object;
+            Owner = Object;
             OwnerID = Object.ID;
         }
         public override bool WantEvent(int ID, int Cascade)
@@ -37,7 +49,7 @@ namespace XRL.World.Parts
 
         public override bool HandleEvent(OnDestroyObjectEvent E)
         {
-            var part = OwnerCache?.GetPart<CoffinSpell>();
+            var part = Owner?.GetPart<CoffinSpell>();
             part?.CoffinDestroyed();
             ParentObject.ParticleBlip("&R\u000f", 10, 0L);
             AddPlayerMessage($"{ParentObject.t()} vanishes!");
@@ -84,7 +96,7 @@ namespace XRL.World.Parts
 
         void UpdateXY()
         {
-            var part = OwnerCache?.GetPart<CoffinSpell>();
+            var part = Owner?.GetPart<CoffinSpell>();
             if (part?.UpdateXY(ParentObject.CurrentCell) ?? false)
                 return;
             ParentObject.Obliterate();

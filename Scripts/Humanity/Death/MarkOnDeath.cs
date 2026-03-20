@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using VampirismSys.Core;
 using VampirismSys.Properties;
 using VampirismSys.Extensions;
-using VampirismSys.Core;
 
 namespace VampirismSys.Death
 {
@@ -79,7 +78,7 @@ namespace VampirismSys.Death
         static void CompareBlueprints(GameObject Dying, GameObject obj, Corpse corpse)
         {
             //  if (obj.Blueprint == corpse.CorpseBlueprint)
-            if (obj.Blueprint == "Ash" || obj.Blueprint == corpse.BurntCorpseBlueprint || obj.Blueprint == corpse.VaporizedCorpseBlueprint)
+            if (obj.Blueprint == "Ashes" || obj.Blueprint == corpse.BurntCorpseBlueprint || obj.Blueprint == corpse.VaporizedCorpseBlueprint)
                 obj.SetStringProperty(Flags.Embrace.EMBRACEABLE, Flags.FALSE);
             else
             {

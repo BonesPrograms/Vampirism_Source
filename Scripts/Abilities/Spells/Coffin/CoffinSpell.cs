@@ -12,8 +12,11 @@ namespace XRL.World.Parts
     [Serializable]
     public class CoffinSpell : BaseVampireSpell
     {
+
+        GameObject Coffin { get => _coffin?.Object; set { _coffin = value.Reference(); } }
+
         [NonSerialized]
-        GameObject Coffin;
+        GameObjectReference _coffin;
         protected override int Cooldown => VampirismSys.Rules.Coffin.MATERIALIZE_COOLDOWN;
         bool CoolingOff => JauntCooldown > 0;
         int JauntCooldown = default;
@@ -152,7 +155,7 @@ namespace XRL.World.Parts
         {
             Zone zone = The.ZoneManager.GetZone(Zone);
             cell = zone.Map[CellX][CellY]; //i used to do a cell != null and zone != null check here, but i actually want this to fail very loudly, a silent failure on BeforeDieEvent would not be helpful
-            if (Coffin == null || !GameObject.Validate(ref Coffin))
+            if (Coffin == null || !GameObject.Validate(_coffin?.Object))
             {
                 var obj = cell.Objects.FirstOrDefault(x => x.GetPart<VampireCoffin>()?.OwnerID == ParentObject.ID);
                 if (ShowDebug)

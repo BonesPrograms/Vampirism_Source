@@ -34,8 +34,9 @@ namespace XRL.World.Parts
             {
                 _blood =
                   value < 0 ? 0
-                : value > Metab.BLOOD_PUKE ? Metab.BLOOD_PUKE
+                : value > Metab.BLOOD_PUKE + 10000 ? Metab.BLOOD_PUKE + 10000 //prevents mega vomit loops from wassail
                 : value;
+                SetStatus();
             }
         }
         public BloodLevel Status { get => _status; private set { _status = value; } }
@@ -46,7 +47,8 @@ namespace XRL.World.Parts
             >= BloodLevel.QUENCHED => "{{g|Gorged}}",
             >= BloodLevel.THIRSTY => "{{R|Thirsty}}",
             >= BloodLevel.PARCHED => "{{r|Fiending}}",
-            _ => "{{r|Ravenous}}"
+            >= BloodLevel.MIN => "{{r|Ravenous}}",
+            _ => "OUT_OF_RANGE"
         };
 
         protected virtual bool WantsMetabolism => true;
@@ -69,7 +71,7 @@ namespace XRL.World.Parts
 
         BloodLevel _status = default;
 
-        BloodLevel _lastStatus = default; //these will also cause deserialization errors
+        BloodLevel _lastStatus = default;
 
         string _stringStatus = string.Empty;
 
@@ -117,7 +119,9 @@ namespace XRL.World.Parts
                 SetWater();
                 VomitEventHelper(E.MessageHolder);
                 if (WantsMetabolism)
+                {
                     Blood -= WikiRng.Next(15000, 25000);
+                }
                 E.InterfaceExit = true;
             }
             return base.HandleEvent(E);
@@ -132,10 +136,9 @@ namespace XRL.World.Parts
             }
             return base.HandleEvent(E);
         }
-        protected virtual void Cycle() //always run last
+        protected virtual void Cycle() 
         {
             Blood -= MetabolismRate;
-            SetStatus();
         }
         public void Drink(int value = VampirismSys.Rules.Metab.BLOOD_PER_SIP)
         {

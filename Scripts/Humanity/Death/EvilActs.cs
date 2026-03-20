@@ -31,7 +31,7 @@ namespace VampirismSys.Death
 
         internal static void Check(GameObject Killer, GameObject Dying)
         {
-            if (Options.GetOptionBool(VampirismSys.Rules.ModOptions.HUMANITY) && PlayerFinder.Security() && !PlayerFinder.Player.CheckFlag(Flags.GO) && !Dying.HasStringProperty(Flags.DEAD))
+            if (Options.GetOptionBool(VampirismSys.Rules.ModOptions.HUMANITY) && PlayerFinder.Player.IsVampire() && !PlayerFinder.Player.CheckFlag(Flags.GO) && !Dying.HasStringProperty(Flags.DEAD))
             {
                 bool friendly = Dying.IsFriendly(The.Player);
                 if (Options.GetOptionBool(VampirismSys.Rules.ModOptions.DOUG) && friendly && !Dying.IsGhoulOf(The.Player) && !Dying.IsBeguiledBy(The.Player))

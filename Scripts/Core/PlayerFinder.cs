@@ -10,19 +10,19 @@ namespace VampirismSys.Core
     [HasGameBasedStaticCache]
     internal static class PlayerFinder
     {
-
-        internal static GameObject Player => _playerCache?.Object; //this is used for two major purposes: accessing the players humanity and checking hostility
-                                                                   //if you try to access by the.player (static) then you will get whatever
-        [GameBasedStaticCache(false)]                       //gameobject they are currently dominating
-        static GameObjectReference _playerCache;
-        internal static bool Security() => !Player?.HasHitpoints() ?? true ? AssignPlayer() : Player.HasPart<Vampirism>();
-        //because you can die but still not be null and the system will break if you are domination-hopping to a new body
-        static bool AssignPlayer()
+        internal static GameObject Player
         {
-            _playerCache = FindAndCheck().Reference();
-            return Player.HasPart<Vampirism>();
+            get
+            {
+                if (!_playerCache?.Object?.HasHitpoints() ?? true)
+                    _playerCache = Find().Reference();
+                return _playerCache.Object;
+            }
         }
-        static GameObject FindAndCheck()
+
+        [GameBasedStaticCache(false)]
+        static GameObjectReference _playerCache;
+        static GameObject Find()
         {
             if (The.Player.TryGetEffect(out Dominated e))
                 return LoopDominator(e);

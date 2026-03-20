@@ -482,7 +482,7 @@ namespace XRL.World.Parts.Mutation
 		#region Update
 		public override bool HandleEvent(AfterPlayerBodyChangeEvent E)
 		{
-			if (PlayerFinder.Security())
+			if (PlayerFinder.Player.IsVampire())
 			{
 				GameObject player = PlayerFinder.Player;
 				if (E.NewBody != player && E.NewBody.IsVampire())

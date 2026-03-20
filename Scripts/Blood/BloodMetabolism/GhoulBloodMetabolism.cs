@@ -39,16 +39,19 @@ namespace XRL.World.Parts
         };
         protected override void Cycle()
         {
-            if (StatusChange(out var LostBlood, out _))
-            {
-                CheckStatus();
-                if (Bloodstarved && LostBlood)
-                    Debuff();
-            }
             if (Blood <= 0)
                 ParentObject.Die(); //just like that
             else
+            {
                 base.Cycle();
+                if (StatusChange(out var LostBlood, out _))
+                {
+                    CheckStatus();
+                    if (Bloodstarved && LostBlood)
+                        Debuff();
+                }
+            }
+
         }
 
         public void Buff(int Roll)

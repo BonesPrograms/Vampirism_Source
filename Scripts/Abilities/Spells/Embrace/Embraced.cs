@@ -126,7 +126,7 @@ namespace XRL.World.Effects
 
 
     [Serializable]
-    public class AfterEmbracedFX : IScribedEffect
+    public class AfterEmbracedFX : IBeastScribedEffect
     {
 
         [NonSerialized]

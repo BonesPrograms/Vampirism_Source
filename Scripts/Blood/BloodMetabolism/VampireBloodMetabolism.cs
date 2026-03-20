@@ -16,7 +16,7 @@ namespace XRL.World.Parts
     [Serializable]
 
     public class VampireBloodMetabolism : BaseBloodMetabolism
-    {   
+    {
 
         public bool GameOver { get => _gameOver; private set { _gameOver = value; } }
         bool _gameOver = false;
@@ -26,8 +26,8 @@ namespace XRL.World.Parts
         internal static bool AntiPuke;
         public int BloodDrams => ParentObject.GetFreeDrams("blood"); //for harmony
         public override string UIBloodDisplay => ParentObject.CheckFlag(Flags.GO) ? "{{r|Bottomless}}" : base.UIBloodDisplay;
-        
-        public static List<GameObject> containers = new();
+
+        internal static List<GameObject> containers = new();
 
         public VampireBloodMetabolism()
         {
@@ -96,12 +96,12 @@ namespace XRL.World.Parts
         protected override void Cycle()
         {
             Bleeding();
-            CheckForBloodlust();
             SetStomach();
-            if (WantsAutosip())
-                BloodAutoSip();
             SetBloodProperties();
             base.Cycle();
+            if (WantsAutosip())
+                BloodAutoSip();
+            CheckForBloodlust();
         }
 
         public bool PukeWarning(bool feeding)
