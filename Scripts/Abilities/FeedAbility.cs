@@ -19,14 +19,14 @@ namespace VampirismSys.Attack
     /// Brings together the Vampire's property values and parts' methods for various evaluations before a Feed can begin.
     /// </summary>
 
-    internal class FeedAbility 
+    public class FeedAbility 
     {
         bool friends;
         readonly Vampirism Source;
-        internal readonly Bite Bite;
+        public readonly Bite Bite;
         bool badtarget;
-        internal static bool AutoWin;
-        internal FeedAbility(Vampirism Source)
+        public static bool AutoWin;
+        public FeedAbility(Vampirism Source)
         {
             this.Source = Source;
             Bite = new Bite(Source.ParentObject, Source);
@@ -50,7 +50,7 @@ namespace VampirismSys.Attack
         /// <summary>
         /// Begins HandleCommand method chain.
         /// </summary>
-        internal void Initialize(GameObject Target)
+        public void Initialize(GameObject Target)
         {
             if (BeforeAttackCheckIfValid(Target))
             {

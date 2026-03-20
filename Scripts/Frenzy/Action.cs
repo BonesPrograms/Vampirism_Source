@@ -15,12 +15,12 @@ namespace VampirismSys.Frenzy
     /// <summary>
     /// Controls the turn-to-turn decision making for Frenzy.
     /// </summary>
-    internal class ActionAI
+    public class ActionAI
     {
         readonly FrenzyAI AI;
         readonly Search Search;
         readonly Bite Bite;
-        internal ActionAI(FrenzyAI AI)
+        public ActionAI(FrenzyAI AI)
         {
             this.AI = AI;
             Bite = AI.Source.Base.FeedAbility.Bite;
@@ -32,7 +32,7 @@ namespace VampirismSys.Frenzy
 		{
 			return AI.Source.Base.Rotschrek || !AI.Source.HasFangs() || AI.Source.Incap() || Vampirism.SunlightInterference(AI.Object);
 		}
-        internal void Act()
+        public void Act()
         {
             if (AICantFrenzy())
                 AI.Duration = 0;

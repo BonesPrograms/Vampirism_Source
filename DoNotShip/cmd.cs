@@ -15,24 +15,29 @@ using XRL;
 using VampirismSys.Death;
 using VampirismSys.Core;
 
-[HasModSensitiveStaticCache]
-public static class EnableDeveloperSpells
+
+namespace VampirismSys.Core
 {
-    [ModSensitiveCacheInit]
-    public static void EnableSpells()
+    [HasModSensitiveStaticCache]
+    internal static class DebugStartup
     {
-        VampireBuilder.ENABLE_SPELLS = true;
-        MarkOnDeath.ShowDebug = true;
-        // QudExtensions.DebugSerializer = true;
-        //QudExtensions.TargetTypes = null;
+        [ModSensitiveCacheInit]
+        static void EnableDebug()
+        {
+            VampireBuilder.EnableSpells = true;
+            MarkOnDeath.Debug = true;
+            BasePolymorphEffect.Debug = true;
+        }
     }
-}
-public class AddCMDPart : IPlayerMutator
-{
-    public void mutate(GameObject obj)
+
+    [PlayerMutator]
+    internal class AddCMDPart : IPlayerMutator
     {
-        var part = obj.AddPart(new cmd(obj.IsVampire()));
-        part.refresh = true;
+        public void mutate(GameObject obj)
+        {
+            var part = obj.AddPart(new cmd(obj.IsVampire()));
+            part.refresh = true;
+        }
     }
 }
 
@@ -41,7 +46,7 @@ namespace VampirismSys.Extensions
     static class cmd_extensions
     {
         //this version of TryGetTarget lets you target yourself
-        public static bool CmdTarget(this GameObject Object, string text, out GameObject pick)
+        internal static bool CmdTarget(this GameObject Object, string text, out GameObject pick)
         {
             Cell Cell = Object.PickDirection(text);
             pick = Cell?.GetCombatTarget(Object);
@@ -346,7 +351,7 @@ namespace XRL.World.Parts
 
         public static void spells()
         {
-            StaticSwitch(nameof(VampireBuilder.ENABLE_SPELLS), typeof(VampireBuilder));
+            StaticSwitch(nameof(VampireBuilder.EnableSpells), typeof(VampireBuilder));
         }
 
 

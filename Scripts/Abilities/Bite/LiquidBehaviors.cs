@@ -8,9 +8,9 @@ using VampirismSys.Core;
 namespace VampirismSys.Biting
 {
 
-    internal class LiquidBehaviors : BaseBite
+    public class LiquidBehaviors : BaseBite
     {
-        internal LiquidBehaviors(GameObject Biter) : base(Biter)
+        public LiquidBehaviors(GameObject Biter) : base(Biter)
         {
         }
         Ending OilLiquid() //yeah drinking oil doesnt really do anything but its gross so i added it. used to make you puke but it doesnt do that ingame so i got rid of that
@@ -84,7 +84,7 @@ namespace VampirismSys.Biting
             return Ending.VOMIT;
         }
 
-        internal Ending LiquidEnding((string, bool)[] BadLiquids)
+        public Ending LiquidEnding((string, bool)[] BadLiquids)
         {
             return Result(BadLiquids.Where(x => x.Item2).Select(x => Cycle(x.Item1)));
         }

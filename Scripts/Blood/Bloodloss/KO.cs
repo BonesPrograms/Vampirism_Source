@@ -8,18 +8,18 @@ namespace XRL.World.Effects
 {
 
     [Serializable]
-    public class KO : Asleep
+    public class KnockedOut : Asleep
     {
         int victimHP => base.Object.GetHPPercent();
         bool victim => base.Object.HasEffectDescendedFrom<BaseFeedEffect>();
         public override bool SameAs(Effect e) => false;
-        public KO()
+        public KnockedOut()
         {
             DisplayName = "unconscious";
             base.Duration = 9999;
         }
 
-        public KO(int Duration, bool forced) : this()
+        public KnockedOut(int Duration, bool forced) : this()
         {
             base.Duration = Duration;
             this.forced = forced;
@@ -61,7 +61,7 @@ namespace XRL.World.Effects
         {
             if (Object.HasEffectDescendedFrom<Asleep>())
                 return false;
-            Object.RemoveEffect<Woozy>();
+            Object.RemoveEffect<WoozyFX>();
             Object.ApplyEffect(new Prone(LyingOn: AsleepOn, Voluntary: false));
             Object.MovementModeChanged("Asleep", !Voluntary);
             if (Object.IsPlayer())
@@ -86,7 +86,7 @@ namespace XRL.World.Effects
                     AddPlayerMessage(base.Object.t() + " shambles to " + base.Object.its + " feet.");
                 DidX("wake", "up in a daze", null, null, null, null, base.Object);
                 base.Object.ApplyEffect(new Dazed(WikiRng.Next(3, 5), false));
-                base.Object.ApplyEffect(new Woozy(5));
+                base.Object.ApplyEffect(new WoozyFX(5));
             }
         }
 

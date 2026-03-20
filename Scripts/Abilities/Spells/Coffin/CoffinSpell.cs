@@ -31,7 +31,7 @@ namespace XRL.World.Parts
 
         [NonSerialized]
         bool TookFireDamage;
-        internal static bool ShowDebug;
+        public static bool ShowDebug;
         public CoffinSpell()
         {
             AbilityMenuName = VampirismSys.Rules.Coffin.ABILITY_NAME;

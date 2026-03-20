@@ -17,7 +17,7 @@ namespace XRL.World.Effects
         public BeingEmbracedFX()
         {
         }
-        internal BeingEmbracedFX(int time, int level)
+        public BeingEmbracedFX(int time, int level)
         {
             base.Duration = time;
             this.Level = level;
@@ -108,7 +108,7 @@ namespace XRL.World.Effects
                 Object.RequireMutation<Vampirism>(Level);
                 Object.SetStringProperty(VampirismSys.Properties.Flags.FLEDGLING, null);
                 Object.ApplyEffect(new AfterEmbracedFX());
-                Object.ApplyEffect(new Pale());
+                Object.ApplyEffect(new PaleSkin());
                 Message($"{Object.t()} rises from the dead!");
             }
             else

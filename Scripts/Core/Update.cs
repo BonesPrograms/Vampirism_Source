@@ -15,7 +15,7 @@ namespace VampirismSys.Update
     {
 
         [CallAfterGameLoaded]
-        internal static void MyLoadGameCallback()
+        static void MyLoadGameCallback()
         {
             if (The.Player.IsVampire())
             {
@@ -60,7 +60,7 @@ namespace VampirismSys.Update
 
         internal static void Spells(GameObject GO)
         {
-            if (VampireBuilder.ENABLE_SPELLS)
+            if (VampireBuilder.EnableSpells)
             {
                 bool WantsSpells = Options.GetOptionBool(ModOptions.SPELLS);
                 if (GO.TryGetStringProperty(Flags.SPELLS, out string prop)) //this is just so we dont run through the builder every time you load in or something

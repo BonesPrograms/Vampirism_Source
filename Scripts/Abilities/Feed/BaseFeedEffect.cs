@@ -17,7 +17,7 @@ namespace XRL.World.Effects
 	public abstract class BaseFeedEffect : IBeastScribedEffect
 	{
 
-		internal static bool AutoLevel;
+		public static bool AutoLevel;
 
 		//possibly null
 		public GameObject Other { get => _other?.Object; private init { _other = value.Reference(); } }
@@ -228,12 +228,12 @@ namespace XRL.World.Effects
 		{
 			if (base.Object is not null)
 			{
-				if (VictimHP <= 75 && VictimHP > 50 && !base.Object.HasEffect<Woozy>() && !base.Object.HasEffect<Asleep>())
-					base.Object.ApplyEffect(new Woozy(5));
-				if (VictimHP <= 50 && !base.Object.HasEffect<Pale>())
-					base.Object.ApplyEffect(new Pale());
-				if (VictimHP <= 25 && !base.Object.HasEffect<KO>() && !base.Object.HasEffect<Asleep>())
-					base.Object.ApplyEffect(new KO());
+				if (VictimHP <= 75 && VictimHP > 50 && !base.Object.HasEffect<WoozyFX>() && !base.Object.HasEffect<Asleep>())
+					base.Object.ApplyEffect(new WoozyFX(5));
+				if (VictimHP <= 50 && !base.Object.HasEffect<PaleSkin>())
+					base.Object.ApplyEffect(new PaleSkin());
+				if (VictimHP <= 25 && !base.Object.HasEffect<KnockedOut>() && !base.Object.HasEffect<Asleep>())
+					base.Object.ApplyEffect(new KnockedOut());
 			}
 		}
 

@@ -29,10 +29,10 @@ namespace XRL.World.Parts
 	[HasGameBasedStaticCache]
 	public class Nightbeast : IPart
 	{
-		internal static Dictionary<GameObject, bool> Witnesses => _witnesses;
+		public static Dictionary<GameObject, bool> Witnesses => _witnesses;
 
 		[GameBasedStaticCache]
-		internal static bool NeedsReactivate = false; //for gamestart
+		public static bool NeedsReactivate = false; //for gamestart
 
 		[GameBasedStaticCache(false)]
 		static Dictionary<GameObject, bool> _witnesses;
@@ -99,7 +99,7 @@ namespace XRL.World.Parts
 			The.Player.SetStringProperty(Flags.STEALTH, Flags.FALSE);
 			ActiveStealth.Halt();
 		}
-		internal static void RunStealthSystem()
+		public static void RunStealthSystem()
 		{
 			StealthCore.LightLevel = The.Player.CurrentCell?.GetLight();
 			StealthCore.Stealth();

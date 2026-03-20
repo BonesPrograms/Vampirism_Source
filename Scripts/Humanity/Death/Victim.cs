@@ -7,19 +7,19 @@ namespace VampirismSys.Death
     /// <summary>
     /// Static helper for victim death cases to keep things clean.
     /// </summary>
-    internal class Victim
+    public class Victim
     {
 
 
         readonly GameObject Dying;
 
-        internal Victim(GameObject Dying) => this.Dying = Dying;
+        public Victim(GameObject Dying) => this.Dying = Dying;
 
         const int _VICTIM_TIMER = 5000;
 
         const int RECENT = 100;
 
-        internal bool Friendlybool(string flag)
+        public bool Friendlybool(string flag)
         {
             GiveTurns(flag, out long turns, out long moment);
             if (!MaxTime(turns, moment))
@@ -31,7 +31,7 @@ namespace VampirismSys.Death
             return false;
         }
 
-        internal bool Victimbool()
+        public bool Victimbool()
         {
             GiveTurns(Flags.VICTIM, out long turns, out long moment);
             if (!MaxTime(turns, moment))

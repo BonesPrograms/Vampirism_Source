@@ -5,7 +5,7 @@ using System.Security.Principal;
 
 namespace XRL.World.Parts
 {
-    internal class WitnessCreatedListener : IPart
+    public class WitnessCreatedListener : IPart
     {
         public override bool WantEvent(int ID, int Cascade)
         {

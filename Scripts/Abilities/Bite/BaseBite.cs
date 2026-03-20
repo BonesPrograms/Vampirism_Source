@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace VampirismSys.Biting
 {
-    internal abstract class BaseBite
+    public abstract class BaseBite
     {
-        internal enum Ending
+        public enum Ending
         {
             VOMIT = 4,
             FAIL = 3,

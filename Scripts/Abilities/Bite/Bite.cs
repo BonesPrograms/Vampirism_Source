@@ -14,30 +14,30 @@ namespace VampirismSys.Biting
     /// <summary>
     /// Frontend for the bite simulator mechanics behind Biting - evaluates targets and creates BiteSimulator instance if bad target = true.
     /// </summary>
-    internal class Bite : BaseBite
+    public class Bite : BaseBite
     {
-        internal bool IsOnFire { get; private set; }
-        internal bool HasPlasma { get; private set; }
-        internal bool HasBadLiquid => BadLiquids.Any(x => x.Item2);
-        internal bool HasDisease => Diseases.Any(x => x.Item2);
-        internal bool IsPoisoned => Poisons.Any(x => x.Item2);
+        public bool IsOnFire { get; private set; }
+        public bool HasPlasma { get; private set; }
+        public bool HasBadLiquid => BadLiquids.Any(x => x.Item2);
+        public bool HasDisease => Diseases.Any(x => x.Item2);
+        public bool IsPoisoned => Poisons.Any(x => x.Item2);
         readonly Vampirism _vampirism; 
         readonly BiteSimulator _sim;
-        internal static string[] GiveBadLiquids() //for debugging
+        public static string[] GiveBadLiquids() //for debugging
         {
             return new Bite(null, null).BadLiquids.Select(x => x.Item1).ToArray();
         }
-        internal Bite(GameObject Biter, Vampirism Vampirism) : base(Biter)
+        public Bite(GameObject Biter, Vampirism Vampirism) : base(Biter)
         {
             _vampirism = Vampirism;
             _sim = new(Biter, this);
 
         }
-        internal (string, bool)[] Flags => new (string, bool)[]
+        public (string, bool)[] Flags => new (string, bool)[]
         {
             (nameof(IsOnFire),IsOnFire), (nameof(HasPlasma), HasPlasma), (nameof(HasBadLiquid), HasBadLiquid), (nameof(HasDisease), HasDisease), (nameof(IsPoisoned), IsPoisoned)
         };
-        readonly internal (string, bool)[] BadLiquids =  
+        readonly public (string, bool)[] BadLiquids =  
         {                                              
           ("sludge", false),                            
           ("ooze", false),
@@ -49,7 +49,7 @@ namespace VampirismSys.Biting
           ("asphalt", false)
         };
 
-        readonly internal (Type, bool)[] Diseases =
+        readonly public (Type, bool)[] Diseases =
         {
                 (typeof(Glotrot), false),
                 (typeof(GlotrotOnset), false),
@@ -116,7 +116,7 @@ namespace VampirismSys.Biting
         /// Should not run if BadTarget returns false, otherwise you will get OutOfRange().
         /// </summary>
         /// <returns></returns>
-        internal bool CannotFeed(GameObject Target) => _sim.BadEnding(Target) switch
+        public bool CannotFeed(GameObject Target) => _sim.BadEnding(Target) switch
         {
             Ending.VOMIT => VomitEnding(Target),
             Ending.FAIL => Fail(Target),
@@ -128,7 +128,7 @@ namespace VampirismSys.Biting
         /// <summary>
         /// Method for evaluating object state and gathering data for later use in CannotFeed();
         /// </summary>
-        internal bool BadTarget(GameObject Target)
+        public bool BadTarget(GameObject Target)
         {
             CheckArrays(Target);
             IsOnFire = Target.IsAflame();

@@ -8,9 +8,9 @@ namespace VampirismSys.Core
 {
 
     [HasGameBasedStaticCache]
-    internal static class PlayerFinder
+    public static class PlayerFinder
     {
-        internal static GameObject Player
+        public static GameObject Player
         {
             get
             {

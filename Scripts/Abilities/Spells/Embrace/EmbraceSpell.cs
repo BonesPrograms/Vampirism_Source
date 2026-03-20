@@ -10,9 +10,9 @@ namespace XRL.World.Parts
 {
 
     [Serializable]
-    internal class EmbraceableObject : IPart
+    public class EmbraceableObject : IPart
     {
-        internal GameObject Object { get => _object; private init { _object = value; } }
+        public GameObject Object { get => _object; private init { _object = value; } }
         GameObject _object;
         public override void Write(GameObject Basis, SerializationWriter Writer)
         {
@@ -29,7 +29,7 @@ namespace XRL.World.Parts
         {
 
         }
-        internal EmbraceableObject(GameObject Object)
+        public EmbraceableObject(GameObject Object)
         {
            this.Object = Object.DeepCopy();
         }
@@ -115,7 +115,7 @@ namespace XRL.World.Parts
             obj.MakeActive();
             Object.CurrentCell.AddObject(obj);
             int time = WikiRng.Next(50, 100);
-            obj.ApplyEffect(new KO(time, true));
+            obj.ApplyEffect(new KnockedOut(time, true));
             obj.ApplyEffect(new BeingEmbracedFX(time, Level));
             obj.hitpoints = 2;
             Object.Obliterate();

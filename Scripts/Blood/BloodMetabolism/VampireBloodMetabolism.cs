@@ -23,18 +23,18 @@ namespace XRL.World.Parts
         bool Bloodlusted = false;
         protected override bool WantsMetabolism => ParentObject.IsPlayer(); //in the future, vampire AI may metabolize if theyre in the same party as player
         protected override bool WantsVomit => !ParentObject.CheckFlag(Flags.FRENZY);    //however, their metabrate will be at least 1/2 (similar to ghouls)
-        internal static bool AntiPuke;
+        public static bool AntiPuke;
         public int BloodDrams => ParentObject.GetFreeDrams("blood"); //for harmony
         public override string UIBloodDisplay => ParentObject.CheckFlag(Flags.GO) ? "{{r|Bottomless}}" : base.UIBloodDisplay;
 
-        internal static List<GameObject> containers = new();
+        public static List<GameObject> containers = new();
 
         public VampireBloodMetabolism()
         {
 
         }
 
-        internal VampireBloodMetabolism(bool gameOver, bool bloodlusted, int blood)
+        public VampireBloodMetabolism(bool gameOver, bool bloodlusted, int blood)
         {
             this.GameOver = gameOver;
             this.Bloodlusted = bloodlusted;

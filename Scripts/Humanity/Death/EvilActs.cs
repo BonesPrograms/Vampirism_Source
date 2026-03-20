@@ -13,14 +13,14 @@ namespace VampirismSys.Death
     /// <summary>
     /// Collection of types of deaths that can reduce humanity.
     /// </summary>
-    internal class EvilActs
+    public class EvilActs
     {
         readonly GameObject Player;
         readonly GameObject Dying;
         readonly GameObject Killer;
         readonly bool friendly;
         readonly bool hostile;
-        internal EvilActs(GameObject Player, GameObject Dying, GameObject Killer, bool friendly, bool hostile)
+        public EvilActs(GameObject Player, GameObject Dying, GameObject Killer, bool friendly, bool hostile)
         {
             this.Player = Player;
             this.Dying = Dying;
@@ -29,7 +29,7 @@ namespace VampirismSys.Death
             this.hostile = hostile;
         }
 
-        internal static void Check(GameObject Killer, GameObject Dying)
+        public static void Check(GameObject Killer, GameObject Dying)
         {
             if (Options.GetOptionBool(VampirismSys.Rules.ModOptions.HUMANITY) && PlayerFinder.Player.IsVampire() && !PlayerFinder.Player.CheckFlag(Flags.GO) && !Dying.HasStringProperty(Flags.DEAD))
             {

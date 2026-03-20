@@ -16,7 +16,7 @@ namespace XRL.World.Effects
 		public CombatFeed() : base()
 		{
 		}
-		internal CombatFeed(GameObject other, bool isAttacker, string Damage, bool Frenzy, bool Friendly, bool Ghoul, bool vampire) : base(other, isAttacker, Damage, Ghoul, Friendly, vampire)
+		public CombatFeed(GameObject other, bool isAttacker, string Damage, bool Frenzy, bool Friendly, bool Ghoul, bool vampire) : base(other, isAttacker, Damage, Ghoul, Friendly, vampire)
 		{
 			this.Frenzy = Frenzy;
 		}

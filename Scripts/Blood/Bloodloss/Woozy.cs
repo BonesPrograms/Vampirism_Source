@@ -3,11 +3,11 @@ using System;
 namespace XRL.World.Effects
 {
     [Serializable]
-    public class Woozy : Disoriented
+    public class WoozyFX : Disoriented
     {
         int victimHP => base.Object.GetHPPercent();
         bool victim => base.Object.HasEffectDescendedFrom<BaseFeedEffect>();
-       public Woozy()
+       public WoozyFX()
         {
             DisplayName = "{{g|woozy}}";
             Duration = 9999;
@@ -32,7 +32,7 @@ namespace XRL.World.Effects
             }
             base.Remove(Object);
         }
-        internal Woozy(int Level) : this()
+        public WoozyFX(int Level) : this()
         {
             this.Level = Level;
         }

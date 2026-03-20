@@ -8,12 +8,12 @@ namespace XRL.World.Effects
     [Serializable]
 
 
-    public class Pale : Dazed
+    public class PaleSkin : Dazed
     {
 
         int victimHP => base.Object.GetHPPercent();
         bool victim => base.Object.HasEffectDescendedFrom<BaseFeedEffect>();
-        public Pale()
+        public PaleSkin()
         {
             Duration = 9999;
             DisplayName = "{{Y sequence|pale}}";
@@ -60,8 +60,8 @@ namespace XRL.World.Effects
             {
                 if (victimHP >= 50)
                 {
-                    if (!base.Object.HasEffect<Woozy>() && !base.Object.HasEffect<Asleep>())
-                        base.Object.ApplyEffect(new Woozy(5));
+                    if (!base.Object.HasEffect<WoozyFX>() && !base.Object.HasEffect<Asleep>())
+                        base.Object.ApplyEffect(new WoozyFX(5));
                     Duration = 0;
                 }
             }

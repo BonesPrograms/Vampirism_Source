@@ -13,7 +13,7 @@ namespace XRL.World.Parts
 
         public const string COMMAND_NAME = "moteHumanity";
 
-        internal static bool MoteAutoMemory = false;
+        public static bool MoteAutoMemory = false;
 
         public override bool WantEvent(int ID, int Cascade)
         {

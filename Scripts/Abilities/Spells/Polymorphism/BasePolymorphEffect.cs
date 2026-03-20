@@ -11,6 +11,8 @@ namespace XRL.World.Effects
     [Serializable]
     public abstract class BasePolymorphEffect : IBeastScribedEffect
     {
+
+        public static bool Debug = false;
         protected GameObjectBlueprint Blueprint { get => _blueprint; init { _blueprint = value; } }
         protected string FormName { get => _formName; init { _formName = value; } }
         protected string TargetFaction { get => _targetFaction; init { _targetFaction = value; } }
@@ -152,13 +154,19 @@ namespace XRL.World.Effects
 
         void AutoEquip()
         {
+            if (Debug)
+                Suppress(false);
             foreach (var obj in EquippedObjects)
                 if (obj != null)
                     Object.AutoEquip(obj);
         }
 
+
+
         void TryReEquip()
         {
+            if (Debug)
+                Suppress(false);
             for (int i = 0; i < EquippedObjects.Count; i++)
             {
                 GameObject obj = EquippedObjects[i];

@@ -4,7 +4,7 @@ using static XRL.World.Cell;
 using System.Linq;
 namespace VampirismSys.Extensions
 {
-    internal static class Saltify
+    public static class Saltify
     {
         static void FindAndSalt(Cell cell)
         {
@@ -12,7 +12,7 @@ namespace VampirismSys.Extensions
                 cell.AddObject("SaltDrop");
         }
 
-        internal static void Salt(Cell Cell)
+        public static void Salt(Cell Cell)
         {
             Cell.GetLocalAdjacentCells().Where(x => x.HasObjectWithPart(nameof(LiquidVolume))).ForEach(FindAndSalt);
         }

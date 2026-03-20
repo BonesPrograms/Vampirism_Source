@@ -12,7 +12,7 @@ namespace VampirismSys.Stealth
     /// Handles UI and sets global stealth flags.
     /// </summary>
     [HasGameBasedStaticCache]
-    internal static class ActiveStealth //i plan to one day, maybe, turn this into an "Actual" UI, so i made it a separate class to avoid serialization issues down the line post-release
+    public static class ActiveStealth //i plan to one day, maybe, turn this into an "Actual" UI, so i made it a separate class to avoid serialization issues down the line post-release
     {
         static GameObject Player => The.Player;
         const int SINGLE = 1;
@@ -33,7 +33,7 @@ namespace VampirismSys.Stealth
         [GameBasedStaticCache]
         static bool _stealthStage2 = default;
 
-        internal static bool StealthStage1
+        public static bool StealthStage1
         {
             get => _stealthStage1;
             private set
@@ -42,7 +42,7 @@ namespace VampirismSys.Stealth
             }
         }
 
-        internal static bool StealthStage2
+        public static bool StealthStage2
         {
             get => _stealthStage2;
             private set
@@ -51,12 +51,12 @@ namespace VampirismSys.Stealth
             }
         }
 
-        internal static void Halt()
+        public static void Halt()
         {
             StealthStage1 = false;
             StealthStage2 = false;
         }
-        internal static void SetStealth()
+        public static void SetStealth()
         {
             switch (ActiveWitnessCount)
             {

@@ -9,12 +9,12 @@ using VampirismSys.Extensions;
 
 namespace VampirismSys.Death
 {
-    internal static class MarkOnDeath //mainly for embrace, but also handles dropping of motes
+    public static class MarkOnDeath //mainly for embrace, but also handles dropping of motes
     {
-        internal static bool ShowDebug = false;
-        internal static bool FreeMote;
+        public static bool Debug = false;
+        public static bool FreeMote;
 
-        internal static void Check(GameObject Dying, bool isvampire)
+        public static void Check(GameObject Dying, bool isvampire)
         {
             MarkOnDeath.MarkForEmbrace(Dying, isvampire); //we always have this run even if the player isnt a vampire, incase they become one later on
             if (!isvampire)
@@ -31,7 +31,7 @@ namespace VampirismSys.Death
             var obj = Dying.CurrentCell.Objects.FirstOrDefault(x => x.PropertyEquals("SourceBlueprint", Dying.Blueprint));
             if (obj != null)                                    //i want to note we used to check for SourceID, but not every corpse object has a source id property
                 DetermineEmbraceability(obj, Dying, isvampire);
-            else if (ShowDebug)
+            else if (Debug)
                 DebugFailedEmbrace(Dying.CurrentCell);
         }
         static void DebugFailedEmbrace(Cell cell)
@@ -48,7 +48,7 @@ namespace VampirismSys.Death
         {
             foreach (var corpse in corpses)
             {
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < 3; i++)
                     MetricsManager.LogInfo("\n");
 
                 MetricsManager.LogInfo($"corpse blueprint: {corpse.CorpseBlueprint}, burnt corpse blueprint: {corpse.BurntCorpseBlueprint}, vaporized corpse blueprint: {corpse.VaporizedCorpseBlueprint}");

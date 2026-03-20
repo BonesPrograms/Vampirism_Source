@@ -1,5 +1,5 @@
 using System;
-
+using BeastScribe;
 using VampirismSys.Extensions;
 using VampirismSys.Rules;
 
@@ -85,5 +85,6 @@ namespace XRL.World.Effects
                 Wings.CapOverride = 10;
             }
         }
+
     }
 }

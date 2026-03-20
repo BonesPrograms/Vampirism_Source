@@ -14,7 +14,7 @@ namespace XRL.World.Parts
     /// The external part held by all edible targets in the world. Watches for the object's conditions on death - deducts humanity if the player performs an action that violates the rules of humanity.
     /// </summary>
     [Serializable]
-    internal class DeathHandler : IPart
+    public class DeathHandler : IPart
     {
 
         //instead of the gameobject that is "really" them 

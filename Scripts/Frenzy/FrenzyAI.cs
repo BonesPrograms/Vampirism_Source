@@ -17,7 +17,7 @@ namespace XRL.World.Effects
     [Serializable]
     public class FrenzyAI : IBeastScribedEffect
     {
-        internal GameObject Target;
+        public GameObject Target;
         public TheBeast Source => _source ??= Object.GetPart<TheBeast>();
         ActionAI Action => _action ??= new(this);
 
@@ -33,7 +33,7 @@ namespace XRL.World.Effects
         {
             Duration = 9999;
         }
-        internal FrenzyAI(GameObject Target, bool gameover) : this()
+        public FrenzyAI(GameObject Target, bool gameover) : this()
         {
             this.Target = Target;
             this.gameover = gameover;

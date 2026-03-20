@@ -11,12 +11,15 @@ using VampirismSys.Rules;
 using System.Collections.Generic;
 using System.Linq;
 using VampirismSys.Core;
+using BeastScribe;
 
 
 namespace XRL.World.Parts.Mutation
 {
 
 	[Serializable]
+
+	[HasGameBasedStaticCache]
 	public class Vampirism : BaseDefaultEquipmentMutation
 	{
 		public const string COMMAND_NAME = "CommandFeedBlood";
@@ -24,20 +27,13 @@ namespace XRL.World.Parts.Mutation
 		public const string BODYPART_TYPE = "Face";
 		public Guid FangsActivatedAbilityID = Guid.Empty;
 		public GameObject FangsObject; //your actual fangs
-		internal FeedAbility FeedAbility => _feedAbility ??= new(this);
+		public FeedAbility FeedAbility => _feedAbility ??= new(this);
 		public string ManagerID => ParentObject.ID + "::Vampiric Fangs"; //i never really researched managerid yet. i assume that the fangs object counts as a bodypart and this is its manager
 		public override bool CanSelectVariant => false;
 		public override bool UseVariantName => false;
 		public bool GameOver;
 		public int BloodyFangsCounter;
-		public bool Rotschrek
-		{
-			get => _rotschrek;
-			private set
-			{
-				_rotschrek = value;
-			}
-		}
+		public bool Rotschrek { get => _rotschrek; private set { _rotschrek = value; } }
 
 		[NonSerialized]
 		FeedAbility _feedAbility;
@@ -48,11 +44,12 @@ namespace XRL.World.Parts.Mutation
 		[NonSerialized]
 		bool Immune;
 
-		[NonSerialized]
-		int TimeOnWorldMap = 0; //problem with this not serializing is if you quit/save while on world map then it will not advance time. to solve this problem i would probably
-								//map this value to Stomach.WasOnWorldMap but for now its local				 
+		[GameBasedStaticCache]
+		static Stomach _stomach;
+		static Stomach Stomach { get { return _stomach ??= The.Player.GetPart<Stomach>(); } set { _stomach = value; } }
+		int TimeOnWorldMap => Stomach.WasOnWorldMap;
 		bool WasOnWorldMap => TimeOnWorldMap > 0;
-	
+
 
 
 		#region FireEvent/Register
@@ -89,10 +86,12 @@ namespace XRL.World.Parts.Mutation
 		#region WantEvent
 		public override bool WantEvent(int ID, int cascade)
 		{
+			if (ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == PooledEvent<CommandEvent>.ID || ID == AIGetOffensiveAbilityListEvent.ID || ID == PooledEvent<AfterDismemberEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
+				return true;
 			if (ID == RespiresEvent.ID || ID == ApplyEffectEvent.ID || ID == CanApplyEffectEvent.ID || ID == CheckGasCanAffectEvent.ID || ID == BeforeApplyDamageEvent.ID) //the confusion between ApplyEffectEvent and CanApplyEffectEvent was painful
 				return Options.GetOptionBool(ModOptions.TRUE_UNDEAD);
-			if (ID == AfterPlayerBodyChangeEvent.ID || ID == SingletonEvent<BeginTakeActionEvent>.ID || ID == PooledEvent<CommandEvent>.ID || ID == AIGetOffensiveAbilityListEvent.ID || ID == PooledEvent<AfterDismemberEvent>.ID || ID == SingletonEvent<BeforeAbilityManagerOpenEvent>.ID)
-				return true;
+			if (ID == AfterPlayerBodyChangeEvent.ID)
+				return PlayerFinder.Player.IsVampire();
 			if (ID == EffectAppliedEvent.ID)
 				return Options.GetOptionBool(ModOptions.FIRE);
 			if (ID == EnteredCellEvent.ID)
@@ -174,10 +173,10 @@ namespace XRL.World.Parts.Mutation
 			{
 				if (WasOnWorldMap)
 					AdvanceTimeToNight();
-				TimeOnWorldMap = 0;
+				// TimeOnWorldMap = 0;
 			}
-			else
-				TimeOnWorldMap++;
+			// else
+			// 	TimeOnWorldMap++;
 			return base.HandleEvent(E);
 		}
 		public override bool HandleEvent(BeforeRenderEvent E)
@@ -482,10 +481,13 @@ namespace XRL.World.Parts.Mutation
 		#region Update
 		public override bool HandleEvent(AfterPlayerBodyChangeEvent E)
 		{
-			if (PlayerFinder.Player.IsVampire())
+			GameObject player = PlayerFinder.Player;
+			if (E.NewBody.IsVampire())
 			{
-				GameObject player = PlayerFinder.Player;
-				if (E.NewBody != player && E.NewBody.IsVampire())
+				var stomach = E.NewBody.GetPart<Stomach>();
+				if (stomach != null)
+					Stomach = stomach;
+				if (E.NewBody != player)
 				{
 					string version = player.GetStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG);
 					E.NewBody.SetStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG, version);
@@ -494,12 +496,14 @@ namespace XRL.World.Parts.Mutation
 						E.NewBody.SetStringProperty(Flags.Mod.OLD_SAVE, oldSave);
 					}
 				}
-				if (E.OldBody != player && (E.OldBody?.IsVampire() ?? false))
-				{
-					E.OldBody.RemoveStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG);
-					E.OldBody.RemoveStringProperty(Flags.Mod.OLD_SAVE);
-				}
 			}
+
+			if (E.OldBody != player && (E.OldBody?.IsVampire() ?? false))
+			{
+				E.OldBody.RemoveStringProperty(Flags.Mod.GAMEOBJECT_VERSION_TAG);
+				E.OldBody.RemoveStringProperty(Flags.Mod.OLD_SAVE);
+			}
+
 			return base.HandleEvent(E);
 		}
 
@@ -643,5 +647,6 @@ namespace XRL.World.Parts.Mutation
 		public override bool AllowStaticRegistration() => true;
 
 		#endregion
+
 	}
 }

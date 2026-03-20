@@ -9,11 +9,11 @@ namespace VampirismSys.Core
 {
 
     [HasGameBasedStaticCache]
-    internal static class WikiRng
+    public static class WikiRng
     {
         static Random _rand;
 
-        internal static Random Rand
+        public static Random Rand
         {
             get
             {
@@ -39,11 +39,11 @@ namespace VampirismSys.Core
         }
 
         [GameBasedCacheInit]
-        internal static void ResetRandom()
+        public static void ResetRandom()
         {
             _rand = null;
         }
-        internal static int Next(int minInclusive, int maxInclusive)
+        public static int Next(int minInclusive, int maxInclusive)
         {
             return Rand.Next(minInclusive, maxInclusive + 1);
         }

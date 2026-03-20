@@ -19,7 +19,7 @@ namespace XRL.World.Effects
             Duration = Feed.DURATION;
         }
 
-        internal VampiresKiss(GameObject feeder) : this()
+        public VampiresKiss(GameObject feeder) : this()
         {
             Feeder = feeder;
         }

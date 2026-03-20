@@ -8,14 +8,14 @@ namespace XRL.World.Effects
     [Serializable]
     public abstract class IGhoulEffect : IBeastScribedEffect
     {
-        internal string Name { get => DisplayName; set { DisplayName = value; } }
-        internal abstract bool Thrall { get; }
+        public string Name { get => DisplayName; set { DisplayName = value; } }
+        public abstract bool Thrall { get; }
     }
 
     [Serializable]
     public class MasterlessGhoul : IGhoulEffect
     {
-        internal override bool Thrall => false;
+        public override bool Thrall => false;
         public override bool Apply(GameObject Object)
         {
             Object.RemoveEffect<EnthralledGhoul>();
@@ -42,13 +42,13 @@ namespace XRL.World.Effects
         public GameObject Master { get => _master?.Object; private init { _master = value.Reference(); } }
         GameObjectReference _master;
 
-        internal override bool Thrall => true;
+        public override bool Thrall => true;
         public EnthralledGhoul()
         {
             DisplayName = "{{r|ghoul}}";
             Duration = 9999;
         }
-        internal EnthralledGhoul(GameObject Master) : this()
+        public EnthralledGhoul(GameObject Master) : this()
         {
             this.Master = Master;
         }

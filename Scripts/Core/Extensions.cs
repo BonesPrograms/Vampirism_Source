@@ -14,7 +14,7 @@ namespace VampirismSys.Extensions
 	{
 		readonly static Type[] UnawareEffects =
 		{
-			typeof(VampiresKiss), typeof(KO), typeof(Stun), typeof(Paralyzed), typeof(Asleep), typeof(Exhausted)
+			typeof(VampiresKiss), typeof(KnockedOut), typeof(Stun), typeof(Paralyzed), typeof(Asleep), typeof(Exhausted)
 		};
 
 		#region Properties
@@ -363,7 +363,7 @@ namespace VampirismSys.Extensions
 			{
 				return true; //the string for feeding on people who have vampire's kiss is handled by the Friendly variable and Sharing() in CommandHandler
 			}
-			if (who.HasEffect<KO>()) //should probably add a "predator" field that ensures you are the same person that originally fed on them
+			if (who.HasEffect<KnockedOut>()) //should probably add a "predator" field that ensures you are the same person that originally fed on them
 			{
 				if (theVampire.IsPlayer())
 					IComponent<GameObject>.AddPlayerMessage("This one was tasty. You dive in for more.");

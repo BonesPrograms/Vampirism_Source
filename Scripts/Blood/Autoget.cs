@@ -14,7 +14,7 @@ namespace VampirismSys.Blood
     /// I found base-game autoget to be inconsistent. This ensures that blood autoget always works.
     /// </summary>
     [HasGameBasedStaticCache]
-    internal static class Autoget //honestly i just didnt want people to complain that blood autoget doesnt work for my mod when its not my fault... lol...
+    public static class Autoget //honestly i just didnt want people to complain that blood autoget doesnt work for my mod when its not my fault... lol...
     {               ///this probably isnt as good/efficient of code as the dev's autoget but it works more consistently
         static GameObject Player => The.Player; //according to recent reports it also blows up peoples game more consistently...
 
@@ -30,12 +30,12 @@ namespace VampirismSys.Blood
 
         static bool FoundBlood => PureLiquid.Count > 0;
 
-        internal static void Clear()
+        public static void Clear()
         {
             PureLiquid = new();
             Containers = new();
         }
-        internal static void Autogetter()
+        public static void Autogetter()
         {
             ValidateCache();
             if (Containers.Count > 0)

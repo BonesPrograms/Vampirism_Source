@@ -13,19 +13,19 @@ using XRL.World.Parts;
 
 namespace VampirismSys.Stealth
 {
-    internal class SpotterCore
+    public class SpotterCore
     {
         readonly GameObject Source;
         readonly Dictionary<GameObject, int> SpotterRanges = new();
         readonly List<GameObject> PotentialSpotters;
         (GameObject Object, int Distance) Spotter = (Object: null, Distance: 0);
-        internal SpotterCore(GameObject Source, List<GameObject> PotentialSpotters)
+        public SpotterCore(GameObject Source, List<GameObject> PotentialSpotters)
         {
             this.Source = Source;
             this.PotentialSpotters = PotentialSpotters;
         }
 
-        internal SpotterCore(GameObject Source)
+        public SpotterCore(GameObject Source)
         {
             this.Source = Source;
             this.PotentialSpotters = SpotterCore.GiveDefaultList(Source);
@@ -38,7 +38,7 @@ namespace VampirismSys.Stealth
         /// so the ai isnt really in your detection radius as the enum says, they were actually outside of it, theyre moreso in your "extended" radius
         bool Spotted(int distance, GameObject Spotter) => distance == VampirismSys.Rules.Stealth.AI_RADIUS + 1 && Spotter.HasLOSTo(Source, false);
         static string DefaultMessage(GameObject Spotter) => $"You try to sneak attack, but {Spotter.t()} spots you from a distance!";
-        internal static List<GameObject> GiveDefaultList(GameObject Source)
+        public static List<GameObject> GiveDefaultList(GameObject Source)
         {
             return Source.CurrentZone.CombatObjects(x => StealthCore.ValidSentient(x) && !x.Unaware(false)).ToList();
         }
@@ -51,7 +51,7 @@ namespace VampirismSys.Stealth
         /// <param name="Spotter"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        internal bool Check<T>(out GameObject Spotter, string message = default) where T : IOpinionSubject, new()
+        public bool Check<T>(out GameObject Spotter, string message = default) where T : IOpinionSubject, new()
         {
             Spotter = ReturnSpotter();
             return Spotter != null && SpotterFound<T>(Spotter, message);
@@ -99,7 +99,7 @@ namespace XRL.World.Effects
         public Spotter()
         {
         }
-        internal Spotter(GameObject player, int Duration) : this()
+        public Spotter(GameObject player, int Duration) : this()
         {
             this.Player = player.Reference();
             base.Duration = Duration;

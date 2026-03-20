@@ -17,7 +17,7 @@ namespace VampirismSys.Extensions
 
     internal static class VampireBuilder
     {
-        internal static bool ENABLE_SPELLS = false;
+        internal static bool EnableSpells = false;
         internal const string CORPSE = "Ashes";
         static readonly (string, int)[] IntProperties =
         {
@@ -113,7 +113,7 @@ namespace VampirismSys.Extensions
 
         internal static void RequireSpells(GameObject GO)
         {
-            if (ENABLE_SPELLS)
+            if (EnableSpells)
             {
                 XRL.UI.Popup.Suppress = true;
                 VampiricSpells.Select(x => (BaseVampireSpell)Activator.CreateInstance(x)).ForEach(x => { GO.AddPart(x); x.AddSpell(); });
@@ -125,7 +125,7 @@ namespace VampirismSys.Extensions
 
         internal static void RemoveSpells(GameObject GO)
         {
-            if (ENABLE_SPELLS)
+            if (EnableSpells)
             {
                 VampiricSpells.Select(x => (BaseVampireSpell)GO.GetPart(x)).ForEach(x => x.RemoveSpell());
                 GO.SetStringProperty(Flags.SPELLS, Flags.FALSE);

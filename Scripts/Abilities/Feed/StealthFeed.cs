@@ -17,7 +17,7 @@ namespace XRL.World.Effects
 		public StealthFeed() : base()
 		{
 		}
-		internal StealthFeed(GameObject other, bool isAttacker, string Damage, bool vampire) : base(other)
+		public StealthFeed(GameObject other, bool isAttacker, string Damage, bool vampire) : base(other)
 		{
 			IsAttacker = isAttacker;
 			base.Damage = Damage;
@@ -85,7 +85,7 @@ namespace XRL.World.Effects
 			if (ActiveStealth && (Other?.HasHitpoints() is true))
 			{
 				Other.ApplyEffect(new Asleep(WikiRng.Next(50, 100)));
-				Other.RemoveEffect<Woozy>();
+				Other.RemoveEffect<WoozyFX>();
 			}
 		}
 	}

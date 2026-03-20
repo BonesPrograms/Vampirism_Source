@@ -15,16 +15,16 @@ namespace VampirismSys.Stealth
     /// Scans the environment and constantly updates the lists used in Nightbeast.
     /// </summary>
     [HasGameBasedStaticCache]
-    internal static class StealthCore
+    public static class StealthCore
     {
         static GameObject Player => The.Player;
 
         [GameBasedStaticCache(false)]
-        internal static LightLevel? LightLevel;
+        public static LightLevel? LightLevel;
 
         [GameBasedStaticCache]
         static int _trueCount = 0;
-        internal static int TrueCount
+        public static int TrueCount
         {
             get=>_trueCount;
             private set
@@ -32,18 +32,18 @@ namespace VampirismSys.Stealth
                 _trueCount = value;
             }
         }
-        internal static void ScanEnvironment(Zone zone)
+        public static void ScanEnvironment(Zone zone)
         {
             zone.CombatObjects(x => ValidSentient(x)).SafeForEach(x => CheckValidity(x));
         }
-        internal static void Stealth()
+        public static void Stealth()
         {
             GameObject[] invalids = Nightbeast.Witnesses.Keys.Where(x => x == null || !x.HasHitpoints() || !x.InSameZone(Player)).ToArray();
             invalids.ForEach(x => Nightbeast.Witnesses.Remove(x));
             Nightbeast.Witnesses.Keys.SafeForEach(x => Nightbeast.Witnesses[x] = NearbySentient(x) && ActiveWitness(x));
             TrueCount = Nightbeast.Witnesses.Count(x => x.Value);
         }
-        internal static void CheckValidity(GameObject obj) //zoneload
+        public static void CheckValidity(GameObject obj) //zoneload
         {
             Nightbeast.Witnesses[obj] = NearbySentient(obj) && ActiveWitness(obj);
         }
@@ -55,12 +55,12 @@ namespace VampirismSys.Stealth
         /// <returns></returns>
         /// 
         /// 
-        internal static bool ActiveWitness(GameObject obj)
+        public static bool ActiveWitness(GameObject obj)
         {
             return !obj.Unaware(false) && !Shrouded(obj) && !IsFriendly(obj) && obj.HasHitpoints() && !InDominationChain(obj.Effects);
         }
 
-        internal static bool IsFriendly(GameObject who)
+        public static bool IsFriendly(GameObject who)
         {
             return who.IsInLoveWith(Player) || who.InSamePartyAs(Player) || who.IsPlayerControlled() || who.IsPlayerLed();
         }
@@ -86,7 +86,7 @@ namespace VampirismSys.Stealth
         /// </summary>
         /// <param name="witness"></param>
         /// <returns></returns>
-        internal static bool NearbySentient(GameObject witness)
+        public static bool NearbySentient(GameObject witness)
         {
             return witness.HasLOSTo(Player, false) && witness.DistanceTo(Player) <= VampirismSys.Rules.Stealth.AI_RADIUS;
         }
@@ -96,13 +96,13 @@ namespace VampirismSys.Stealth
         /// </summary>
         /// <param name="witness"></param>
         /// <returns></returns>
-        internal static bool ValidSentient(GameObject witness)
+        public static bool ValidSentient(GameObject witness)
           =>
             witness?.Brain != null
             && witness != Player
           //  && witness.IsCombatObject()
             && !Inanimate(witness); //insamezone check cannot go here because we use this to check nextzone in EZ event and i dont feel like adding a zone parameter
-        internal static bool Inanimate(GameObject witness)
+        public static bool Inanimate(GameObject witness)
           =>
             witness.Body?.Anatomy == "Echinoid"
             || CheckTags(witness.GetBlueprint())
