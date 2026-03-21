@@ -221,26 +221,20 @@ namespace XRL.World.Parts.Mutation
 						return true;
 				}
 			}
-			int hasWallCount = 0;
 			int noWallCount = 0;
-			List<GameObject> walls = new();
+			int hasWallCount = 0;
 			foreach (var dir in Directions.DirectionList)
 			{
 				if (currentCell.AnyInDirection(dir, range, x =>
 				{
 					GameObject obj = x.GetFirstObject(x => x.IsWall());
-					if (obj != null)
-						walls.Add(obj);
-					return obj != null;
+					if (obj != null && !obj.Blueprint.Contains("fence", StringComparison.OrdinalIgnoreCase))
+						return true;
+					return false;
 				}))
 					hasWallCount++;
 				else
 					noWallCount++;
-			}
-			foreach (var wall in walls)
-			{
-				if (wall.Blueprint.Contains("fence", StringComparison.OrdinalIgnoreCase))
-					hasWallCount--;
 			}
 			// IEnumerable<Cell> emptyCells = currentCell.GetLocalAdjacentCellsAtRadius(range).Where(x => !x.HasWall());
 			// noWallCount += emptyCells.Count();
