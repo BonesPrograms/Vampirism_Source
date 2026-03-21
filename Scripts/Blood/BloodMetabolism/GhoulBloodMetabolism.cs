@@ -8,6 +8,8 @@ namespace XRL.World.Parts
     [Serializable]
     public class GhoulBloodMetabolism : BaseBloodMetabolism
     {
+
+        public static bool ShowBlood;
         public static readonly string[] Stats = { "Strength", "Agility", "Toughness", "Willpower", "Ego", "Hitpoints" };
 
         protected override int MetabolismRate => 5;
@@ -39,7 +41,8 @@ namespace XRL.World.Parts
         };
         protected override void Cycle()
         {
-                            AddPlayerMessage($"{Blood}");
+            if (ShowBlood)
+                AddPlayerMessage(Blood.ToString());
             if (Blood <= 0)
                 ParentObject.Die(); //just like that
             else
@@ -92,7 +95,7 @@ namespace XRL.World.Parts
                 e.Description = "{{r|bloodstarved}}";
                 Bloodstarved = true;
             }
-           // IComponent<GameObject>.AddPlayerMessage($"{ParentObject.t()} feels " + "{{R|thirsty}}.");
+            // IComponent<GameObject>.AddPlayerMessage($"{ParentObject.t()} feels " + "{{R|thirsty}}.");
         }
 
         void RemoveBloodStarved(IGhoulEffect e)
@@ -100,6 +103,7 @@ namespace XRL.World.Parts
             e.Description = e.Thrall ? "{{r|ghoul}}" : "{{r|masterless}}";
             Bloodstarved = false;
             Stats.ForEach(x => StatShifter.RemoveStatShift(ParentObject, x));
+            AddPlayerMessage($"{ParentObject.t()}'s" + " {{r|bloodthirst}} is quenched.");
         }
 
     }

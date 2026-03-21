@@ -14,6 +14,7 @@ using System.Linq;
 using XRL;
 using VampirismSys.Death;
 using VampirismSys.Core;
+using VampirismSys.Rules;
 
 
 namespace VampirismSys.Core
@@ -338,6 +339,28 @@ namespace XRL.World.Parts
 
 
         #region Vampirism Wishes
+
+        [WishCommand("ghoul")]
+
+        public static void Ghoul()
+        {
+            Switch<GhoulBloodMetabolism>(nameof(GhoulBloodMetabolism.ShowBlood), null);
+        }
+
+        [WishCommand("night")]
+
+        public static void Night()
+        {
+            Vampirism.AdvanceTimeToNight();
+        }
+
+        [WishCommand("day")]
+
+        public static void Day()
+        {
+            while (!Calendar.IsDay())
+                The.Game.TimeTicks++;
+        }
 
         [WishCommand("findvampires")]
 
@@ -976,7 +999,7 @@ namespace XRL.World.Parts
         /// <param name="obj"></param>
         static void StaticSwitch(string nameOf, Type obj)
         {
-            var field = obj.GetField(nameOf, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic );
+            var field = obj.GetField(nameOf, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
             _StaticSwitch(field, nameOf, obj);
         }
 

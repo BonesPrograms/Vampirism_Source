@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Linq;
 using VampirismSys.Core;
 using BeastScribe;
+using XRL.Rules;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 
 namespace XRL.World.Parts.Mutation
@@ -39,6 +41,9 @@ namespace XRL.World.Parts.Mutation
 		FeedAbility _feedAbility;
 
 		[NonSerialized]
+		bool Sunshaded = false;
+
+		[NonSerialized]
 		bool _rotschrek;
 
 		[NonSerialized]
@@ -47,6 +52,7 @@ namespace XRL.World.Parts.Mutation
 		[NonSerialized]
 		int TimeOnWorldMap = 0;
 		bool WasOnWorldMap => TimeOnWorldMap > 0;
+
 
 
 
@@ -171,10 +177,10 @@ namespace XRL.World.Parts.Mutation
 			{
 				if (WasOnWorldMap)
 					AdvanceTimeToNight();
-				 TimeOnWorldMap = 0;
+				TimeOnWorldMap = 0;
 			}
-			 else
-			 	TimeOnWorldMap++;
+			else
+				TimeOnWorldMap++;
 			return base.HandleEvent(E);
 		}
 		public override bool HandleEvent(BeforeRenderEvent E)
@@ -200,6 +206,54 @@ namespace XRL.World.Parts.Mutation
 			{
 				if (Calendar.IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false))
 					return true;
+			}
+			return false;
+		}
+
+		public bool BuildingCheck(int range = 1)
+		{
+			Cell currentCell = ParentObject.CurrentCell;
+			foreach (var cell in currentCell.GetLocalAdjacentCells())
+			{
+				foreach (var obj in cell.Objects)
+				{
+					if (obj.Blueprint == "StiltTile")
+						return true;
+				}
+			}
+			int hasWallCount = 0;
+			int noWallCount = 0;
+			List<GameObject> walls = new();
+			foreach (var dir in Directions.DirectionList)
+			{
+				if (currentCell.AnyInDirection(dir, range, x =>
+				{
+					GameObject obj = x.GetFirstObject(x => x.IsWall());
+					if (obj != null)
+						walls.Add(obj);
+					return obj != null;
+				}))
+					hasWallCount++;
+				else
+					noWallCount++;
+			}
+			foreach (var wall in walls)
+			{
+				if (wall.Blueprint.Contains("fence", StringComparison.OrdinalIgnoreCase))
+					hasWallCount--;
+			}
+			// IEnumerable<Cell> emptyCells = currentCell.GetLocalAdjacentCellsAtRadius(range).Where(x => !x.HasWall());
+			// noWallCount += emptyCells.Count();
+			//	cmd.msg($"{hasWallCount} walls");
+			//	cmd.msg($"{noWallCount} nowalls");
+			if (hasWallCount >= 5 && hasWallCount > noWallCount)
+			{
+				return true;
+			}
+			if (range < 6)
+			{
+				range++;
+				return BuildingCheck(range);
 			}
 			return false;
 		}
@@ -294,8 +348,20 @@ namespace XRL.World.Parts.Mutation
 		{
 			if (IsOutsideDuringTheDay())
 			{
-				AddPlayerMessage("{{W|IT BURNS!!!}}");
-				ParentObject.TakeDamage(WikiRng.Next(5, 10), null, null);
+				if (BuildingCheck())
+				{
+					if (!Sunshaded)
+					{
+						Sunshaded = true;
+						AddPlayerMessage("Shade protects you from the sun.");
+					}
+				}
+				else
+				{
+					Sunshaded = false;
+					AddPlayerMessage("{{W|IT BURNS!!!}}");
+					ParentObject.TakeDamage(WikiRng.Next(5, 10), null, null);
+				}
 			}
 			if (!Immune && Options.GetOptionBool(ModOptions.FIRE) && ParentObject.LocalCells(out var cells))
 			{
