@@ -987,7 +987,7 @@ namespace XRL.World.Parts
         static void Switch<T>(string nameOf, T obj)
         {
             BindingFlags flag1 = obj == null ? BindingFlags.Static : BindingFlags.Instance;
-            BindingFlags flag2 = obj == null ? BindingFlags.NonPublic : BindingFlags.Public;
+            BindingFlags flag2 = BindingFlags.Public | BindingFlags.NonPublic;
             var field = typeof(T).GetField(nameOf, flag1 | flag2);
             _Switch(field, nameOf, obj);
         }

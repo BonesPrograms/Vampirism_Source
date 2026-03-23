@@ -25,12 +25,12 @@ namespace VampirismSys.Biting
         readonly BiteSimulator _sim;
         public static string[] GiveBadLiquids() //for debugging
         {
-            return new Bite(null, null).BadLiquids.Select(x => x.Item1).ToArray();
+            return new Bite(null).BadLiquids.Select(x => x.Item1).ToArray();
         }
-        public Bite(GameObject Biter, Vampirism Vampirism) : base(Biter)
+        public Bite(Vampirism Vampirism) : base(Vampirism)
         {
             _vampirism = Vampirism;
-            _sim = new(Biter, this);
+            _sim = new(this, Vampirism);
 
         }
         public (string, bool)[] Flags => new (string, bool)[]

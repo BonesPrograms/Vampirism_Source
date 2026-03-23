@@ -29,9 +29,9 @@ namespace XRL.World.Effects
 
         string _oldDisplayName;
 
-        string _oldColorString;
+    //    string _oldColorString;
 
-        string _oldRenderString;
+      //  string _oldDetailColor;
 
         string _originalBlueprint;
 
@@ -89,7 +89,7 @@ namespace XRL.World.Effects
                 base.Object.Brain.AddFactionFeeling(TargetFaction, FactionFeeling);
         }
         public virtual void Revert()
-        {
+        {   
             Suppress(true);
             Unequip();
             RevertLook();
@@ -119,13 +119,13 @@ namespace XRL.World.Effects
             GamePartBlueprint render = Blueprint.GetPart(nameof(Parts.Render));
             base.Object.DisplayName = render.GetParameterString("DisplayName");
             base.Object.Render.Tile = render.GetParameterString("Tile");
-            base.Object.Render.ColorString = render.GetParameterString("TileColor");
-            base.Object.Render.RenderString = render.GetParameterString("DetailColor");
+         //   base.Object.Render.TileColor = render.GetParameterString("ColorString");
+         //   base.Object.Render.DetailColor = render.GetParameterString("RenderString");
         }
         void SaveLook()
         {
-            _oldColorString = base.Object.Render.ColorString;
-            _oldRenderString = base.Object.Render.RenderString;
+         //   _oldColorString = base.Object.Render.TileColor;
+         //   _oldDetailColor = base.Object.Render.DetailColor;
             _oldTile = base.Object.Render.Tile;
             _oldDisplayName = base.Object.DisplayName;
         }
@@ -196,8 +196,8 @@ namespace XRL.World.Effects
 
         void RevertLook()
         {
-            base.Object.Render.ColorString = _oldColorString;
-            base.Object.Render.RenderString = _oldRenderString;
+          ////  base.Object.Render.ColorString = _oldColorString;
+          //  base.Object.Render.DetailColor = _oldDetailColor;
             base.Object.Render.Tile = _oldTile;
             base.Object.DisplayName = _oldDisplayName;
         }

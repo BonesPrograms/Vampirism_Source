@@ -20,8 +20,6 @@ namespace XRL.World.Parts.Mutation
 {
 
 	[Serializable]
-
-	[HasGameBasedStaticCache]
 	public class Vampirism : BaseDefaultEquipmentMutation
 	{
 		public const string COMMAND_NAME = "CommandFeedBlood";
@@ -29,7 +27,6 @@ namespace XRL.World.Parts.Mutation
 		public const string BODYPART_TYPE = "Face";
 		public Guid FangsActivatedAbilityID = Guid.Empty;
 		public GameObject FangsObject; //your actual fangs
-		public FeedAbility FeedAbility => _feedAbility ??= new(this);
 		public string ManagerID => ParentObject.ID + "::Vampiric Fangs"; //i never really researched managerid yet. i assume that the fangs object counts as a bodypart and this is its manager
 		public override bool CanSelectVariant => false;
 		public override bool UseVariantName => false;
@@ -38,7 +35,7 @@ namespace XRL.World.Parts.Mutation
 		public bool Rotschrek { get => _rotschrek; private set { _rotschrek = value; } }
 
 		[NonSerialized]
-		FeedAbility _feedAbility;
+		public readonly FeedAbility FeedAbility;
 
 		[NonSerialized]
 		bool Sunshaded = false;
@@ -53,7 +50,10 @@ namespace XRL.World.Parts.Mutation
 		int TimeOnWorldMap = 0;
 		bool WasOnWorldMap => TimeOnWorldMap > 0;
 
-
+		public Vampirism()
+		{
+			FeedAbility = new(this);
+		}
 
 
 		#region FireEvent/Register
@@ -198,58 +198,36 @@ namespace XRL.World.Parts.Mutation
 			while (Calendar.IsDay())
 				The.Game.TimeTicks++;
 		}
-
-		//this method is used across the board by everyone except this type itself
-		public static bool SunlightInterference(GameObject ParentObject)
+		public static bool SunlightInterference(GameObject vampire)
 		{
 			if (Options.GetOptionBool(ModOptions.NIGHTBEAST))
 			{
-				if (Calendar.IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false))
+				if (Calendar.IsDay() && (vampire.CurrentZone?.IsOutside() ?? false) && !BuildingCheck(vampire))
 					return true;
 			}
 			return false;
 		}
 
-		public bool BuildingCheck(int range = 1)
+		public static bool BuildingCheck(GameObject vampire)
 		{
-			Cell currentCell = ParentObject.CurrentCell;
+			int range = 6;
+			Cell currentCell = vampire.CurrentCell;
 			foreach (var cell in currentCell.GetLocalAdjacentCells())
 			{
 				foreach (var obj in cell.Objects)
-				{
 					if (obj.Blueprint == "StiltTile")
 						return true;
-				}
 			}
-			int noWallCount = 0;
 			int hasWallCount = 0;
 			foreach (var dir in Directions.DirectionList)
 			{
 				if (currentCell.AnyInDirection(dir, range, x =>
 				{
 					GameObject obj = x.GetFirstObject(x => x.IsWall());
-					if (obj != null && !obj.Blueprint.Contains("fence", StringComparison.OrdinalIgnoreCase))
-						return true;
-					return false;
-				}))
-					hasWallCount++;
-				else
-					noWallCount++;
+					return obj != null && !obj.Blueprint.Contains("fence", StringComparison.OrdinalIgnoreCase);
+				})) hasWallCount++;
 			}
-			// IEnumerable<Cell> emptyCells = currentCell.GetLocalAdjacentCellsAtRadius(range).Where(x => !x.HasWall());
-			// noWallCount += emptyCells.Count();
-			//	cmd.msg($"{hasWallCount} walls");
-			//	cmd.msg($"{noWallCount} nowalls");
-			if (hasWallCount >= 5 && hasWallCount > noWallCount)
-			{
-				return true;
-			}
-			if (range < 6)
-			{
-				range++;
-				return BuildingCheck(range);
-			}
-			return false;
+			return hasWallCount >= 5;
 		}
 
 
@@ -342,7 +320,7 @@ namespace XRL.World.Parts.Mutation
 		{
 			if (IsOutsideDuringTheDay())
 			{
-				if (BuildingCheck())
+				if (BuildingCheck(ParentObject))
 				{
 					if (!Sunshaded)
 					{

@@ -19,19 +19,19 @@ namespace XRL.World.Effects
     {
         public GameObject Target;
         public TheBeast Source => _source ??= Object.GetPart<TheBeast>();
-        ActionAI Action => _action ??= new(this);
-
-        [NonSerialized]
-        ActionAI _action;
 
         [NonSerialized]
         TheBeast _source;
+
+        [NonSerialized]
+        public readonly ActionAI Action;
         public bool InRange => Object.DistanceTo(Target) <= 1;
         public bool gameover { get => _gameover; private init { _gameover = value; } }
         bool _gameover;
         public FrenzyAI()
         {
             Duration = 9999;
+            Action = new(this);
         }
         public FrenzyAI(GameObject Target, bool gameover) : this()
         {

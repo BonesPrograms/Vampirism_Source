@@ -4,6 +4,7 @@ using VampirismSys.Extensions;
 using XRL.World;
 using System.Linq;
 using VampirismSys.Core;
+using XRL.World.Parts.Mutation;
 
 namespace VampirismSys.Biting
 {
@@ -13,12 +14,12 @@ namespace VampirismSys.Biting
 
     public class BiteSimulator : BaseBite
     {
-        readonly Bite _source;
+        readonly Bite _bite;
         readonly LiquidBehaviors _liquidBehaviors;
-        public BiteSimulator(GameObject Biter, Bite Source) : base(Biter)
+        public BiteSimulator(Bite bite, Vampirism source) : base(source)
         {
-            this._source = Source;
-            _liquidBehaviors = new(Biter);
+            this._bite = bite;
+            _liquidBehaviors = new(source);
         }
         Ending FlameEnding(GameObject Target)
         {
@@ -48,9 +49,9 @@ namespace VampirismSys.Biting
         }
         Ending DiseaseEnding() //this is impossible to succeed on, it is the worst one
         {
-            if (_source.Diseases[0].Item2 || _source.Diseases[1].Item2)
+            if (_bite.Diseases[0].Item2 || _bite.Diseases[1].Item2)
                 Glotrot();
-            else if (_source.Diseases[2].Item2 || _source.Diseases[3].Item2)
+            else if (_bite.Diseases[2].Item2 || _bite.Diseases[3].Item2)
                 Ironshank();
             return Ending.VOMIT;
 
@@ -72,17 +73,17 @@ namespace VampirismSys.Biting
 
         public Ending BadEnding(GameObject Target)
         {
-            return Result(_source.Flags.Where(x => x.Item2).Select(x => Cycle(x.Item1, Target)));
+            return Result(_bite.Flags.Where(x => x.Item2).Select(x => Cycle(x.Item1, Target)));
         }
 
         Ending Cycle(string flag, GameObject Target) =>
         flag switch
         {
-            nameof(_source.IsOnFire) => FlameEnding(Target),
-            nameof(_source.HasPlasma) => PlasmaEnding(),
-            nameof(_source.HasBadLiquid) => _liquidBehaviors.LiquidEnding(_source.BadLiquids),
-            nameof(_source.HasDisease) => DiseaseEnding(),
-            nameof(_source.IsPoisoned) => PoisonEnding(),
+            nameof(_bite.IsOnFire) => FlameEnding(Target),
+            nameof(_bite.HasPlasma) => PlasmaEnding(),
+            nameof(_bite.HasBadLiquid) => _liquidBehaviors.LiquidEnding(_bite.BadLiquids),
+            nameof(_bite.HasDisease) => DiseaseEnding(),
+            nameof(_bite.IsPoisoned) => PoisonEnding(),
             _ => default
         };
 

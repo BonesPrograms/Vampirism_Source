@@ -16,10 +16,12 @@ namespace VampirismSys.Biting
             SUCCESS = 1,
             OUT_OF_RANGE = 0
         }
-        readonly protected GameObject Biter;
-        protected BaseBite(GameObject Biter)
+        readonly protected Vampirism Source;
+        protected GameObject Biter => Source.ParentObject;
+
+        protected BaseBite(Vampirism Source)
         {
-            this.Biter = Biter;
+            this.Source = Source;
         }
         protected bool PainTolerance() => Biter.HasEffect<HulkHoney_Tonic>() || Biter.HasPart<Analgesia>();
         protected Ending MakeSave(string text) => Biter.MakeSave("Toughness", 13, null, null, text) ? Ending.SUCCESS : Ending.FAIL;

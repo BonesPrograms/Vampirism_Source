@@ -29,7 +29,7 @@ namespace VampirismSys.Attack
         public FeedAbility(Vampirism Source)
         {
             this.Source = Source;
-            Bite = new Bite(Source.ParentObject, Source);
+            Bite = new Bite(Source);
         }
 
         bool Stealth => Source.ParentObject.CheckFlag(Flags.STEALTH);

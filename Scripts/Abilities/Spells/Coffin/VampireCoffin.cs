@@ -110,12 +110,12 @@ namespace XRL.World.Parts
 
         public override void Write(GameObject Basis, SerializationWriter Writer)
         {
-            Scribe.Writer.WriteDirect(Writer, this);
+            Scribe.Writer.ScribeDirect(Writer, this);
         }
 
         public override void Read(GameObject Basis, SerializationReader Reader)
         {
-            Scribe.Reader.ReadDirect(Reader, this);
+            Scribe.Reader.ScribeDirect(Reader, this);
         }
     }
 }

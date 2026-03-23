@@ -26,13 +26,10 @@ namespace XRL.World.Parts
 	{
 
 		public Dictionary<GameObject, int> TargetRegistry = new();
-
 		public Vampirism Base => _Base ??= ParentObject.GetPart<Vampirism>();
 
-		public FrenzyCore Core => _Core ??= new FrenzyCore(this);
-
 		[NonSerialized]
-		FrenzyCore _Core;
+		public readonly FrenzyCore Core;
 
 		[NonSerialized]
 		Vampirism _Base;
@@ -44,6 +41,11 @@ namespace XRL.World.Parts
 		public bool Frenzied;
 
 		public const int FLAG_AVOID = 150; //arbitrary value assigned to targets to prevent them from being re-targetted
+
+		public TheBeast()
+		{
+			Core = new(this);
+		}
 
 		public bool HasFangs() => Base.HasFangs();
 

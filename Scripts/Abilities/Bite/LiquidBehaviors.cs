@@ -4,13 +4,14 @@ using VampirismSys.Extensions;
 using XRL.World;
 using System.Linq;
 using VampirismSys.Core;
+using XRL.World.Parts.Mutation;
 
 namespace VampirismSys.Biting
 {
 
     public class LiquidBehaviors : BaseBite
     {
-        public LiquidBehaviors(GameObject Biter) : base(Biter)
+        public LiquidBehaviors(Vampirism source) : base(source)
         {
         }
         Ending OilLiquid() //yeah drinking oil doesnt really do anything but its gross so i added it. used to make you puke but it doesnt do that ingame so i got rid of that

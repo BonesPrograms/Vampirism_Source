@@ -18,13 +18,11 @@ namespace VampirismSys.Frenzy
     public class ActionAI
     {
         readonly FrenzyAI AI;
-        readonly Search Search;
-        readonly Bite Bite;
+        Search Search => AI.Source.Core.Search;
+        Bite Bite => AI.Source.Base.FeedAbility.Bite;
         public ActionAI(FrenzyAI AI)
         {
             this.AI = AI;
-            Bite = AI.Source.Base.FeedAbility.Bite;
-            Search = AI.Source.Core.Search;
         }
         bool BadBite(GameObject Target) => Bite.BadTarget(Target) && Bite.CannotFeed(Target);
 
