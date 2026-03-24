@@ -20,9 +20,9 @@ namespace XRL.World.Parts
     public abstract class BaseVampireSpell : IBeastScribedPart
     {
         public const string CATEGORY = "Blood Magic";
-        protected Guid SpellID { get => _spellID; private set { _spellID = value; } }
-        protected string CommandName { get => _commandName; init { _commandName = value; } }
-        protected string AbilityMenuName { get => _abilityName; init { _abilityName = value; } }
+        public Guid SpellID { get => _spellID; private set { _spellID = value; } }
+        public string CommandName { get => _commandName; init { _commandName = value; } }
+        public string AbilityMenuName { get => _abilityName; init { _abilityName = value; } }
 
         Guid _spellID = Guid.Empty;
 

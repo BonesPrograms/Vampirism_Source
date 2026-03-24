@@ -26,9 +26,7 @@ namespace XRL.World.Parts
         public static bool AntiPuke;
         public int BloodDrams => ParentObject.GetFreeDrams("blood"); //for harmony
         public override string UIBloodDisplay => ParentObject.CheckFlag(Flags.GO) ? "{{r|Bottomless}}" : base.UIBloodDisplay;
-
-        public static List<GameObject> containers = new();
-
+        static readonly List<GameObject> containers = new();
         public VampireBloodMetabolism()
         {
 

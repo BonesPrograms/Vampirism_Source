@@ -18,7 +18,6 @@ namespace VampirismSys.Biting
         }
         readonly protected Vampirism Source;
         protected GameObject Biter => Source.ParentObject;
-
         protected BaseBite(Vampirism Source)
         {
             this.Source = Source;

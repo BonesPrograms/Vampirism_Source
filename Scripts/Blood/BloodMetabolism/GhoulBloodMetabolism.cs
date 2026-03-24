@@ -1,6 +1,9 @@
 using System;
 using VampirismSys.Blood;
 using VampirismSys.Extensions;
+using VampirismSys.Rules;
+using XRL.Core;
+using XRL.UI;
 using XRL.World.Effects;
 
 namespace XRL.World.Parts
@@ -61,18 +64,34 @@ namespace XRL.World.Parts
 
         }
 
-        public void Buff(int Roll)
+        public bool Feed(int roll)
         {
-            if (!Buffed && Status > BloodLevel.THIRSTY) //they need to be fed a bit before buff can kick in
+            if (Blood >= Metab.SIP_PUKE_WARN)
             {
-                ParentObject.ApplyEffect(new BuffedEnthralledGhoul(Roll));
+                if (Popup.ShowYesNo($"Feeding {ParentObject.t()} will make them puke. Do you still want to feed {ParentObject.it}?") == DialogResult.No)
+                    return false;
+                Drink();
+                return true;
+            }
+            if (Blood < Metab.BLOOD_QUENCHED)
+                Blood = Metab.BLOOD_QUENCHED;
+            if (Bloodstarved)
+                RemoveBloodStarved(ParentObject.GetEffect<EnthralledGhoul>());
+            if (!Buffed)
+            {
+                ParentObject.FireEvent("Recuperating");
+                //   RegenerateLimbEvent.Send(ParentObject, null, null, Whole: true);
+                ParentObject.FireEvent(Event.New("Regenera", "SourceDescription", "The {{r|vampire blood}} cures you of", "Level", 1));
+                ParentObject.ApplyEffect(new BuffedEnthralledGhoul(roll));
                 Buffed = true;
             }
             Drink();
+            return true;
         }
 
         void Debuff()
         {
+            ParentObject.RemoveEffect<BuffedEnthralledGhoul>();
             string msg = Status > BloodLevel.MIN ? $"{ParentObject.t()} is thirsty for " + "{{r|blood}}!" : $"{ParentObject.t()} will die without " + "{{r|blood}}!";
             AddPlayerMessage(msg);
             int debuff = DebuffRate;
@@ -104,6 +123,17 @@ namespace XRL.World.Parts
             Bloodstarved = false;
             Stats.ForEach(x => StatShifter.RemoveStatShift(ParentObject, x));
             AddPlayerMessage($"{ParentObject.t()}'s" + " {{r|bloodthirst}} is quenched.");
+        }
+
+        public override bool Render(RenderEvent E)
+        {
+            int num = XRLCore.CurrentFrame % 60;
+            if (Bloodstarved && num > 25 && num < 35)//XRLCore.CurrentFrame % 20 > 10)
+            {
+                E.RenderString = "\u0003";
+                E.ColorString = "&R^k";
+            }
+            return true;
         }
 
     }

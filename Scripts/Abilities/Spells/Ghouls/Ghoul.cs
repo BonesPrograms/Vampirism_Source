@@ -122,6 +122,11 @@ namespace XRL.World.Effects
     [Serializable]
     public class BuffedEnthralledGhoul : IBeastScribedEffect
     {
+
+        public override bool UseStandardDurationCountdown()
+        {
+            return true;
+        }
         int Bonus;
         public BuffedEnthralledGhoul()
         {

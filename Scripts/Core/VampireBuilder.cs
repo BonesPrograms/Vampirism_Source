@@ -199,7 +199,7 @@ namespace XRL.World.Parts
         /// <summary>
         /// For backing up corpses.
         /// </summary>
-        internal VampireAshes(Corpse corpse) : this()
+        public VampireAshes(Corpse corpse) : this()
         {
             OldBurntCorpseBlueprint = corpse.BurntCorpseBlueprint.IsNullOrEmpty() ? default : corpse.BurntCorpseBlueprint;
             OldVaporizedCorpseBlueprint = corpse.VaporizedCorpseBlueprint.IsNullOrEmpty() ? default : corpse.VaporizedCorpseBlueprint;
@@ -216,7 +216,7 @@ namespace XRL.World.Parts
         //or doing the IsNullOrEmpty ? default thing
         //havent cared to go back make it proper yet since i am currently working on a big update
 
-        internal Corpse Revert()
+       public Corpse Revert()
         {
             Corpse corpse = new()
             {

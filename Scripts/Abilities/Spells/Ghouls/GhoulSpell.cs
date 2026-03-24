@@ -35,7 +35,12 @@ namespace XRL.World.Parts
             if (E.Command == VampirismSys.Rules.Ghoul.COMMAND_NAME && Checks.Prerequisites(base.ParentObject, VampirismSys.Rules.Ghoul.ABILITY_NAME, TEXT))
             {
                 if (base.ParentObject.TryGetTarget(AbilityMenuName, TEXT, out GameObject pick) && Checks.Attackable(pick, TEXT))
-                    MakeAttack(pick);
+                {
+                    if (!ParentObject.IsRealityDistortionUsable())
+                        RealityStabilized.ShowGenericInterdictMessage(ParentObject);
+                    else if (!IsVampire(pick))
+                        Cast(pick);
+                }
 
             }
             return base.HandleEvent(E);
@@ -47,35 +52,35 @@ namespace XRL.World.Parts
             return base.HandleEvent(E);
         }
 
-        public void MakeAttack(GameObject Target)
-        {
-            if (!ParentObject.IsRealityDistortionUsable())
-                RealityStabilized.ShowGenericInterdictMessage(ParentObject);
-            else if (!IsVampire(Target))
-                Cast(Target);
-        }
         void Cast(GameObject Target)
         {
-            if (base.Cast(TEXT)) //used to do a reality check here but... i dont think feeding a ghoul needs a reality distortion check
+            if (base.Cast(TEXT)) 
             {
-                if (AlreadyEnthralled(Target, out var ghoul))
-                    CheckEnthrallment(ghoul);
+                if (Target.TryGetEffect(out EnthralledGhoul ghoul))
+                {
+                    if (ghoul.IsGhoulOf(ParentObject))
+                    {
+                        if (RealityCheck(ghoul.Object, false) && ghoul.Object.GetPart<GhoulBloodMetabolism>().Feed(Roll()))
+                            base.ExpendBlood(false, $"You feed {ghoul.Object.t()} your " + "{{R|blood}}.");
+                    }
+                    else
+                        UI.Popup.Show($"{ghoul.Object.t()} already has a master.");
+                }
                 else if (NotAlreadyFollower(Target) && RealityCheck(Target, true) && Attack(Target))
-                    Enthrall(Target);
+                {
+                    RemoveLastGhoul(ParentObject);
+                    var e = new EnthralledGhoul(ParentObject);
+                    Target.ApplyEffect(e);
+                    base.ExpendBlood(true, $"You feed {Target.t()}" + "your {{R|blood}} and enthrall" + $" {Target.its} mind.");
+                }
 
             }
         }
-        bool Attack(GameObject Target) =>
-        Capabilities.Mental.PerformAttack
-        (Enthrall, base.ParentObject, Target, null, VampirismSys.Rules.Ghoul.COMMAND_NAME, "1d8", 1, int.MinValue, int.MinValue, base.Roll(), Target.Stat("Level"));
-        void Enthrall(GameObject Target)
+        bool Attack(GameObject Target)
         {
-            RemoveLastGhoul(ParentObject);
-            var ghoul = new EnthralledGhoul(ParentObject);
-            Target.ApplyEffect(ghoul);
-            ExpendBlood(ghoul, true);
+            return Capabilities.Mental.PerformAttack
+            (Enthrall, base.ParentObject, Target, null, VampirismSys.Rules.Ghoul.COMMAND_NAME, "1d8", 1, int.MinValue, int.MinValue, base.Roll(), Target.Stat("Level"));
         }
-
         bool Enthrall(MentalAttackEvent E)
         {
             GameObject defender = E.Defender;
@@ -107,40 +112,12 @@ namespace XRL.World.Parts
             }
             return false;
         }
-
-        bool AlreadyEnthralled(GameObject Target, out EnthralledGhoul ghoul)
-        {
-            ghoul = Target.GetEffect<EnthralledGhoul>();
-            return ghoul != null;
-        }
-
-        void CheckEnthrallment(EnthralledGhoul ghoul)
-        {
-            if (ghoul.IsGhoulOf(ParentObject))
-            {
-                if (RealityCheck(ghoul.Object, false))
-                    ExpendBlood(ghoul, false);
-            }
-            else
-                UI.Popup.Show($"{ghoul.Object.t()} already has a master.");
-
-        }
-
         bool RealityCheck(GameObject ghoul, bool showPopup)
         {
             if (RealityCheck(ParentObject.CurrentCell))
                 return true;
             base.ExpendBlood(showPopup, $"You feed ${ghoul.t()} your blood, but nothing happens.");
             return false;
-        }
-        void ExpendBlood(EnthralledGhoul ghoul, bool showPopup)
-        {
-
-            ghoul.Object.GetPart<GhoulBloodMetabolism>().Buff(Roll());
-            string basemessage = $"You feed {ghoul.Object.t()} your " + "{{R|blood}}";
-            string output = showPopup == true ? $"{basemessage} and enthrall their mind." : $"{basemessage}.";
-            base.ExpendBlood(showPopup, output);
-
         }
         static void RemoveLastGhoul(GameObject Object)
         {
