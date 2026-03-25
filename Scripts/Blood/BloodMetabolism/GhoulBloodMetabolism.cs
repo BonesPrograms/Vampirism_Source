@@ -47,7 +47,9 @@ namespace XRL.World.Parts
             if (ShowBlood)
                 AddPlayerMessage(Blood.ToString());
             if (Blood <= 0)
+            {
                 ParentObject.Die(); //just like that
+            }
             else
             {
                 base.Cycle();
@@ -77,15 +79,15 @@ namespace XRL.World.Parts
                 Blood = Metab.BLOOD_QUENCHED;
             if (Bloodstarved)
                 RemoveBloodStarved(ParentObject.GetEffect<EnthralledGhoul>());
+            Drink();
+            ParentObject.FireEvent("Recuperating");
+            //   RegenerateLimbEvent.Send(ParentObject, null, null, Whole: true);
+            ParentObject.FireEvent(Event.New("Regenera", "SourceDescription", "The {{r|vampire blood}} cures you of", "Level", 1));
             if (!Buffed)
             {
-                ParentObject.FireEvent("Recuperating");
-                //   RegenerateLimbEvent.Send(ParentObject, null, null, Whole: true);
-                ParentObject.FireEvent(Event.New("Regenera", "SourceDescription", "The {{r|vampire blood}} cures you of", "Level", 1));
                 ParentObject.ApplyEffect(new BuffedEnthralledGhoul(roll));
                 Buffed = true;
             }
-            Drink();
             return true;
         }
 
@@ -131,7 +133,7 @@ namespace XRL.World.Parts
             if (Bloodstarved && num > 25 && num < 35)//XRLCore.CurrentFrame % 20 > 10)
             {
                 E.RenderString = "\u0003";
-                E.ColorString = "&R^k";
+                E.ColorString = "&r^k";
             }
             return true;
         }

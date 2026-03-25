@@ -1,4 +1,5 @@
 using System;
+using VampirismSys.Core;
 using VampirismSys.Extensions;
 using VampirismSys.Rules;
 using XRL.World.Parts;
@@ -130,7 +131,7 @@ namespace XRL.World.Effects
         int Bonus;
         public BuffedEnthralledGhoul()
         {
-            Duration = Ghoul.BUFFTIME;
+            Duration = WikiRng.Next(100,200);
             DisplayName = "{{r|blooddrunk}}";
         }
 
