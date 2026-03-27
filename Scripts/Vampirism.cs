@@ -14,6 +14,7 @@ using VampirismSys.Core;
 using BeastScribe;
 using XRL.Rules;
 using System.Runtime.InteropServices.WindowsRuntime;
+using XRL.World.Capabilities;
 
 
 namespace XRL.World.Parts.Mutation
@@ -22,6 +23,11 @@ namespace XRL.World.Parts.Mutation
 	[Serializable]
 	public class Vampirism : BaseDefaultEquipmentMutation
 	{
+
+		const int NIGHTTIME = 9040; // > 9040 == sun is setting in ui, or is not visible in ui
+		const int DAYTIME = 4220; //> 4220 < 9040 == sun is completely visible in ui
+		const int SUNRISE = 3250; //3250 == sun can be seen rising in ui
+		public static bool TrueDaylight => Calendar.CurrentDaySegment > DAYTIME && Calendar.CurrentDaySegment < NIGHTTIME;
 		public const string COMMAND_NAME = "CommandFeedBlood";
 		public const string ABILITY_NAME = "Feed";
 		public const string BODYPART_TYPE = "Face";
@@ -189,28 +195,28 @@ namespace XRL.World.Parts.Mutation
 			return base.HandleEvent(E);
 		}
 
-		bool IsOutsideDuringTheDay() => CheckNightbeast() && IsDay() && (ParentObject.CurrentZone?.IsOutside() ?? false);
+		bool IsOutsideDuringTheDay() => CheckNightbeast() && TrueDaylight;
 
-		bool CheckNightbeast() => Options.GetOptionBool(ModOptions.NIGHTBEAST) && ParentObject.IsPlayer() && !ParentObject.OnWorldMap();
+		bool CheckNightbeast() => Options.GetOptionBool(ModOptions.NIGHTBEAST) && ParentObject.IsPlayer() && !ParentObject.OnWorldMap() && (ParentObject.CurrentZone?.IsOutside() ?? false);
 
 		public static void AdvanceTimeToNight()
 		{
-			while (Calendar.IsDay())
+			while (Calendar.CurrentDaySegment != NIGHTTIME)
 				The.Game.TimeTicks++;
 		}
 		public static bool SunlightInterference(GameObject vampire)
 		{
 			if (Options.GetOptionBool(ModOptions.NIGHTBEAST))
 			{
-				if (Calendar.IsDay() && (vampire.CurrentZone?.IsOutside() ?? false) && !BuildingCheck(vampire))
+				if (TrueDaylight && (vampire.CurrentZone?.IsOutside() ?? false) && !BuildingCheck(vampire))
 					return true;
 			}
 			return false;
 		}
 
+
 		public static bool BuildingCheck(GameObject vampire)
 		{
-			int range = 6;
 			Cell currentCell = vampire.CurrentCell;
 			foreach (var cell in currentCell.GetLocalAdjacentCells())
 			{
@@ -218,6 +224,7 @@ namespace XRL.World.Parts.Mutation
 					if (obj.Blueprint == "StiltTile")
 						return true;
 			}
+			const int range = 6;
 			int hasWallCount = 0;
 			foreach (var dir in Directions.DirectionList)
 			{
@@ -256,7 +263,7 @@ namespace XRL.World.Parts.Mutation
 		}
 		public override bool HandleEvent(EndTurnEvent E)
 		{
-			if (WikiRng.Next(1, 10) == 10 && !ParentObject.CheckFlag(Flags.FEED))
+			if (WikiRng.Next(1, 20) == 20 && !ParentObject.CheckFlag(Flags.FEED))
 			{
 				AddPlayerMessage("{{r|Blood}} drips from your fangs.");
 				if (!ParentObject.OnWorldMap())
@@ -318,6 +325,11 @@ namespace XRL.World.Parts.Mutation
 		//however if its the player it doesnt matter because you can move yourself a bit so rotschrek can chain on the player
 		public override bool HandleEvent(BeginTakeActionEvent E)
 		{
+			if (Calendar.CurrentDaySegment == SUNRISE && CheckNightbeast())
+			{
+				AddPlayerMessage("The sun will rise soon.");
+				AutoAct.Interrupt();
+			}
 			if (IsOutsideDuringTheDay())
 			{
 				if (BuildingCheck(ParentObject))

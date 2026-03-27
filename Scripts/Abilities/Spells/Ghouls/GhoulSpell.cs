@@ -71,13 +71,13 @@ namespace XRL.World.Parts
                     RemoveLastGhoul(ParentObject);
                     var e = new EnthralledGhoul(ParentObject);
                     Target.ApplyEffect(e);
-                    base.ExpendBlood(true, $"You feed {Target.t()}" + "your {{R|blood}} and enthrall" + $" {Target.its} mind.");
+                    base.ExpendBlood(true, $"You feed {Target.t()} " + "your {{R|blood}} and enthrall" + $" {Target.its} mind.");
                 }
 
             }
         }
         bool Attack(GameObject Target)
-        {
+        {   
             return Capabilities.Mental.PerformAttack
             (Enthrall, base.ParentObject, Target, null, VampirismSys.Rules.Ghoul.COMMAND_NAME, "1d8", 1, int.MinValue, int.MinValue, base.Roll(), Target.Stat("Level"));
         }

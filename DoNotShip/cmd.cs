@@ -26,7 +26,7 @@ namespace VampirismSys.Core
         static void EnableDebug()
         {
             VampireBuilder.EnableSpells = true;
-            MarkOnDeath.Debug = true;
+            MarkOnDeath.Debug = false;
             BasePolymorphEffect.Debug = true;
         }
     }
@@ -37,7 +37,7 @@ namespace VampirismSys.Core
         public void mutate(GameObject obj)
         {
             var part = obj.AddPart(new cmd(obj.IsVampire()));
-            part.refresh = true;
+           // part.refresh = true;
         }
     }
 }
@@ -779,6 +779,14 @@ namespace XRL.World.Parts
         }
 
         #region Misc
+
+        [WishCommand("seg")]
+
+        public static void seg()
+        {
+            msg(Calendar.CurrentDaySegment.ToString());
+            msg(Calendar.TotalTimeTicks.ToString());
+        }
 
         [WishCommand("time")]
 

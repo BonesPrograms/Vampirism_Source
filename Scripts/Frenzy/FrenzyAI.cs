@@ -7,6 +7,8 @@ using VampirismSys.Extensions;
 using VampirismSys.Rules;
 using VampirismSys.Frenzy;
 using System;
+using ConsoleLib.Console;
+using UnityEngine;
 
 namespace XRL.World.Effects
 {
@@ -28,6 +30,8 @@ namespace XRL.World.Effects
         public bool InRange => Object.DistanceTo(Target) <= 1;
         public bool gameover { get => _gameover; private init { _gameover = value; } }
         bool _gameover;
+        static readonly Color ColorBrightBlue = new(1f, 0f, 0f);
+        static readonly Color ColorDarkBlue = new(0.5f, 0f, 0f);
         public FrenzyAI()
         {
             Duration = 9999;
@@ -130,7 +134,7 @@ namespace XRL.World.Effects
 
         public override bool Render(RenderEvent E)
         {
-
+            E.WantsToPaint = !E.DisableFullscreenColorEffects && !E.Alt && base.Object.IsPlayer();
             int num = XRLCore.CurrentFrame % 60;
             if (num > 25 && num < 35)
             {
@@ -140,14 +144,43 @@ namespace XRL.World.Effects
             }
             return true;
         }
+        public override void OnPaint(ScreenBuffer Buffer)
+        {
+            Zone currentZone = base.Object.CurrentZone;
+            Color red = The.Color.Red;
+            Color darkRed = The.Color.DarkRed;
+            Color darkBlack = The.Color.DarkBlack;
+            int i = 0;
+            int num = 0;
+            for (int height = Buffer.Height; i < height; i++)
+            {
+                int num2 = 0;
+                int width = Buffer.Width;
+                while (num2 < width)
+                {
+                    ConsoleChar consoleChar = Buffer[num2, i];
+                    consoleChar._Background = darkBlack;
+                    if (currentZone.VisibilityMap[num])
+                    {
+                        consoleChar._Foreground = red;
+                        consoleChar._TileForeground = ColorBrightBlue;
+                        consoleChar._Detail = ColorDarkBlue;
+                    }
+                    else
+                    {
+                        consoleChar._Foreground = darkRed;
+                        consoleChar._TileForeground = ColorDarkBlue;
+                        consoleChar._Detail = ColorDarkBlue;
+                    }
+
+                    num2++;
+                    num++;
+                }
+            }
+        }
 
         public override bool SameAs(Effect e) => false;
         public override string GetDetails() => "{{R sequence|The Beast}} has taken control.";
 
-        public override void Write(GameObject Basis, SerializationWriter Writer)
-        {
-            Writer.Write(_gameover);
-            base.Write(Basis, Writer);
-        }
     }
 }
