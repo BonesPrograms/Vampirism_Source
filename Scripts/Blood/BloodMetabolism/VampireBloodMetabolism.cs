@@ -122,7 +122,7 @@ namespace XRL.World.Parts
 
         void SetStomach()
         {
-            if (Options.GetOptionBool(ModOptions.TRUE_UNDEAD) && Stomach.HungerLevel != 0)   //most True Undead code is in Vampirism, this is the only one outside of it
+            if (Options.GetOptionBool(ModOptions.TRUE_UNDEAD) && Stomach != null && Stomach.HungerLevel != 0)   //most True Undead code is in Vampirism, this is the only one outside of it
                 Stomach.ClearHunger();
         }
 

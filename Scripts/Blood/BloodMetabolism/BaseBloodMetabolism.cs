@@ -136,7 +136,7 @@ namespace XRL.World.Parts
             }
             return base.HandleEvent(E);
         }
-        protected virtual void Cycle() 
+        protected virtual void Cycle()
         {
             Blood -= MetabolismRate;
         }
@@ -181,7 +181,11 @@ namespace XRL.World.Parts
             }
         }
 
-        void SetWater() => Stomach.Water = WATER;
+        void SetWater()
+        {
+            if (Stomach != null)
+                Stomach.Water = WATER;
+        }
 
         void VomitEventHelper(StringBuilder MessageHolder)
         {

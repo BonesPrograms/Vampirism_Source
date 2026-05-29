@@ -121,7 +121,7 @@
   </option>
   <option
   ID="RedBloodTextVampirism"
-  DisplayText="Red text for water (requires restart)"
+  DisplayText="Disable red color for blood count."
   Category="Vampirism"
   Type="Checkbox"
   Default="Yes">

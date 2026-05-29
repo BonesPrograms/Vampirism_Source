@@ -15,6 +15,7 @@ using BeastScribe;
 using XRL.Rules;
 using System.Runtime.InteropServices.WindowsRuntime;
 using XRL.World.Capabilities;
+using XRL.World.Conversations;
 
 
 namespace XRL.World.Parts.Mutation
@@ -23,6 +24,8 @@ namespace XRL.World.Parts.Mutation
 	[Serializable]
 	public class Vampirism : BaseDefaultEquipmentMutation
 	{
+		
+
 
 		const int NIGHTTIME = 9040; // > 9040 == sun is setting in ui, or is not visible in ui
 		const int DAYTIME = 4220; //> 4220 < 9040 == sun is completely visible in ui
@@ -195,9 +198,9 @@ namespace XRL.World.Parts.Mutation
 			return base.HandleEvent(E);
 		}
 
-		bool IsOutsideDuringTheDay() => CheckNightbeast() && TrueDaylight;
+		bool IsOutsideDuringTheDay() => CheckNightbeast() && TrueDaylight  && (ParentObject.CurrentZone?.IsOutside() ?? false);
 
-		bool CheckNightbeast() => Options.GetOptionBool(ModOptions.NIGHTBEAST) && ParentObject.IsPlayer() && !ParentObject.OnWorldMap() && (ParentObject.CurrentZone?.IsOutside() ?? false);
+		bool CheckNightbeast() => Options.GetOptionBool(ModOptions.NIGHTBEAST) && ParentObject.IsPlayer() && !ParentObject.OnWorldMap();
 
 		public static void AdvanceTimeToNight()
 		{
@@ -325,7 +328,7 @@ namespace XRL.World.Parts.Mutation
 		//however if its the player it doesnt matter because you can move yourself a bit so rotschrek can chain on the player
 		public override bool HandleEvent(BeginTakeActionEvent E)
 		{
-			if (Calendar.CurrentDaySegment == SUNRISE && CheckNightbeast())
+			if (Calendar.CurrentDaySegment == SUNRISE && CheckNightbeast() && (ParentObject.CurrentZone?.IsOutside() ?? false))
 			{
 				AddPlayerMessage("The sun will rise soon.");
 				AutoAct.Interrupt();
