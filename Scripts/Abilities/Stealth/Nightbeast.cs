@@ -32,7 +32,7 @@ namespace XRL.World.Parts
 		public static Dictionary<GameObject, bool> Witnesses => _witnesses;
 
 		[GameBasedStaticCache]
-		internal static bool NeedsReactivate = false; //for gamestart
+		internal static bool NeedsReactivate = false; //for gamestart or mutating into a vampire, activates the system
 
 		[GameBasedStaticCache(false)]
 		static Dictionary<GameObject, bool> _witnesses;

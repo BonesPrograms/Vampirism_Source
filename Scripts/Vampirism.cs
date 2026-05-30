@@ -650,6 +650,7 @@ namespace XRL.World.Parts.Mutation
 		{
 			VampireBuilder.Make(GO);
 			FangsActivatedAbilityID = AddMyActivatedAbility(ABILITY_NAME, COMMAND_NAME, "Physical Mutations", null, "\u009f");
+			Nightbeast.NeedsReactivate = true;
 			return base.Mutate(GO, Level);
 		}
 
