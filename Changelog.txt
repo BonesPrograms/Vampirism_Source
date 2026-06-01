@@ -1,0 +1,94 @@
+
+Rotschrek (2 Options):
+Player and AI vampires fear fire and take double damage from sources of fire. Going near fire will make vampires freak out. Additional option prevents vampires from using torches.
+You can resist Rotschrek with blaze tonics.
+
+Biting Simulation:
+AI vampires now experience full biting simulation effects.
+
+Blood Metabolism for Dominated Vampires:
+Dominated NPC vampires now experience blood metabolism for the duration of the effect. Be careful not to frenzy on yourself.
+
+Nightbeast(Option):
+Player only - you take constant damage when exposed to sunlight, but gain night-vision. You do not take damage on the Overworld map.
+
+Silver Ailment(Option):
+You are allergic to silver and cannot touch it.
+
+UnderDoug's Humanity(Option):
+You no longer lose humanity for killing companions and allies, unless they are your ghoul, or beguiled by you.
+
+The Damned:
+Vampires now burn to ash on death and it costs no humanity to kill them.
+
+Diablerie:
+Draining your kindred to death during a feeding may increase your vampirism level by one point. This does not work on fledglings.
+
+Sprites of Humanity:
+A memory of the human soul that drops rarely upon the death of an innocent, non-vampire. Vampires can consume these sprites to gain one point of humanity.
+
+
+Blood Magic(Option)
+Spells cost blood to use and some will level up with vampirism. Spell attack success is determined by EGO or Vampirism mod (whichever is higher) + Player Level + 1d8.
+Spells can be enabled or disabled, but the game must be saved/loaded to add/remove the spells.
+Spells are magical and casting them can be interrupted by normality.
+
+Blood Magic Spells:
+
+Coffins:
+Vampires can place coffins that they may return to instead of dying. This chance increases with vampirism level. After being saved from death, there will be a long cooldown before it can save you again.
+There is an option that allows you to skip the chance and always return to your coffin on death, but only when off cooldown.
+If you are damaged by fire and have Rotschrek enabled, you will not return to your coffin. If you are a Nightbeast and die in sunlight, you will not return to your coffin. Normality may also prevent you from returning to your coffin.
+
+
+Embrace:
+Certain creatures can be resurrected from the dead as fledglings and cursed with vampirism by the player. Though it doesn't make sense, for fun,
+a fledgling's vampirism level is equal to the embracer's vampirism level, which could make them very dangerous when they wake up.
+After waking from the dead, they will be extremely thirsty, and will frenzy very quickly. Like any frenzy, it is an automatic attack that
+cannot be resisted. It is recommended to have a "blood bag" ready for them.
+You cannot embrace the bodies of creatures who's level was greater than your combined player level and vampirism level.
+
+(will add feeding blood soon... maybe)
+ 
+Ghoul:
+Feedable creatures can be fed your blood to enthrall them, but they become reliant on your blood to survive for the rest of their life and will need to be fed consistently.
+If you do not feed your ghoul for a few days, they will die. If your ghoul is thirsty for blood, they will suffer an increasing stat penalty to all statistics.
+If you enthrall a new ghoul, your former ghoul will die in a few days unless you enthrall them again.
+Ghouls dying due to blood thirst does NOT cost humanity, but ghouls are still considered companions for anything else. If you feed on them often, avoid murdering them.
+Vampires cannot be made into ghouls.
+Feeding ghouls your blood is powerful - they will first be recuperated, then they will receive a temporary stat boost. This boost has a hidden timer and you need to wait at least a day before trying to buff your ghoul with it again.
+This boost scales with your vampirism level, granting +1 to each stat for every level of vampirism (this may change in the future because it is obviously overpowered). The duration is random.
+Once someone becomes a ghoul, no other vampires can enthrall them, even if their master is dead.
+Use the 'Ghoul' ability on a ghoul to feed them blood.
+Ghouls cannot die from being fed on, the feed will end itself beforehand. They can still die from the damage done by the bite attack, so be mindful.
+Ghouls only take half damage from feeding, because they drink a lot of OJ to stay healthy and juicy for you. (but they do not give more blood, remove that).
+
+Batform:
+You can transform into a bat. You retain all statistics. You retain all of your mental mutations, but may not retain all physical mutations.
+
+Shadowwalk:
+
+Mist/Mistform:
+
+Auspex?
+Celerity?
+
+
+
+Undead:
+Undead automatically activates Rotschrek, Silver Ailment and Nightbeast options. In addition:
+You no longer respire, cannot contract disease, and do not feel hunger.
+You cannot sleep.
+If you are caught in sunlight, you will die instantly.
+Taking fire damage or silver damage permanently reduces HP by one point.
+
+Stakes:
+Stakes can be used to paralyze vampires.
+
+MAYBE?: probably an option:
+If you try to swim or wade through running water (rivers), you will take damage for each step.
+
+
+Possible Update for Biting:
+Salt allergy? It will probably be an option that encompasses multiple things (cannot drink salt, cannot wade through salt - either causes damage or fear)
+It would not need to be a hard update: in the initial scanner, if salt == true and the option is false, then set salt to false, easy

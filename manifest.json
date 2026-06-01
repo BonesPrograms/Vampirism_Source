@@ -1,0 +1,11 @@
+{
+    "ID": "vampirism",
+    "Title": "{{R|Vampirism}}",
+    "Author": "{{M sequence|Mr}}{{B sequence|Beast}}",
+    "Description": "Introduces vampirism to Caves of Qud.",
+    "PreviewImage": "preview.png",
+    "Dependencies":
+    {
+    "mrbeastscribed" : ">=1.0.0"
+    }
+}

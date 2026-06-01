@@ -1,0 +1,126 @@
+using XRL.World.Effects;
+using System;
+using VampirismNexus.Rules;
+using VampirismNexus.Core;
+using XRL.World.Parts.Mutation;
+using XRL.Core;
+using XRL.World.Parts;
+
+namespace XRL.World.Effects
+{
+    [Serializable]
+    public class ActiveBatform : Effect
+    {
+        public GameObject OriginalBody;
+        public ActiveBatform()
+        {
+            DisplayName = "";
+        }
+
+        public ActiveBatform(GameObject Body)
+        {
+            OriginalBody = Body;
+            Duration = 9999;
+        }
+
+        public override bool Apply(GameObject Object)
+        {
+            ID = AddMyActivatedAbility("Revert Form", "cmdRevertBat", $"{typeof(VampiricSpell)}", null, "\u0002");
+            return true;
+        }
+
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
+        {
+            Registrar.Register("cmdRevertBat");
+        }
+
+        public override void Remove(GameObject Object)
+        {
+            RemoveMyActivatedAbility(ref ID);
+        }
+
+        
+    public override bool FireEvent(Event E)
+    {
+        if (E.ID == "cmdRevertBat")
+        {
+            Cell cell = base.Object.Physics.CurrentCell;
+            cell.RemoveObject(base.Object);
+            cell.AddObject(OriginalBody);
+            XRLCore.Core.Game.Player.Body = OriginalBody;
+            Metamorphosis.TransferInventory(base.Object, OriginalBody, bTagLastEquipped: false);
+            base.Object.MakeInactive();
+            OriginalBody.MakeActive();
+            IComponent<GameObject>.XDidY(OriginalBody, "revert", "to " + OriginalBody.its + " original form");
+        }
+        return base.FireEvent(E);
+    }
+    }
+}
+
+
+namespace XRL.World.Parts
+{
+    //this is mostly just metamorphosis. you could easily use this to make your own ad-hoc metamorphosis for any creature blueprint if you like
+
+    [Serializable]
+    public class OldBatformSpell : VampiricSpell
+    {
+        public override Type SpellType => typeof(OldBatformSpell);
+        public override int Cooldown => 0; //100 - (Level * 5); //so at level 20 you can just become a bat whenever you want
+        public GameObject _Bat;
+        public GameObject Bat => _Bat ??= GameObject.Create(blueprint);
+        const string blueprint = "Bat";
+        public override void CollectStats(Templates.StatCollector stats)
+        {
+            stats.CollectCooldownTurns(MyActivatedAbility(SpellID), Cooldown);
+        }
+
+        public override void AddSpell()
+        {
+            SpellID = AddMyActivatedAbility("Batform", "invokeBatform", $"{CLASS}", null, "\u009f");
+        }
+
+        public override bool HandleEvent(CommandEvent E)
+        {
+            if (E.Command == "invokeBatform" && Checks.Prerequisites(ParentObject, "transform", "tansform"))
+            {
+                if (!ParentObject.IsRealityDistortionUsable())
+                    RealityStabilized.ShowGenericInterdictMessage(ParentObject);
+                else
+                    Cast();
+            }
+            return base.HandleEvent(E);
+        }
+        void Cast()
+        {
+            if (base.Cast("transform"))
+            {
+                ExpendBlood();
+                if (RealityCheck(ParentObject.CurrentCell))
+                {
+                    Transform();
+                }
+            }
+        }
+        void Transform()
+        {
+            GameObject player = The.Player;
+            Cell cell2 = player.Physics.CurrentCell;
+            Bat.ApplyEffect(new ActiveBatform(ParentObject));
+            Metamorphosis.TransferInventory(player, Bat);
+            Metamorphosis.TransferMental(player, Bat);
+            if (Bat.Statistics != null)
+                Bat.Statistics["Level"] = ParentObject.GetStat("Level");
+            XRLCore.Core.Game.ActionManager.RemoveActiveObject(player);
+            XRLCore.Core.Game.ActionManager.AddActiveObject(Bat);
+            cell2.RemoveObject(player);
+            cell2.AddObject(Bat);
+            player.MakeInactive();
+            Bat.MakeActive();
+            XRLCore.Core.Game.Player.Body = Bat;
+            AddPlayerMessage("You assume the form of a bat.");
+
+        }
+    }
+}

@@ -1,0 +1,191 @@
+using System;
+using XRL.UI;
+using XRL.World.Effects;
+using XRL.World.AI;
+using XRL.World;
+using XRL.World.Parts.Mutation;
+using XRL;
+using System.Linq;
+using XRL.World.Parts;
+
+namespace VampirismSys.Biting
+{
+
+    /// <summary>
+    /// Frontend for the bite simulator mechanics behind Biting - evaluates targets and creates BiteSimulator instance if bad target = true.
+    /// </summary>
+    public class Bite : BaseBite
+    {
+        public bool IsOnFire { get; private set; }
+        public bool HasPlasma { get; private set; }
+        public bool HasBadLiquid => BadLiquids.Any(x => x.Item2);
+        public bool HasDisease => Diseases.Any(x => x.Item2);
+        public bool IsPoisoned => Poisons.Any(x => x.Item2);
+        readonly Vampirism _vampirism; 
+        readonly BiteSimulator _sim;
+        public static string[] GiveBadLiquids() //for debugging
+        {
+            return new Bite(null).BadLiquids.Select(x => x.Item1).ToArray();
+        }
+        public Bite(Vampirism Vampirism) : base(Vampirism)
+        {
+            _vampirism = Vampirism;
+            _sim = new(this, Vampirism);
+
+        }
+        public (string, bool)[] Flags => new (string, bool)[]
+        {
+            (nameof(IsOnFire),IsOnFire), (nameof(HasPlasma), HasPlasma), (nameof(HasBadLiquid), HasBadLiquid), (nameof(HasDisease), HasDisease), (nameof(IsPoisoned), IsPoisoned)
+        };
+        readonly public (string, bool)[] BadLiquids =  
+        {                                              
+          ("sludge", false),                            
+          ("ooze", false),
+          ("goo", false),
+          ("oil", false),
+          ("acid", false),
+          ("slime", false),
+          ("putrid", false),
+          ("asphalt", false)
+        };
+
+        readonly public (Type, bool)[] Diseases =
+        {
+                (typeof(Glotrot), false),
+                (typeof(GlotrotOnset), false),
+                (typeof(Ironshank), false),
+                (typeof(IronshankOnset), false)
+        };
+
+        readonly (Type, bool)[] Poisons =
+        {
+                (typeof(Poisoned), false),
+                (typeof(StingerPoisoned), false),
+                (typeof(PoisonGasPoison), false)
+        };
+
+        bool VomitEnding(GameObject Target)
+        {
+            Fail(Target);
+            Biter.GetPart<VampireBloodMetabolism>().Vomit();
+            return true;
+        }
+
+        bool Fail(GameObject Target)
+        {
+            _vampirism.BiteActivate(Target);
+            if (Target != null)
+            {
+                if (Biter.IsPlayer())
+                    Popup.ShowFail("You reel away from " + Target.t() + "!");
+                else if (Target.IsPlayer())
+                    IComponent<GameObject>.AddPlayerMessage($"{Biter.t()} reels away from you!");
+                else
+                    IComponent<GameObject>.AddPlayerMessage($"{Biter.t()} reels away from {Target.t()}!");
+                Target.AddOpinion<OpinionDominate>(Biter);
+            }
+            else if (Biter.IsPlayer())
+                Popup.ShowFail("You reel away!");
+            else
+                IComponent<GameObject>.AddPlayerMessage($"{Biter.t()} reels away!");
+            return true;
+        }
+
+        bool Success()
+        {
+            if (Biter.IsPlayer())
+                Popup.ShowFail("...but you feed anyways!");
+            return false;
+        }
+
+        bool PainTolerance(GameObject Target)
+        {
+            if (Biter.IsPlayer())
+                Popup.ShowFail("You feel no pain and feed on " + Target.t() + "!");
+            return false;
+        }
+
+        static bool OutOfRange()
+        {
+            Popup.Show("Vampirism Mod ERROR @ Bite.CannotFeed(GameObject) :: returned value is out of range!");
+            MetricsManager.LogModError(ModManager.GetMod("vampirism"), "BiteSimulator.BadEnding() returned out of range value in Biting.CannotFeed(). Possible empty enumerable in BadEnding().");
+            return true;
+        }
+
+        /// <summary>
+        /// Should not run if BadTarget returns false, otherwise you will get OutOfRange().
+        /// </summary>
+        /// <returns></returns>
+        public bool CannotFeed(GameObject Target) => _sim.BadEnding(Target) switch
+        {
+            Ending.VOMIT => VomitEnding(Target),
+            Ending.FAIL => Fail(Target),
+            Ending.SUCCESS => Success(),
+            Ending.PAIN_TOLERANCE => PainTolerance(Target),
+            _ => OutOfRange(),
+        };
+
+        /// <summary>
+        /// Method for evaluating object state and gathering data for later use in CannotFeed();
+        /// </summary>
+        public bool BadTarget(GameObject Target)
+        {
+            CheckArrays(Target);
+            IsOnFire = Target.IsAflame();
+            FlameProof();
+            HasPlasma = Target.HasEffect<CoatedInPlasma>();
+            return IsOnFire || HasPlasma || IsPoisoned || HasDisease || HasBadLiquid;
+        }
+
+        void FlameProof()
+        {
+            if (Biter.HasEffect<Blaze_Tonic>())
+            {
+                IsOnFire = false;
+                BadLiquids[7].Item2 = false;
+            }
+        }
+
+        void DiseaseCheck(GameObject Target) => CheckEffects(Target, Diseases);
+        void PoisonCheck(GameObject Target)
+        {
+            CheckEffects(Target, Poisons);
+            if (Target.TryGetEffect<StingerPoisoned>(out var e) && e.Owner == Biter)
+                Poisons[1].Item2 = false;
+        }
+
+        void LiquidCheck(GameObject Target)
+        {
+            if (Target.TryGetEffect(out LiquidCovered L))
+            {
+                for (int i = 0; i < BadLiquids.Length; i++)
+                {
+                    BadLiquids[i].Item2 = L.Liquid.ContainsLiquid(BadLiquids[i].Item1);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < BadLiquids.Length; i++)
+                {
+                    BadLiquids[i].Item2 = false;
+                }
+            }
+
+        }
+
+        void CheckArrays(GameObject Target)
+        {
+            DiseaseCheck(Target);
+            PoisonCheck(Target);
+            LiquidCheck(Target);
+        }
+        static void CheckEffects(GameObject Target, (Type, bool)[] source)
+        {
+            for (int i = 0; i < source.Length; i++)
+            {
+                source[i].Item2 = Target.HasEffect(source[i].Item1);
+            }
+        }
+
+    }
+}

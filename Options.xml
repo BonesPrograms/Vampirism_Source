@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<options>
+  <option
+    ID="FractusNerf"
+    DisplayText="Enable fractus nerf."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+    ID="humanity"
+    DisplayText="Enable humanity."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+    ID="frenzy"
+    DisplayText="Enable frenzy."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+  ID="enablevampiricpowers"
+  DisplayText="(Disabled until 2.0 update) Blood Magic - Enable blood magic update (requires save/load)."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="Yes">
+  </option>
+  <option
+  ID="CoffinAutoWin"
+  Requires="enablevampiricpowers==Yes"
+  DisplayText="Coffin - As long as you are not on cooldown, you will always return to your coffin on death (excepting a few cases - see wiki)."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="No">
+  </option>
+  <option
+  ID="VampirismTrueUndead"
+  DisplayText="Enable True Undead mode."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="No">
+  </option>
+  <option
+    ID="hunterMode"
+    DisplayText="Hunter mode - you can only acquire blood from feeding. Metabolism speed reduced."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="No">
+  </option>
+  <option
+  ID="NightbeastMode"
+  DisplayText="Night Beast mode - you fear the sun and acquire darkvision. Player only."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="No">
+  </option>
+    <option
+  ID="SilverAilment"
+  DisplayText="Silver Ailment - Vampires are allergic to silver and cannot pick it up."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="Yes">
+  </option>
+  <option
+  ID="FearOfFire"
+  DisplayText="Rotschrek - Vampires take double damage from sources of fire and it nearby fire sources makes them panic."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="Yes">
+  </option>
+  <option
+  ID="FearOfTorches"
+  Requires="FearOfFire==Yes"
+  DisplayText="Rotschrek: Torches - Vampires cannot use torches."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="No">
+  </option>
+    <option
+  ID="UnderDougsHum"
+  DisplayText="UnderDoug's Humanity - no longer lose humanity for killing companions."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="No">
+  </option>
+  <option
+    ID="StartingBloodPack"
+    Requires="hunterMode==No"
+    DisplayText="Enable starting blood pack on spawn."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option
+    ID="BloodAutoget"
+    Requires="hunterMode==No"
+    DisplayText="Enable blood autocollect."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option 
+    ID="BloodAutosip" 
+    Requires="hunterMode==No"
+    DisplayText="Automatically drink blood when thirsty." 
+    Category="Vampirism" 
+    Type="Checkbox" 
+    Default="Yes">
+  </option>
+  <option 
+    ID="BloodAutosipLevel"
+    Requires="BloodAutosip==Yes, hunterMode==No"
+    DisplayText="Thirst threshold for automatic drinking"
+    Category="Vampirism" 
+    Type="Combo" 
+    Values="Ravenous,Fiending,Thirsty,Gorged" 
+    Default="Thirsty">
+  </option>
+  <option
+  ID="RedBloodTextVampirism"
+  DisplayText="Disable red color for blood count."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="Yes">
+  </option>
+  <option 
+    ID="vampBloodNerf"
+    DisplayText="(Compatibility) Enable changes to vampire's bleeding liquid."
+    Category="Vampirism"
+    Type="Checkbox"
+    Default="Yes">
+  </option>
+  <option 
+  ID="VampireBleedThirst"
+  DisplayText="Bleed Thirst - Make vampires get thirsty from bleeding."
+  Category="Vampirism"
+  Type="Checkbox"
+  Default="Yes">
+  </option>
+</options>
